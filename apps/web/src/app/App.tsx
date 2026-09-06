@@ -15,6 +15,11 @@ import { NewTechnologyPage } from './pages/catalog/NewTechnologyPage';
 import { NewChallengePage } from './pages/catalog/NewChallengePage';
 import { NewFundingOfferPage } from './pages/catalog/NewFundingOfferPage';
 import { NewCasePage } from './pages/catalog/NewCasePage';
+import { MyContentsPage } from './pages/catalog/MyContentsPage';
+import { EditTechnologyPage } from './pages/catalog/EditTechnologyPage';
+import { EditChallengePage } from './pages/catalog/EditChallengePage';
+import { EditFundingOfferPage } from './pages/catalog/EditFundingOfferPage';
+import { EditCasePage } from './pages/catalog/EditCasePage';
 import { NewConnectionPage } from './pages/connections/NewConnectionPage';
 import { MyConnectionsPage } from './pages/connections/MyConnectionsPage';
 
@@ -41,10 +46,15 @@ export default function App() {
       >
         <Route index element={<DashboardPage />} />
         <Route path="org/representation" element={<RepresentationWizardPage />} />
+        <Route path="my/contents" element={<MyContentsPage />} />
         <Route path="catalog/technologies/new" element={<NewTechnologyPage />} />
+        <Route path="catalog/technologies/:id/edit" element={<EditTechnologyPage />} />
         <Route path="catalog/challenges/new" element={<NewChallengePage />} />
+        <Route path="catalog/challenges/:id/edit" element={<EditChallengePage />} />
         <Route path="funding-offers/new" element={<NewFundingOfferPage />} />
+        <Route path="funding-offers/:id/edit" element={<EditFundingOfferPage />} />
         <Route path="cases/new" element={<NewCasePage />} />
+        <Route path="cases/:id/edit" element={<EditCasePage />} />
         <Route path="connections/new" element={<NewConnectionPage />} />
         <Route path="my/connections" element={<MyConnectionsPage />} />
         <Route path="offer/new" element={<Navigate to="/catalog/technologies/new" replace />} />

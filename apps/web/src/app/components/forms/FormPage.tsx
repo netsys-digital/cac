@@ -48,9 +48,6 @@ export function FormPage({
           onSubmit={onSubmit}
           className="overflow-hidden rounded-[19px] border border-cac-line bg-white shadow-cac"
         >
-          <div className="border-b border-cac-line bg-[#edf1f3] px-4 py-2 font-mono text-[10px] text-[#76838a]">
-            {t('form.appbar')}
-          </div>
           <div className="space-y-4 p-5 md:p-6">
             <div className="grid gap-x-4 gap-y-3 sm:grid-cols-2">{children}</div>
             {error ? (

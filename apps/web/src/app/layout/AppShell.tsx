@@ -1,28 +1,59 @@
-import { Link, NavLink, Outlet } from 'react-router-dom';
+import { Link, NavLink, Outlet, useLocation } from 'react-router-dom';
+import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { BrandMark, Button, Container } from '@cac/ui';
 import { UserRole } from '@cac/shared';
 import { brand, urls } from '../../config';
 import { normalizeLanguage } from '../../i18n';
 import { useAuth } from '../auth/AuthContext';
+import { SideNav, sideIcons, type SideNavItem } from './SideNav';
 
 type NavItem = { to: string; label: string; end?: boolean };
 
-function linkClass(isActive: boolean, tone: 'dark' | 'light') {
-  if (tone === 'dark') {
-    return `rounded-lg px-2.5 py-[9px] text-[11px] whitespace-nowrap text-[#dbe8ec] hover:bg-white/[0.08] ${
-      isActive ? 'bg-white/[0.08]' : ''
-    }`;
-  }
-  return `rounded-lg px-2.5 py-1.5 text-[11px] whitespace-nowrap ${
-    isActive ? 'bg-cac-green3 font-black text-cac-navy' : 'text-cac-muted hover:bg-cac-green3/50'
+function primaryLinkClass(isActive: boolean) {
+  return `rounded-lg px-2.5 py-[9px] text-[11px] whitespace-nowrap text-[#dbe8ec] hover:bg-white/[0.08] ${
+    isActive ? 'bg-white/[0.08]' : ''
   }`;
+}
+
+function useBreadcrumbs() {
+  const { t } = useTranslation();
+  const { pathname } = useLocation();
+
+  return useMemo(() => {
+    const home = { to: '/', label: t('nav.dashboard') };
+    const map: Array<{ match: RegExp | string; label: string }> = [
+      { match: /^\/my\/contents/, label: t('nav.myContents') },
+      { match: /^\/my\/connections/, label: t('nav.connections') },
+      { match: /^\/org\/representation/, label: t('nav.representation') },
+      { match: /^\/catalog\/technologies\/[^/]+\/edit/, label: t('mine.edit') },
+      { match: /^\/catalog\/technologies/, label: t('nav.newTech') },
+      { match: /^\/catalog\/challenges\/[^/]+\/edit/, label: t('mine.edit') },
+      { match: /^\/catalog\/challenges/, label: t('nav.newChallenge') },
+      { match: /^\/funding-offers\/[^/]+\/edit/, label: t('mine.edit') },
+      { match: /^\/funding-offers/, label: t('nav.newOffer') },
+      { match: /^\/cases\/[^/]+\/edit/, label: t('mine.edit') },
+      { match: /^\/cases/, label: t('nav.newCase') },
+      { match: /^\/connections/, label: t('nav.connections') },
+      { match: /^\/admin\/curate/, label: t('nav.adminCurate') },
+      { match: /^\/admin\/representation/, label: t('nav.adminRep') },
+      { match: /^\/admin\/domains/, label: t('nav.adminDomains') },
+    ];
+
+    if (pathname === '/' || pathname === '') return [home];
+
+    const hit = map.find((m) =>
+      typeof m.match === 'string' ? pathname.startsWith(m.match) : m.match.test(pathname),
+    );
+    return hit ? [home, { to: pathname, label: hit.label }] : [home, { to: pathname, label: t('shell.breadcrumbPage') }];
+  }, [pathname, t]);
 }
 
 export function AppShell() {
   const { t, i18n } = useTranslation();
   const { user, logout } = useAuth();
   const isStaff = user?.role === UserRole.ADMIN || user?.role === UserRole.CURADOR;
+  const crumbs = useBreadcrumbs();
 
   const primary: NavItem[] = [
     { to: '/', label: t('nav.dashboard'), end: true },
@@ -30,22 +61,20 @@ export function AppShell() {
     { to: '/org/representation', label: t('nav.representation') },
   ];
 
-  const create: NavItem[] = [
-    { to: '/catalog/technologies/new', label: t('nav.newTech') },
-    { to: '/catalog/challenges/new', label: t('nav.newChallenge') },
-    { to: '/funding-offers/new', label: t('nav.newOffer') },
-    { to: '/cases/new', label: t('nav.newCase') },
+  const sideItems: SideNavItem[] = [
+    { to: '/my/contents', label: t('nav.myContents'), icon: sideIcons.mine },
+    { to: '/catalog/technologies/new', label: t('nav.newTech'), icon: sideIcons.tech },
+    { to: '/catalog/challenges/new', label: t('nav.newChallenge'), icon: sideIcons.challenge },
+    { to: '/funding-offers/new', label: t('nav.newOffer'), icon: sideIcons.offer },
+    { to: '/cases/new', label: t('nav.newCase'), icon: sideIcons.case },
+    ...(isStaff
+      ? [
+          { to: '/admin/curate', label: t('nav.adminCurate'), icon: sideIcons.curate },
+          { to: '/admin/representation', label: t('nav.adminRep'), icon: sideIcons.adminRep },
+          { to: '/admin/domains', label: t('nav.adminDomains'), icon: sideIcons.domains },
+        ]
+      : []),
   ];
-
-  const admin: NavItem[] = isStaff
-    ? [
-        { to: '/admin/curate', label: t('nav.adminCurate') },
-        { to: '/admin/representation', label: t('nav.adminRep') },
-        { to: '/admin/domains', label: t('nav.adminDomains') },
-      ]
-    : [];
-
-  const secondary = [...create, ...admin];
 
   return (
     <div className="min-h-screen bg-cac-bg font-sans">
@@ -66,7 +95,7 @@ export function AppShell() {
                 key={link.to}
                 to={link.to}
                 end={link.end}
-                className={({ isActive }) => linkClass(isActive, 'dark')}
+                className={({ isActive }) => primaryLinkClass(isActive)}
               >
                 {link.label}
               </NavLink>
@@ -94,44 +123,50 @@ export function AppShell() {
         </Container>
       </header>
 
-      {/* Ações de criar + admin: wrap, sem scrollbar */}
-      <div className="border-b border-cac-line bg-white">
-        <Container className="flex flex-wrap items-center gap-1 py-2">
-          <nav className="flex flex-wrap items-center gap-1" aria-label="Actions">
-            {secondary.map((link) => (
-              <NavLink
-                key={link.to}
-                to={link.to}
-                className={({ isActive }) => linkClass(isActive, 'light')}
-              >
-                {link.label}
-              </NavLink>
+      {/* Breadcrumb full-width: separa header da sidebar */}
+      <div className="sticky top-[74px] z-40 border-b border-cac-line bg-white">
+        <div className="flex h-11 items-center gap-2 px-4 text-[11px] md:px-6">
+          <nav aria-label="Breadcrumb" className="flex min-w-0 flex-wrap items-center gap-1.5 font-mono text-[#76838a]">
+            <span className="hidden text-cac-muted sm:inline">{t('shell.breadcrumbRoot')}</span>
+            <span className="hidden text-cac-line sm:inline">·</span>
+            {crumbs.map((c, i) => (
+              <span key={`${c.to}-${c.label}`} className="flex items-center gap-1.5">
+                {i > 0 ? <span className="text-cac-line">/</span> : null}
+                {i < crumbs.length - 1 ? (
+                  <Link to={c.to} className="truncate text-cac-muted hover:text-cac-navy">
+                    {c.label}
+                  </Link>
+                ) : (
+                  <span className="truncate font-black text-cac-navy">{c.label}</span>
+                )}
+              </span>
             ))}
           </nav>
-          <nav className="flex flex-wrap items-center gap-1 lg:hidden" aria-label="Mobile primary">
+          <nav className="ml-auto flex flex-wrap items-center gap-1 lg:hidden" aria-label="Mobile primary">
             {primary.map((link) => (
               <NavLink
                 key={link.to}
                 to={link.to}
                 end={link.end}
-                className={({ isActive }) => linkClass(isActive, 'light')}
+                className={({ isActive }) =>
+                  `rounded-lg px-2 py-1 text-[10px] font-black ${
+                    isActive ? 'bg-cac-green3 text-cac-navy' : 'text-cac-muted'
+                  }`
+                }
               >
                 {link.label}
               </NavLink>
             ))}
-            <a
-              href={urls.www}
-              className="rounded-lg px-2.5 py-1.5 text-[11px] whitespace-nowrap text-cac-muted sm:hidden"
-            >
-              {t('shell.portal')}
-            </a>
           </nav>
-        </Container>
+        </div>
       </div>
 
-      <Container className="py-8">
-        <Outlet />
-      </Container>
+      <div className="flex min-h-[calc(100vh-74px-44px)]">
+        <SideNav items={sideItems} />
+        <div className="min-w-0 flex-1 px-4 py-6 md:px-6 md:py-8">
+          <Outlet />
+        </div>
+      </div>
     </div>
   );
 }

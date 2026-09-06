@@ -201,11 +201,11 @@ if [[ ${#services[@]} -gt 0 ]]; then
   fi
 fi
 
-if [[ "$need_gateway" == "1" ]]; then
-  echo
-  echo "Recarrega gateway…"
-  "${COMPOSE[@]}" up -d --no-deps --force-recreate gateway
-fi
+# Always recreate gateway after builds: nginx caches upstream IPs;
+# after web/www recreate, stale IPs can make the portal serve gestor.
+echo
+echo "Recarrega gateway…"
+"${COMPOSE[@]}" up -d --no-deps --force-recreate gateway
 
 docker image prune -f >/dev/null
 smoke_test

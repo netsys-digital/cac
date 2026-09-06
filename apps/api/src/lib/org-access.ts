@@ -33,3 +33,23 @@ export async function assertCanActForOrganization(
     throw error;
   }
 }
+
+/** Org IDs the user may manage (membership, approved representation, or all if staff). */
+export async function organizationIdsForUser(userId: string, userRole: string): Promise<string[] | 'all'> {
+  if (userRole === UserRole.ADMIN || userRole === UserRole.CURADOR) {
+    return 'all';
+  }
+
+  const [memberships, approved] = await Promise.all([
+    prisma.organizationMember.findMany({
+      where: { userId },
+      select: { organizationId: true },
+    }),
+    prisma.orgRepresentationRequest.findMany({
+      where: { userId, status: RepresentationStatus.APPROVED },
+      select: { organizationId: true },
+    }),
+  ]);
+
+  return [...new Set([...memberships, ...approved].map((r) => r.organizationId))];
+}

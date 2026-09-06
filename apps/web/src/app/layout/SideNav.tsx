@@ -1,0 +1,129 @@
+import type { ReactNode } from 'react';
+import { NavLink } from 'react-router-dom';
+
+export type SideNavItem = {
+  to: string;
+  label: string;
+  icon: ReactNode;
+};
+
+function IconBulb() {
+  return (
+    <svg viewBox="0 0 24 24" className="size-[22px]" fill="none" stroke="currentColor" strokeWidth="1.8">
+      <path d="M9 18h6M10 21h4" strokeLinecap="round" />
+      <path d="M12 3a6 6 0 0 0-3.5 10.7c.6.5 1 1.2 1.1 2h4.8c.1-.8.5-1.5 1.1-2A6 6 0 0 0 12 3Z" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
+function IconAlert() {
+  return (
+    <svg viewBox="0 0 24 24" className="size-[22px]" fill="none" stroke="currentColor" strokeWidth="1.8">
+      <path d="M12 9v4M12 17h.01" strokeLinecap="round" />
+      <path d="M10.3 4.3 2.6 18a2 2 0 0 0 1.7 3h15.4a2 2 0 0 0 1.7-3L13.7 4.3a2 2 0 0 0-3.4 0Z" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
+function IconGift() {
+  return (
+    <svg viewBox="0 0 24 24" className="size-[22px]" fill="none" stroke="currentColor" strokeWidth="1.8">
+      <rect x="3" y="8" width="18" height="13" rx="2" />
+      <path d="M12 8v13M3 12h18" strokeLinecap="round" />
+      <path d="M12 8c-2-3.5-6-3-6-1s2 2.5 6 1Zm0 0c2-3.5 6-3 6-1s-2 2.5-6 1Z" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
+function IconFolder() {
+  return (
+    <svg viewBox="0 0 24 24" className="size-[22px]" fill="none" stroke="currentColor" strokeWidth="1.8">
+      <path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7Z" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
+function IconStar() {
+  return (
+    <svg viewBox="0 0 24 24" className="size-[22px]" fill="none" stroke="currentColor" strokeWidth="1.8">
+      <path
+        d="m12 3 2.6 5.7 6.2.7-4.6 4.2 1.3 6.1L12 16.9 6.5 19.7l1.3-6.1L3.2 9.4l6.2-.7L12 3Z"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
+function IconUsers() {
+  return (
+    <svg viewBox="0 0 24 24" className="size-[22px]" fill="none" stroke="currentColor" strokeWidth="1.8">
+      <circle cx="9" cy="8" r="3.2" />
+      <circle cx="17" cy="9" r="2.5" />
+      <path d="M3.5 19c.6-3.2 2.9-5 5.5-5s4.9 1.8 5.5 5M14 14.2c2 .3 3.7 1.5 4.5 3.8" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+function IconList() {
+  return (
+    <svg viewBox="0 0 24 24" className="size-[22px]" fill="none" stroke="currentColor" strokeWidth="1.8">
+      <path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+function IconGrid() {
+  return (
+    <svg viewBox="0 0 24 24" className="size-[22px]" fill="none" stroke="currentColor" strokeWidth="1.8">
+      <rect x="3" y="3" width="7" height="7" rx="1.5" />
+      <rect x="14" y="3" width="7" height="7" rx="1.5" />
+      <rect x="3" y="14" width="7" height="7" rx="1.5" />
+      <rect x="14" y="14" width="7" height="7" rx="1.5" />
+    </svg>
+  );
+}
+
+export const sideIcons = {
+  mine: <IconList />,
+  tech: <IconBulb />,
+  challenge: <IconAlert />,
+  offer: <IconGift />,
+  case: <IconFolder />,
+  curate: <IconStar />,
+  adminRep: <IconUsers />,
+  domains: <IconGrid />,
+};
+
+type SideNavProps = {
+  items: SideNavItem[];
+};
+
+export function SideNav({ items }: SideNavProps) {
+  return (
+    <aside
+      className="group/side sticky top-[118px] z-30 flex h-[calc(100vh-118px)] w-[64px] shrink-0 flex-col gap-1.5 overflow-hidden border-r border-cac-line bg-[rgba(10,36,64,.98)] py-3 transition-[width] duration-200 ease-out hover:w-[220px]"
+      aria-label="Secondary"
+    >
+      {items.map((item) => (
+        <NavLink
+          key={item.to}
+          to={item.to}
+          title={item.label}
+          className={({ isActive }) =>
+            [
+              'mx-2 flex items-center gap-3 rounded-[10px] px-2.5 py-2.5 text-[11px] font-black transition',
+              isActive
+                ? 'border-t-2 border-cac-green2 bg-white text-cac-navy shadow-[0_6px_16px_rgba(0,0,0,.12)]'
+                : 'border-t-2 border-transparent text-[#c5d5dc] hover:bg-white/10 hover:text-white',
+            ].join(' ')
+          }
+        >
+          <span className="flex size-8 shrink-0 items-center justify-center">{item.icon}</span>
+          <span className="max-w-0 overflow-hidden whitespace-nowrap opacity-0 transition-all duration-200 group-hover/side:max-w-[140px] group-hover/side:opacity-100">
+            {item.label}
+          </span>
+        </NavLink>
+      ))}
+    </aside>
+  );
+}

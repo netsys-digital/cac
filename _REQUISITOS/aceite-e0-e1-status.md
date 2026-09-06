@@ -42,6 +42,9 @@ npm run dev:www   # http://localhost:5179
 | Entregável | Status | Gap / nota |
 |---|---|---|
 | Organizations CRUD + members + slug | **PARTIAL** | Sem DELETE org/membro |
+| Technologies CRUD + workflow | **DONE** | Wizards + **Publicações** (`/my/contents`: editar / reabrir rascunho / excluir draft) |
+| Challenges CRUD | **DONE** | Idem |
+| Funding offers + success cases gestão operador | **DONE** | Idem — dívida operador ver/editar cadastrados **quitada** |
 | Domains country ISO + region | **DONE** | |
 | Technologies + DRAFT→IN_REVIEW→PUBLISHED | **DONE** | |
 | Challenges + need_type | **DONE** | |
@@ -52,7 +55,7 @@ npm run dev:www   # http://localhost:5179
 | web register/login/wizard | **DONE** | |
 | Testes auth + representação | **DONE** | **11/11 PASS** |
 
-**Veredito E1:** **PASS com gaps menores** (DELETE, upload UI, smoke selo).
+**Veredito E1:** **PASS com gaps menores** (DELETE org/membro, upload UI, smoke selo). Gestão de conteúdos do operador: **DONE**.
 
 ---
 
@@ -67,6 +70,8 @@ npm run dev:www   # http://localhost:5179
 | Product-page da solução + complementares | **DONE** | `/solutions/:slug` |
 | Páginas: organização, desafio, projeto | **DONE** | `/organizations|challenges|projects/:slug` |
 | web wizards oferta + desafio | **DONE** | `/catalog/technologies/new`, `/catalog/challenges/new` |
+| web Meus conteúdos (lista + edição) | **DONE** | UI **Publicações** · rota `/my/contents` + `…/:id/edit` |
+| web dashboard operador (cards) | **DONE** | Publicações, contatos, favoritos, interações, views (em breve), likes recebidos |
 | Redirect contextual www→web | **DONE** | Home caminhos 3/4 + CTA na product-page + landings |
 | Seed parcial ≥5 soluções + ≥3 orgs + ≥3 desafios | **DONE** | Catálogo: **10** techs, **8** orgs, **3** challenges, **2** projects |
 | Responsivo básico | **DONE** | Breakpoints do protótipo (grid caminhos / shell) |
