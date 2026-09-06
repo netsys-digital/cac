@@ -1,11 +1,12 @@
 import { type FormEvent, useEffect, useMemo, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Button, Input } from '@cac/ui';
+import { TextArea } from '@cac/ui';
 import { ConnectionObjective } from '@cac/shared';
 import { useAuth } from '../../auth/AuthContext';
 import { catalogApi } from '../../api/catalogApi';
 import { connectionsApi } from '../../api/connectionsApi';
+import { FieldFull, FormPage, SelectField } from '../../components/forms/FormPage';
 
 export function NewConnectionPage() {
   const { t } = useTranslation();
@@ -27,6 +28,15 @@ export function NewConnectionPage() {
       { value: ConnectionObjective.IMPLEMENT_SOLUTION, label: t('conn.objImplement') },
       { value: ConnectionObjective.PARTNERSHIP, label: t('conn.objPartner') },
       { value: ConnectionObjective.FUNDING, label: t('conn.objFunding') },
+    ],
+    [t],
+  );
+
+  const tips = useMemo(
+    () => [
+      { title: t('conn.tip1Title'), body: t('conn.tip1Body') },
+      { title: t('conn.tip2Title'), body: t('conn.tip2Body') },
+      { title: t('conn.tip3Title'), body: t('conn.tip3Body') },
     ],
     [t],
   );
@@ -71,17 +81,28 @@ export function NewConnectionPage() {
   }
 
   return (
-    <form onSubmit={onSubmit} className="mx-auto max-w-xl space-y-4 rounded-2xl border border-cac-line bg-white p-5 shadow-cac">
-      <h1 className="text-[20px] font-black text-cac-navy">{t('conn.newTitle')}</h1>
-      <p className="text-[11px] text-cac-muted">
-        {t('conn.targetMeta', { type: targetType, id: targetId || '—' })}
-      </p>
-      <label className="block text-[11px] font-black text-cac-navy">
-        {t('conn.requesterOrg')}
-        <select
-          className="mt-1 w-full rounded-lg border border-cac-line px-3 py-2 text-[11px]"
+    <FormPage
+      badge="conexão"
+      title={t('conn.newTitle')}
+      description={t('conn.newDesc')}
+      tips={tips}
+      onSubmit={onSubmit}
+      submitLabel={t('conn.submit')}
+      submitHint={t('conn.submitHint')}
+      error={error}
+      message={ok}
+    >
+      <FieldFull>
+        <p className="rounded-lg border border-cac-line bg-[#fbfcfb] px-3 py-2 text-[11px] text-cac-muted">
+          {t('conn.targetMeta', { type: targetType, id: targetId || '—' })}
+        </p>
+      </FieldFull>
+      <FieldFull>
+        <SelectField
+          label={t('conn.requesterOrg')}
+          hint={t('conn.requesterOrgHint')}
           value={requesterOrgId}
-          onChange={(e) => setRequesterOrgId(e.target.value)}
+          onChange={setRequesterOrgId}
           required
         >
           {orgs.map((org) => (
@@ -89,33 +110,32 @@ export function NewConnectionPage() {
               {org.name}
             </option>
           ))}
-        </select>
-      </label>
-      <label className="block text-[11px] font-black text-cac-navy">
-        {t('conn.objective')}
-        <select
-          className="mt-1 w-full rounded-lg border border-cac-line px-3 py-2 text-[11px]"
+        </SelectField>
+      </FieldFull>
+      <FieldFull>
+        <SelectField
+          label={t('conn.objective')}
+          hint={t('conn.objectiveHint')}
           value={objective}
-          onChange={(e) => setObjective(e.target.value)}
+          onChange={setObjective}
         >
           {objectives.map((o) => (
             <option key={o.value} value={o.value}>
               {o.label}
             </option>
           ))}
-        </select>
-      </label>
-      <Input
-        label={t('conn.message')}
-        name="message"
-        value={message}
-        onChange={(e) => setMessage(e.target.value)}
-      />
-      {error ? <p className="text-[11px] text-red-700">{error}</p> : null}
-      {ok ? <p className="text-[11px] text-cac-green">{ok}</p> : null}
-      <Button type="submit" className="w-full">
-        {t('conn.submit')}
-      </Button>
-    </form>
+        </SelectField>
+      </FieldFull>
+      <FieldFull>
+        <TextArea
+          label={t('conn.message')}
+          hint={t('conn.messageHint')}
+          name="message"
+          value={message}
+          onChange={(e) => setMessage(e.target.value)}
+          rows={4}
+        />
+      </FieldFull>
+    </FormPage>
   );
 }

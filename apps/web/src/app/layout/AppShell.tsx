@@ -6,33 +6,51 @@ import { brand, urls } from '../../config';
 import { normalizeLanguage } from '../../i18n';
 import { useAuth } from '../auth/AuthContext';
 
+type NavItem = { to: string; label: string; end?: boolean };
+
+function linkClass(isActive: boolean, tone: 'dark' | 'light') {
+  if (tone === 'dark') {
+    return `rounded-lg px-2.5 py-[9px] text-[11px] whitespace-nowrap text-[#dbe8ec] hover:bg-white/[0.08] ${
+      isActive ? 'bg-white/[0.08]' : ''
+    }`;
+  }
+  return `rounded-lg px-2.5 py-1.5 text-[11px] whitespace-nowrap ${
+    isActive ? 'bg-cac-green3 font-black text-cac-navy' : 'text-cac-muted hover:bg-cac-green3/50'
+  }`;
+}
+
 export function AppShell() {
   const { t, i18n } = useTranslation();
   const { user, logout } = useAuth();
   const isStaff = user?.role === UserRole.ADMIN || user?.role === UserRole.CURADOR;
 
-  const links: Array<{ to: string; label: string; end?: boolean }> = [
+  const primary: NavItem[] = [
     { to: '/', label: t('nav.dashboard'), end: true },
     { to: '/my/connections', label: t('nav.connections') },
     { to: '/org/representation', label: t('nav.representation') },
+  ];
+
+  const create: NavItem[] = [
     { to: '/catalog/technologies/new', label: t('nav.newTech') },
     { to: '/catalog/challenges/new', label: t('nav.newChallenge') },
     { to: '/funding-offers/new', label: t('nav.newOffer') },
     { to: '/cases/new', label: t('nav.newCase') },
   ];
 
-  if (isStaff) {
-    links.push(
-      { to: '/admin/curate', label: t('nav.adminCurate') },
-      { to: '/admin/representation', label: t('nav.adminRep') },
-      { to: '/admin/domains', label: t('nav.adminDomains') },
-    );
-  }
+  const admin: NavItem[] = isStaff
+    ? [
+        { to: '/admin/curate', label: t('nav.adminCurate') },
+        { to: '/admin/representation', label: t('nav.adminRep') },
+        { to: '/admin/domains', label: t('nav.adminDomains') },
+      ]
+    : [];
+
+  const secondary = [...create, ...admin];
 
   return (
     <div className="min-h-screen bg-cac-bg font-sans">
-      <header className="sticky top-0 z-50 h-[74px] w-full bg-[rgba(10,36,64,.98)] text-white">
-        <Container className="flex h-full items-center gap-5">
+      <header className="sticky top-0 z-50 w-full bg-[rgba(10,36,64,.98)] text-white">
+        <Container className="flex h-[74px] items-center gap-5">
           <Link to="/" className="shrink-0">
             <BrandMark
               name={brand.name}
@@ -42,24 +60,20 @@ export function AppShell() {
             />
           </Link>
 
-          <nav className="hidden flex-1 items-center gap-[3px] overflow-auto lg:flex" aria-label="Primary">
-            {links.map((link) => (
+          <nav className="hidden min-w-0 flex-1 items-center gap-[3px] lg:flex" aria-label="Primary">
+            {primary.map((link) => (
               <NavLink
                 key={link.to}
                 to={link.to}
                 end={link.end}
-                className={({ isActive }) =>
-                  `rounded-lg px-2.5 py-[9px] text-[11px] whitespace-nowrap text-[#dbe8ec] hover:bg-white/[0.08] ${
-                    isActive ? 'bg-white/[0.08]' : ''
-                  }`
-                }
+                className={({ isActive }) => linkClass(isActive, 'dark')}
               >
                 {link.label}
               </NavLink>
             ))}
           </nav>
 
-          <div className="ml-auto flex items-center gap-[7px]">
+          <div className="ml-auto flex shrink-0 items-center gap-[7px]">
             <button
               type="button"
               className="rounded-lg px-2 py-1 text-[10px] font-black tracking-[1px] text-[#90d6b6] hover:bg-white/10"
@@ -80,31 +94,40 @@ export function AppShell() {
         </Container>
       </header>
 
-      <nav
-        className="flex gap-1 overflow-auto border-b border-cac-line bg-white px-[22px] py-2 lg:hidden"
-        aria-label="Mobile"
-      >
-        {links.map((link) => (
-          <NavLink
-            key={link.to}
-            to={link.to}
-            end={link.end}
-            className={({ isActive }) =>
-              `shrink-0 rounded-lg px-2.5 py-2 text-[11px] whitespace-nowrap ${
-                isActive ? 'bg-cac-green3 font-black text-cac-navy' : 'text-cac-muted'
-              }`
-            }
-          >
-            {link.label}
-          </NavLink>
-        ))}
-        <a
-          href={urls.www}
-          className="shrink-0 rounded-lg px-2.5 py-2 text-[11px] whitespace-nowrap text-cac-muted"
-        >
-          {t('shell.portal')}
-        </a>
-      </nav>
+      {/* Ações de criar + admin: wrap, sem scrollbar */}
+      <div className="border-b border-cac-line bg-white">
+        <Container className="flex flex-wrap items-center gap-1 py-2">
+          <nav className="flex flex-wrap items-center gap-1" aria-label="Actions">
+            {secondary.map((link) => (
+              <NavLink
+                key={link.to}
+                to={link.to}
+                className={({ isActive }) => linkClass(isActive, 'light')}
+              >
+                {link.label}
+              </NavLink>
+            ))}
+          </nav>
+          <nav className="flex flex-wrap items-center gap-1 lg:hidden" aria-label="Mobile primary">
+            {primary.map((link) => (
+              <NavLink
+                key={link.to}
+                to={link.to}
+                end={link.end}
+                className={({ isActive }) => linkClass(isActive, 'light')}
+              >
+                {link.label}
+              </NavLink>
+            ))}
+            <a
+              href={urls.www}
+              className="rounded-lg px-2.5 py-1.5 text-[11px] whitespace-nowrap text-cac-muted sm:hidden"
+            >
+              {t('shell.portal')}
+            </a>
+          </nav>
+        </Container>
+      </div>
 
       <Container className="py-8">
         <Outlet />

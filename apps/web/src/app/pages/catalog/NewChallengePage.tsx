@@ -1,8 +1,9 @@
-import { type FormEvent, useEffect, useState } from 'react';
+import { type FormEvent, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Button, Input } from '@cac/ui';
+import { Input, TextArea } from '@cac/ui';
 import { useAuth } from '../../auth/AuthContext';
 import { catalogApi, type Organization } from '../../api/catalogApi';
+import { FieldFull, FormPage, SelectField } from '../../components/forms/FormPage';
 
 export function NewChallengePage() {
   const { t } = useTranslation();
@@ -15,6 +16,15 @@ export function NewChallengePage() {
     if (!accessToken) return;
     void catalogApi.listOrganizations(accessToken).then((res) => setOrgs(res.items));
   }, [accessToken]);
+
+  const tips = useMemo(
+    () => [
+      { title: t('catalog.tipCh1Title'), body: t('catalog.tipCh1Body') },
+      { title: t('catalog.tipCh2Title'), body: t('catalog.tipCh2Body') },
+      { title: t('catalog.tipCh3Title'), body: t('catalog.tipCh3Body') },
+    ],
+    [t],
+  );
 
   async function onSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -40,37 +50,52 @@ export function NewChallengePage() {
   }
 
   return (
-    <form onSubmit={onSubmit} className="max-w-xl space-y-3 rounded-2xl border border-cac-line bg-white p-[23px] shadow-cac">
-      <h1 className="text-[20px] font-black text-cac-navy">{t('catalog.newChallenge')}</h1>
-      <label className="flex flex-col gap-1 text-sm">
-        <span className="font-medium">{t('catalog.organization')}</span>
-        <select name="organizationId" required className="rounded-md border border-cac-line px-3 py-2">
+    <FormPage
+      badge="02 · desafio"
+      title={t('catalog.newChallenge')}
+      description={t('catalog.challengeDesc')}
+      tips={tips}
+      onSubmit={onSubmit}
+      submitLabel={t('catalog.saveSubmit')}
+      error={error}
+      message={message}
+    >
+      <FieldFull>
+        <SelectField
+          label={t('catalog.organization')}
+          hint={t('catalog.organizationHint')}
+          name="organizationId"
+          required
+        >
           <option value="">{t('rep.selectOrg')}</option>
           {orgs.map((o) => (
             <option key={o.id} value={o.id}>
               {o.name}
             </option>
           ))}
-        </select>
-      </label>
-      <Input label={t('catalog.title')} name="title" required />
-      <Input label={t('catalog.summary')} name="summary" required />
-      <label className="flex flex-col gap-1 text-sm">
-        <span className="font-medium">{t('catalog.needType')}</span>
-        <select name="needType" className="rounded-md border border-cac-line px-3 py-2" defaultValue="TECHNOLOGY">
-          <option value="TECHNOLOGY">TECHNOLOGY</option>
-          <option value="KNOWLEDGE">KNOWLEDGE</option>
-          <option value="PARTNERSHIP">PARTNERSHIP</option>
-          <option value="FUNDING">FUNDING</option>
-          <option value="TRAINING">TRAINING</option>
-          <option value="RESEARCH">RESEARCH</option>
-          <option value="EQUIPMENT">EQUIPMENT</option>
-        </select>
-      </label>
-      <Input label={t('catalog.country')} name="country" defaultValue="BR" />
-      {error ? <p className="text-[11px] text-red-700">{error}</p> : null}
-      {message ? <p className="text-[11px] text-cac-forest">{message}</p> : null}
-      <Button type="submit">{t('catalog.saveSubmit')}</Button>
-    </form>
+        </SelectField>
+      </FieldFull>
+      <FieldFull>
+        <Input label={t('catalog.title')} hint={t('catalog.titleHint')} name="title" required />
+      </FieldFull>
+      <FieldFull>
+        <TextArea label={t('catalog.summary')} hint={t('catalog.summaryHint')} name="summary" required rows={4} />
+      </FieldFull>
+      <SelectField
+        label={t('catalog.needType')}
+        hint={t('catalog.needTypeHint')}
+        name="needType"
+        defaultValue="TECHNOLOGY"
+      >
+        <option value="TECHNOLOGY">{t('catalog.needTechnology')}</option>
+        <option value="KNOWLEDGE">{t('catalog.needKnowledge')}</option>
+        <option value="PARTNERSHIP">{t('catalog.needPartnership')}</option>
+        <option value="FUNDING">{t('catalog.needFunding')}</option>
+        <option value="TRAINING">{t('catalog.needTraining')}</option>
+        <option value="RESEARCH">{t('catalog.needResearch')}</option>
+        <option value="EQUIPMENT">{t('catalog.needEquipment')}</option>
+      </SelectField>
+      <Input label={t('catalog.country')} hint={t('catalog.countryHint')} name="country" defaultValue="BR" />
+    </FormPage>
   );
 }
