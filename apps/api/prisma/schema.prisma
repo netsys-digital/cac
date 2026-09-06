@@ -1,0 +1,473 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  ADMIN
+  CURADOR
+  ORG_ADMIN
+  ORG_MEMBER
+}
+
+enum OrgVerificationStatus {
+  PENDING
+  VERIFIED
+  REJECTED
+}
+
+enum ContentStatus {
+  DRAFT
+  IN_REVIEW
+  PUBLISHED
+  ARCHIVED
+}
+
+enum RepresentationStatus {
+  REQUESTED
+  UNDER_REVIEW
+  APPROVED
+  REJECTED
+}
+
+enum ClimateAction {
+  ADAPTATION
+  MITIGATION
+  BOTH
+}
+
+enum ProjectType {
+  PROJECT
+  INITIATIVE
+  POLICY
+  PROGRAMME
+}
+
+enum NeedType {
+  TECHNOLOGY
+  KNOWLEDGE
+  PARTNERSHIP
+  FUNDING
+  TRAINING
+  RESEARCH
+  EQUIPMENT
+}
+
+enum Maturity {
+  RESEARCH
+  VALIDATION
+  DEMONSTRATION
+  READY_FOR_IMPLEMENTATION
+  AT_SCALE
+}
+
+enum MediaKind {
+  IMAGE
+  PDF
+}
+
+enum ConnectionObjective {
+  KNOW_MORE
+  IMPLEMENT_SOLUTION
+  PARTNERSHIP
+  FUNDING
+}
+
+enum ConnectionTargetType {
+  TECHNOLOGY
+  PROJECT
+  FUNDING_OFFER
+  SUCCESS_CASE
+  CHALLENGE
+  ORGANIZATION
+}
+
+enum ConnectionStatus {
+  PENDING
+  ACCEPTED
+  DECLINED
+  EXPIRED
+  CONTACT_SHARED
+  CLOSED
+}
+
+model User {
+  id                    String                     @id @default(uuid()) @db.Uuid
+  email                 String                     @unique
+  passwordHash          String
+  name                  String
+  role                  UserRole                   @default(ORG_MEMBER)
+  createdAt             DateTime                   @default(now())
+  updatedAt             DateTime                   @updatedAt
+  refreshTokens         RefreshToken[]
+  memberships           OrganizationMember[]
+  representationRequests OrgRepresentationRequest[]
+  connectionsRequested  Connection[]               @relation("ConnectionRequesterUser")
+  savedItems            SavedItem[]
+  follows               Follow[]
+}
+
+model RefreshToken {
+  id        String   @id @default(uuid()) @db.Uuid
+  tokenHash String   @unique
+  userId    String   @db.Uuid
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model Organization {
+  id                     String                     @id @default(uuid()) @db.Uuid
+  name                   String
+  slug                   String                     @unique
+  summary                String?
+  country                String?
+  region                 String?
+  website                String?
+  verificationStatus     OrgVerificationStatus      @default(PENDING)
+  createdAt              DateTime                   @default(now())
+  updatedAt              DateTime                   @updatedAt
+  members                OrganizationMember[]
+  representationRequests OrgRepresentationRequest[]
+  technologies           Technology[]
+  challenges             Challenge[]
+  projects               Project[]
+  funderProfiles         FunderProfile[]
+  fundingOffers          FundingOffer[]
+  successCases           SuccessCase[]
+  connectionsRequested   Connection[]  @relation("ConnectionRequester")
+  connectionsReceived    Connection[]  @relation("ConnectionTarget")
+  follows                Follow[]
+
+  @@index([verificationStatus])
+}
+
+model OrganizationMember {
+  id             String       @id @default(uuid()) @db.Uuid
+  userId         String       @db.Uuid
+  organizationId String       @db.Uuid
+  role           UserRole     @default(ORG_MEMBER)
+  createdAt      DateTime     @default(now())
+  user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, organizationId])
+  @@index([organizationId])
+}
+
+model OrgRepresentationRequest {
+  id             String               @id @default(uuid()) @db.Uuid
+  userId         String               @db.Uuid
+  organizationId String               @db.Uuid
+  unit           String
+  linkRole       String
+  interest       String
+  status         RepresentationStatus @default(REQUESTED)
+  createdAt      DateTime             @default(now())
+  updatedAt      DateTime             @updatedAt
+  user           User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
+  organization   Organization         @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, organizationId])
+  @@index([status])
+  @@index([organizationId])
+}
+
+model Domain {
+  id        String   @id @default(uuid()) @db.Uuid
+  grouping  String
+  key       String
+  labelPt   String
+  labelEn   String
+  sortOrder Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([grouping, key])
+  @@index([grouping])
+}
+
+model Technology {
+  id               String            @id @default(uuid()) @db.Uuid
+  title            String
+  slug             String            @unique
+  summary          String
+  problemStatement String
+  howItWorks       String
+  status           ContentStatus     @default(DRAFT)
+  organizationId   String            @db.Uuid
+  country          String
+  region           String?
+  climateAction    ClimateAction?
+  maturity         Maturity?
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+  organization     Organization      @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  tags             TechnologyTag[]
+  media            TechnologyMedia[]
+  embedding        TechnologyEmbedding?
+
+  @@index([status])
+  @@index([organizationId])
+  @@index([country])
+  @@index([region])
+}
+
+model TechnologyTag {
+  id           String     @id @default(uuid()) @db.Uuid
+  technologyId String     @db.Uuid
+  tag          String
+  technology   Technology @relation(fields: [technologyId], references: [id], onDelete: Cascade)
+
+  @@index([technologyId])
+  @@index([tag])
+}
+
+model TechnologyMedia {
+  id           String     @id @default(uuid()) @db.Uuid
+  technologyId String     @db.Uuid
+  url          String
+  kind         MediaKind
+  filename     String
+  mimeType     String
+  size         Int
+  createdAt    DateTime   @default(now())
+  technology   Technology @relation(fields: [technologyId], references: [id], onDelete: Cascade)
+
+  @@index([technologyId])
+}
+
+model Challenge {
+  id             String         @id @default(uuid()) @db.Uuid
+  title          String
+  slug           String         @unique
+  summary        String
+  context        String?
+  needType       NeedType
+  status         ContentStatus  @default(DRAFT)
+  organizationId String         @db.Uuid
+  country        String?
+  region         String?
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+  organization   Organization   @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  tags           ChallengeTag[]
+  embedding      ChallengeEmbedding?
+
+  @@index([status])
+  @@index([organizationId])
+  @@index([country])
+  @@index([region])
+}
+
+model ChallengeTag {
+  id          String    @id @default(uuid()) @db.Uuid
+  challengeId String    @db.Uuid
+  tag         String
+  challenge   Challenge @relation(fields: [challengeId], references: [id], onDelete: Cascade)
+
+  @@index([challengeId])
+}
+
+model Project {
+  id             String        @id @default(uuid()) @db.Uuid
+  title          String
+  slug           String        @unique
+  type           ProjectType
+  summary        String
+  status         ContentStatus @default(DRAFT)
+  organizationId String        @db.Uuid
+  country        String?
+  region         String?
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+  organization   Organization  @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  embedding      ProjectEmbedding?
+
+  @@index([status])
+  @@index([organizationId])
+  @@index([type])
+  @@index([country])
+  @@index([region])
+}
+
+model TechnologyEmbedding {
+  id           String     @id @default(uuid()) @db.Uuid
+  technologyId String     @unique @db.Uuid
+  model        String
+  vector       Json
+  textHash     String
+  updatedAt    DateTime   @updatedAt
+  technology   Technology @relation(fields: [technologyId], references: [id], onDelete: Cascade)
+}
+
+model ChallengeEmbedding {
+  id          String    @id @default(uuid()) @db.Uuid
+  challengeId String    @unique @db.Uuid
+  model       String
+  vector      Json
+  textHash    String
+  updatedAt   DateTime  @updatedAt
+  challenge   Challenge @relation(fields: [challengeId], references: [id], onDelete: Cascade)
+}
+
+model ProjectEmbedding {
+  id        String   @id @default(uuid()) @db.Uuid
+  projectId String   @unique @db.Uuid
+  model     String
+  vector    Json
+  textHash  String
+  updatedAt DateTime @updatedAt
+  project   Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+}
+
+/// Diretório de financiadores (≠ chamada aberta — não entra em whoCanFund).
+model FunderProfile {
+  id             String        @id @default(uuid()) @db.Uuid
+  name           String
+  slug           String        @unique
+  summary        String
+  country        String?
+  region         String?
+  organizationId String?       @db.Uuid
+  status         ContentStatus @default(DRAFT)
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+  organization   Organization? @relation(fields: [organizationId], references: [id], onDelete: SetNull)
+
+  @@index([status])
+  @@index([country])
+  @@index([region])
+}
+
+/// Oferta ativa de financiamento (participa do match whoCanFund).
+model FundingOffer {
+  id             String        @id @default(uuid()) @db.Uuid
+  title          String
+  slug           String        @unique
+  summary        String
+  whatFunds      String?
+  criteria       String?
+  amountRange    String?
+  officialUrl    String?
+  deadline       DateTime?
+  country        String?
+  region         String?
+  organizationId String        @db.Uuid
+  status         ContentStatus @default(DRAFT)
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+  organization   Organization  @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([status])
+  @@index([organizationId])
+  @@index([deadline])
+}
+
+model SuccessCase {
+  id             String            @id @default(uuid()) @db.Uuid
+  title          String
+  slug           String            @unique
+  summary        String
+  context        String?
+  outcomes       String?
+  country        String
+  region         String?
+  organizationId String            @db.Uuid
+  status         ContentStatus     @default(DRAFT)
+  createdAt      DateTime          @default(now())
+  updatedAt      DateTime          @updatedAt
+  organization   Organization      @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  media          SuccessCaseMedia[]
+  needs          SuccessCaseNeed[]
+
+  @@index([status])
+  @@index([organizationId])
+  @@index([country])
+  @@index([region])
+}
+
+model SuccessCaseMedia {
+  id            String      @id @default(uuid()) @db.Uuid
+  successCaseId String      @db.Uuid
+  url           String
+  kind          MediaKind
+  filename      String
+  mimeType      String
+  size          Int
+  caption       String?
+  createdAt     DateTime    @default(now())
+  successCase   SuccessCase @relation(fields: [successCaseId], references: [id], onDelete: Cascade)
+
+  @@index([successCaseId])
+}
+
+model SuccessCaseNeed {
+  id            String      @id @default(uuid()) @db.Uuid
+  successCaseId String      @db.Uuid
+  needType      NeedType
+  detail        String?
+  successCase   SuccessCase @relation(fields: [successCaseId], references: [id], onDelete: Cascade)
+
+  @@index([successCaseId])
+}
+
+model Connection {
+  id               String                @id @default(uuid()) @db.Uuid
+  requesterOrgId   String                @db.Uuid
+  targetOrgId      String                @db.Uuid
+  requesterUserId  String                @db.Uuid
+  targetType       ConnectionTargetType
+  targetId         String                @db.Uuid
+  objective        ConnectionObjective
+  message          String?
+  status           ConnectionStatus      @default(PENDING)
+  expiresAt        DateTime
+  reminderSentAt   DateTime?
+  acceptedAt       DateTime?
+  declinedAt       DateTime?
+  closedAt         DateTime?
+  createdAt        DateTime              @default(now())
+  updatedAt        DateTime              @updatedAt
+  requesterOrg     Organization          @relation("ConnectionRequester", fields: [requesterOrgId], references: [id], onDelete: Cascade)
+  targetOrg        Organization          @relation("ConnectionTarget", fields: [targetOrgId], references: [id], onDelete: Cascade)
+  requesterUser    User                  @relation("ConnectionRequesterUser", fields: [requesterUserId], references: [id], onDelete: Cascade)
+
+  @@index([status])
+  @@index([requesterOrgId])
+  @@index([targetOrgId])
+  @@index([requesterUserId])
+  @@index([targetType, targetId])
+  @@index([expiresAt])
+}
+
+model SavedItem {
+  id         String               @id @default(uuid()) @db.Uuid
+  userId     String               @db.Uuid
+  targetType ConnectionTargetType
+  targetId   String               @db.Uuid
+  createdAt  DateTime             @default(now())
+  user       User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, targetType, targetId])
+  @@index([userId])
+}
+
+model Follow {
+  id             String       @id @default(uuid()) @db.Uuid
+  userId         String       @db.Uuid
+  organizationId String       @db.Uuid
+  createdAt      DateTime     @default(now())
+  user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, organizationId])
+  @@index([userId])
+  @@index([organizationId])
+}

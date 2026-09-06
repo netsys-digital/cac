@@ -1,0 +1,57 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  build-test:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: cac
+          POSTGRES_PASSWORD: cac_secret
+          POSTGRES_DB: cac
+        ports:
+          - 5433:5432
+        options: >-
+          --health-cmd "pg_isready -U cac -d cac"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6381:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      DATABASE_URL: postgresql://cac:cac_secret@localhost:5433/cac
+      REDIS_URL: redis://localhost:6381
+      JWT_SECRET: ci-access-secret-change-me-min-32-chars
+      JWT_REFRESH_SECRET: ci-refresh-secret-change-me-min-32
+      CORS_ORIGIN: http://localhost:5178,http://localhost:5179
+      COOKIE_DOMAIN: localhost
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci
+      - run: npm run build -w @cac/shared
+      - run: npm run db:generate -w @cac/api
+      - run: npx prisma migrate deploy --schema apps/api/prisma/schema.prisma
+      - run: npm run db:seed -w @cac/api
+      - run: npm run lint
+      - run: npm test
+      - run: npm run build -w @cac/ui
+      - run: npm run build -w @cac/api
+      - run: npm run build -w @cac/www
+      - run: npm run build -w @cac/web

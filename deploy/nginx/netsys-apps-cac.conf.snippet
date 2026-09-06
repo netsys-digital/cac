@@ -1,0 +1,39 @@
+# Trecho para /etc/nginx/sites-available/netsys-apps
+# Domínios CAC — proxy para o gateway Docker (compose.prod)
+# Portas: 8084 portal · 8086 gestor (evita 8080 Usinup / 8081–8083 / 8085)
+
+# --- CAC PORTAL (www) ---
+server {
+    listen 80;
+    server_name portalcac.netsys.company;
+
+    client_max_body_size 25m;
+
+    location / {
+        proxy_pass http://127.0.0.1:8084;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+}
+
+# --- CAC GESTOR (web) ---
+server {
+    listen 80;
+    server_name gestorcac.netsys.company;
+
+    client_max_body_size 25m;
+
+    location / {
+        proxy_pass http://127.0.0.1:8086;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+}
+
+# Depois:
+#   sudo nginx -t && sudo systemctl reload nginx
+#   (opcional TLS) sudo certbot --nginx -d portalcac.netsys.company -d gestorcac.netsys.company

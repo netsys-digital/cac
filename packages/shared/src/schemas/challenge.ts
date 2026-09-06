@@ -1,0 +1,37 @@
+import { z } from 'zod';
+import { ContentStatus, NeedType } from '../enums.js';
+
+export const createChallengeBodySchema = z.object({
+  title: z.string().min(3).max(200),
+  slug: z
+    .string()
+    .min(2)
+    .max(160)
+    .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/)
+    .optional(),
+  summary: z.string().min(10).max(2000),
+  context: z.string().max(5000).optional(),
+  needType: z.enum([
+    NeedType.TECHNOLOGY,
+    NeedType.KNOWLEDGE,
+    NeedType.PARTNERSHIP,
+    NeedType.FUNDING,
+    NeedType.TRAINING,
+    NeedType.RESEARCH,
+    NeedType.EQUIPMENT,
+  ]),
+  organizationId: z.string().uuid(),
+  country: z.string().length(2).optional(),
+  region: z.string().max(64).optional(),
+  tags: z.array(z.string().min(1).max(64)).max(20).optional(),
+  status: z
+    .enum([ContentStatus.DRAFT, ContentStatus.IN_REVIEW, ContentStatus.PUBLISHED])
+    .optional(),
+});
+
+export const updateChallengeBodySchema = createChallengeBodySchema
+  .omit({ organizationId: true })
+  .partial();
+
+export type CreateChallengeBody = z.infer<typeof createChallengeBodySchema>;
+export type UpdateChallengeBody = z.infer<typeof updateChallengeBodySchema>;

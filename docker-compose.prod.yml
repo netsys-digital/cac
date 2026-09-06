@@ -1,0 +1,133 @@
+# Demo / staging / prod (Marco 1 — E6)
+# Uso: docker compose -f docker-compose.prod.yml --env-file .env.prod up --build -d
+#
+# Portas no host NETSYS (livre vs outros apps):
+#   Portal  :8084  → portalcac.netsys.company
+#   Gestor  :8086  → gestorcac.netsys.company
+# Snippet host: deploy/nginx/netsys-apps-cac.conf.snippet
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-cac}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-cac_secret}
+      POSTGRES_DB: ${POSTGRES_DB:-cac}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./backups:/backups
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U ${POSTGRES_USER:-cac} -d ${POSTGRES_DB:-cac}']
+      interval: 5s
+      timeout: 5s
+      retries: 15
+    restart: unless-stopped
+
+  redis:
+    image: redis:7-alpine
+    healthcheck:
+      test: ['CMD', 'redis-cli', 'ping']
+      interval: 5s
+      timeout: 5s
+      retries: 15
+    restart: unless-stopped
+
+  api:
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+    command: sh -c "npx prisma migrate deploy && npx prisma db seed && node dist/index.js"
+    working_dir: /app/apps/api
+    env_file:
+      - ${ENV_FILE:-.env.prod}
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER:-cac}:${POSTGRES_PASSWORD:-cac_secret}@postgres:5432/${POSTGRES_DB:-cac}
+      REDIS_URL: redis://redis:6379
+      API_PORT: '3003'
+      NODE_ENV: production
+      OFFLINE_MODE: ${OFFLINE_MODE:-true}
+      CORS_ORIGIN: ${CORS_ORIGIN:-https://portalcac.netsys.company,https://gestorcac.netsys.company}
+      COOKIE_DOMAIN: ${COOKIE_DOMAIN:-.netsys.company}
+    volumes:
+      - uploads_data:/app/apps/api/uploads
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+    healthcheck:
+      test: ['CMD-SHELL', 'node -e "fetch(\"http://127.0.0.1:3003/health\").then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"']
+      interval: 15s
+      timeout: 5s
+      retries: 10
+      start_period: 40s
+
+  api-worker:
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+    command: node dist/worker.js
+    working_dir: /app/apps/api
+    env_file:
+      - ${ENV_FILE:-.env.prod}
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER:-cac}:${POSTGRES_PASSWORD:-cac_secret}@postgres:5432/${POSTGRES_DB:-cac}
+      REDIS_URL: redis://redis:6379
+      NODE_ENV: production
+      OFFLINE_MODE: ${OFFLINE_MODE:-true}
+    depends_on:
+      api:
+        condition: service_healthy
+    restart: unless-stopped
+
+  www:
+    build:
+      context: .
+      dockerfile: apps/www/Dockerfile
+      args:
+        # API same-origin no portal; cross-link absoluto para o gestor
+        VITE_API_URL: ${PUBLIC_API_URL:-}
+        VITE_WEB_URL: ${PUBLIC_WEB_URL:-https://gestorcac.netsys.company}
+        VITE_WWW_URL: ${PUBLIC_WWW_URL:-https://portalcac.netsys.company}
+        VITE_APP_BRAND_NAME: ${APP_BRAND_NAME:-Climate Action Connect}
+        VITE_APP_BRAND_SHORT: ${APP_BRAND_SHORT:-CAC}
+        VITE_APP_BRAND_LOGO: ${APP_BRAND_LOGO:-}
+    depends_on:
+      api:
+        condition: service_healthy
+    restart: unless-stopped
+
+  web:
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile
+      args:
+        VITE_API_URL: ${PUBLIC_API_URL:-}
+        VITE_WEB_URL: ${PUBLIC_WEB_URL:-https://gestorcac.netsys.company}
+        VITE_WWW_URL: ${PUBLIC_WWW_URL:-https://portalcac.netsys.company}
+        VITE_BASE: /
+        VITE_APP_BRAND_NAME: ${APP_BRAND_NAME:-Climate Action Connect}
+        VITE_APP_BRAND_SHORT: ${APP_BRAND_SHORT:-CAC}
+        VITE_APP_BRAND_LOGO: ${APP_BRAND_LOGO:-}
+    depends_on:
+      api:
+        condition: service_healthy
+    restart: unless-stopped
+
+  gateway:
+    image: nginx:1.27-alpine
+    ports:
+      - '${GATEWAY_PORT_PORTAL:-8084}:80'
+      - '${GATEWAY_PORT_GESTOR:-8086}:81'
+    volumes:
+      - ./deploy/nginx/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+    depends_on:
+      - www
+      - web
+      - api
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+  uploads_data:

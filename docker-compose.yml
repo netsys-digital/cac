@@ -1,0 +1,105 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: cac
+      POSTGRES_PASSWORD: cac_secret
+      POSTGRES_DB: cac
+    ports:
+      - '5433:5432'
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U cac -d cac']
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - '6381:6379'
+    healthcheck:
+      test: ['CMD', 'redis-cli', 'ping']
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  api:
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+    command: sh -c "npx prisma migrate deploy && npx prisma db seed && node dist/index.js"
+    working_dir: /app/apps/api
+    env_file:
+      - .env
+    environment:
+      DATABASE_URL: postgresql://cac:cac_secret@postgres:5432/cac
+      REDIS_URL: redis://redis:6379
+      API_PORT: '3003'
+      COOKIE_DOMAIN: localhost
+      CORS_ORIGIN: http://localhost:5178,http://localhost:5179
+    ports:
+      - '3003:3003'
+    volumes:
+      - uploads_data:/app/apps/api/uploads
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  api-worker:
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+    command: node dist/worker.js
+    working_dir: /app/apps/api
+    env_file:
+      - .env
+    environment:
+      DATABASE_URL: postgresql://cac:cac_secret@postgres:5432/cac
+      REDIS_URL: redis://redis:6379
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      api:
+        condition: service_started
+
+  www:
+    build:
+      context: .
+      dockerfile: apps/www/Dockerfile
+      args:
+        VITE_API_URL: http://localhost:3003
+        VITE_WEB_URL: http://localhost:5178
+        VITE_WWW_URL: http://localhost:5179
+        VITE_APP_BRAND_NAME: Climate Action Connect
+        VITE_APP_BRAND_SHORT: CAC
+        VITE_APP_BRAND_LOGO: ""
+    ports:
+      - '5179:80'
+    depends_on:
+      - api
+
+  web:
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile
+      args:
+        VITE_API_URL: http://localhost:3003
+        VITE_WEB_URL: http://localhost:5178
+        VITE_WWW_URL: http://localhost:5179
+        VITE_APP_BRAND_NAME: Climate Action Connect
+        VITE_APP_BRAND_SHORT: CAC
+        VITE_APP_BRAND_LOGO: ""
+    ports:
+      - '5178:80'
+    depends_on:
+      - api
+
+volumes:
+  postgres_data:
+  uploads_data:

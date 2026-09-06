@@ -1,0 +1,55 @@
+E3 operational setup result
+date: 2026-09-06
+cwd: /app/netsys-apps/cac
+
+RESULT_STEP1=PASS
+  SCORE_WEIGHTS=semantic:40,tags:25,region:15,maturity:10,need:10
+  OFFLINE_MODE=true
+
+RESULT_STEP2=PASS
+  npm run build -w @cac/shared (tsc ok; node via nvm v24.19.0)
+
+RESULT_STEP3=PASS
+  npx prisma generate: ok
+  npx prisma migrate deploy: ok (4 migrations, no pending; DATABASE_URL from .env; db localhost:5433/cac)
+  fallback migrate dev: not needed
+
+RESULT_STEP4=PASS
+  npm run db:seed -w @cac/api
+  catalog orgs=3 technologies=5 challenges=3 projects=2 funders=1 offers=1
+  domains=278 (countries=250) embeddings=16
+  FIX: apps/api/src/lib/embeddings/provider.ts import textHash from '../../modules/search/score.js' (was '../search/score.js')
+
+RESULT_STEP5=PASS
+  docker compose up -d --build api api-worker
+  containers: cac-api-1 Up :3003, cac-api-worker-1 Up, postgres/redis healthy
+
+RESULT_STEP6=PASS
+  npm run test -w @cac/api
+  Test Files 4 passed; Tests 18 passed
+  no source fixes required for tests
+
+RESULT_STEP7=PASS
+  npm run build -w @cac/www (tsc -b && vite build ok)
+  FIX: apps/www/src/app/components/search/FilterPanel.tsx
+    - import SearchFilters from '../../api/searchApi'
+    - next[key] = raw as SearchFilters[K]
+
+RESULT_STEP8=PASS
+  POST /api/search query="recuperação de pastagens em seca" lang=pt
+  total=29
+  top_scores=94,89,83
+  factors_count_top3=5,5,5
+  path_keys=['relatedProjects', 'whoCanFund', 'whoCanSolve']
+  whoCanImplement_present=False
+  expected scores 94/89/83: MATCH
+  factors>=3: MATCH
+  paths without whoCanImplement: MATCH
+
+TOP_SCORES:
+  1. score=94 title=Solução para recuperação de pastagens em condições de seca factors=5 type=SOLUTION
+  2. score=89 title=Projeto de manejo adaptativo de pastagens factors=5 type=PROJECT
+  3. score=83 title=Prática de conservação de água e solo factors=5 type=SOLUTION
+
+OVERALL=PASS
+git_commit=NOT_DONE (per instructions)

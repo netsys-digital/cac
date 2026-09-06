@@ -1,0 +1,114 @@
+import { NavLink, Outlet } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
+import { BrandMark } from '@cac/ui';
+import { brand, urls } from '../../config';
+import { normalizeLanguage } from '../../i18n';
+
+/** Conteúdo centralizado — classes no app para o Tailwind escanear. */
+const shell = 'mx-auto w-full max-w-[1220px] px-[22px]';
+
+const btnBase =
+  'inline-flex items-center justify-center rounded-[10px] px-[14px] py-[11px] text-[11px] font-black whitespace-nowrap transition';
+
+export function PublicLayout() {
+  const { t, i18n } = useTranslation();
+
+  const desktopLinks = [
+    { to: '/search', label: t('nav.search') },
+    { to: '/funding', label: t('nav.funding') },
+    { to: '/challenge', label: t('nav.challenge') },
+    { to: '/offer', label: t('nav.offer') },
+    { to: '/cases', label: t('nav.cases') },
+  ];
+
+  const mobileLinks = [
+    { to: '/', label: t('nav.home'), icon: '⌂' },
+    { to: '/search', label: t('nav.search'), icon: '⌕' },
+    { to: '/challenge', label: t('nav.challenge'), icon: '＋' },
+    { to: '/cases', label: t('nav.cases'), icon: '◆' },
+  ];
+
+  return (
+    <div className="min-h-screen bg-cac-bg pb-14 font-sans md:pb-0">
+      {/* Fundo 100% · conteúdo centralizado */}
+      <header className="sticky top-0 z-50 h-[74px] w-full bg-[rgba(10,36,64,.98)] text-white">
+        <div className={`${shell} flex h-full items-center gap-5`}>
+          <NavLink to="/" className="shrink-0">
+            <BrandMark
+              name={brand.name}
+              short={brand.short}
+              logoSrc={brand.logo || undefined}
+              variant="dark"
+            />
+          </NavLink>
+
+          <nav
+            className="hidden min-w-0 flex-1 items-center gap-[3px] overflow-x-auto lg:flex"
+            aria-label="Primary"
+          >
+            {desktopLinks.map((link) => (
+              <NavLink
+                key={link.to}
+                to={link.to}
+                className={({ isActive }) =>
+                  `rounded-lg px-2.5 py-[9px] text-[11px] whitespace-nowrap text-[#dbe8ec] hover:bg-white/[0.08] ${
+                    isActive ? 'bg-white/[0.08]' : ''
+                  }`
+                }
+              >
+                {link.label}
+              </NavLink>
+            ))}
+          </nav>
+
+          <div className="ml-auto flex shrink-0 items-center gap-[7px]">
+            <button
+              type="button"
+              className="rounded-lg px-2 py-1 text-[10px] font-black tracking-[1px] text-[#90d6b6] hover:bg-white/10"
+              onClick={() => {
+                const next = normalizeLanguage(i18n.language) === 'pt' ? 'en' : 'pt';
+                void i18n.changeLanguage(next);
+              }}
+            >
+              {normalizeLanguage(i18n.language) === 'pt' ? t('lang.en') : t('lang.pt')}
+            </button>
+            <a
+              href={`${urls.web}/login`}
+              className={`${btnBase} border border-[rgba(255,255,255,.22)] bg-transparent text-white hover:bg-white/10`}
+            >
+              {t('nav.signIn')}
+            </a>
+            <a
+              href={`${urls.web}/register`}
+              className={`${btnBase} bg-cac-green2 text-white hover:brightness-105 max-[620px]:hidden`}
+            >
+              {t('nav.signUp')}
+            </a>
+          </div>
+        </div>
+      </header>
+
+      <main>
+        <Outlet />
+      </main>
+
+      <nav
+        className="fixed inset-x-0 bottom-0 z-[60] flex justify-around border-t border-cac-line bg-white px-1 py-1.5 shadow-[0_-8px_24px_rgba(10,36,64,.10)] md:hidden"
+        aria-label="Mobile"
+      >
+        {mobileLinks.map((link) => (
+          <NavLink
+            key={link.to}
+            to={link.to}
+            className={({ isActive }) =>
+              `px-2 py-1 text-center text-[10px] ${isActive ? 'text-cac-navy' : 'text-cac-muted'}`
+            }
+          >
+            <b className="block text-base text-cac-navy">{link.icon}</b>
+            {link.label}
+          </NavLink>
+        ))}
+      </nav>
+    </div>
+  );
+}

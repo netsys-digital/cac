@@ -1,0 +1,4 @@
+@import '@cac/ui/styles.css';
+
+/* Classes usadas em @cac/ui (Container, Button, BrandMark) — fora do scan padrão do Vite */
+@source '../../../packages/ui/src';

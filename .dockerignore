@@ -1,0 +1,11 @@
+node_modules
+**/node_modules
+**/dist
+.git
+_MATERIAIS
+_REQUISITOS
+*.md
+.env
+coverage
+uploads
+**/*.tsbuildinfo
