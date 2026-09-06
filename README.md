@@ -88,6 +88,34 @@ Roteiro: [`_REQUISITOS/roteiro-demo-marco1.md`](./_REQUISITOS/roteiro-demo-marco
 
 > PostgreSQL 16 (não MySQL). Backups via `pg_dump`.
 
+### Deploy automatizado (GitHub Actions)
+
+Mesmo padrão do `escolar`: push em `main` (paths relevantes) ou `workflow_dispatch` → SSH no servidor → `bash deploy.sh`.
+
+| Item | Valor |
+|---|---|
+| Workflow | `.github/workflows/deploy.yml` |
+| Script | `deploy.sh` (`--full` força rebuild geral) |
+| Path no servidor | `/app/netsys-apps/cac` |
+| Environment GitHub | `DEPLOY_HETZNER` |
+| Secrets | `DEPLOY_HOST` · `DEPLOY_USER` · `DEPLOY_SSH_KEY` |
+
+No servidor (uma vez):
+
+```bash
+cd /app/netsys-apps/cac
+cp .env.prod.example .env.prod   # JWT, senhas, CORS dos domínios
+chmod +x deploy.sh
+# clone/remote já apontando para origin; Actions faz git reset --hard $DEPLOY_SHA
+```
+
+Manual no host:
+
+```bash
+bash deploy.sh          # incremental conforme diff
+bash deploy.sh --full   # rebuild api + worker + web + www + gateway
+```
+
 ## Aceite
 
 Status detalhado: [`_REQUISITOS/aceite-e0-e1-status.md`](./_REQUISITOS/aceite-e0-e1-status.md) (E0–E6).
