@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Deploy produção CAC (espelha o fluxo do escolar).
 # Uso no servidor: bash deploy.sh [--full]
-# GitHub Actions passa DEPLOY_SHA=<commit>.
+# GitHub Actions passa DEPLOY_SHA=<commit> e deve preferir --full para frontends.
 set -euo pipefail
 cd "$(dirname "$0")"
 
@@ -36,8 +36,43 @@ smoke_test() {
   wait_http "http://127.0.0.1:8084/health" || fail=1
   wait_http "http://127.0.0.1:8084/" || fail=1
   wait_http "http://127.0.0.1:8086/" || fail=1
+
+  # Frontends Vite: JS não deve apontar para localhost (build sem PUBLIC_*)
+  local js_web js_www
+  js_www="$(curl -s http://127.0.0.1:8084/ | grep -oE '/assets/[^"]+\.js' | head -1 || true)"
+  js_web="$(curl -s http://127.0.0.1:8086/ | grep -oE '/assets/[^"]+\.js' | head -1 || true)"
+  if [[ -n "$js_www" ]]; then
+    if curl -s "http://127.0.0.1:8084${js_www}" | grep -q 'localhost:5178'; then
+      echo "  FAIL portal JS ainda contém localhost:5178 (rebuild www com --env-file .env.prod)"
+      fail=1
+    else
+      echo "  portal assets OK (${js_www})"
+    fi
+  fi
+  if [[ -n "$js_web" ]]; then
+    if curl -s "http://127.0.0.1:8086${js_web}" | grep -q 'localhost:5178'; then
+      echo "  FAIL gestor JS ainda contém localhost:5178"
+      fail=1
+    else
+      echo "  gestor assets OK (${js_web})"
+    fi
+  fi
+
   "${COMPOSE[@]}" ps
   return "$fail"
+}
+
+build_up() {
+  local svc="$1"
+  local no_cache="${2:-0}"
+  echo
+  echo "Build ${svc} (no_cache=${no_cache})…"
+  if [[ "$no_cache" == "1" ]]; then
+    "${COMPOSE[@]}" build --no-cache "$svc"
+  else
+    "${COMPOSE[@]}" build "$svc"
+  fi
+  "${COMPOSE[@]}" up -d --no-deps --force-recreate --remove-orphans "$svc"
 }
 
 if [[ ! -f .env.prod ]]; then
@@ -67,14 +102,14 @@ mark_all() {
 }
 
 if [[ "$FORCE_ALL" == "1" ]]; then
-  echo "Modo --full: rebuild de api, api-worker, web, www e gateway."
+  echo "Modo --full: rebuild de api, api-worker, web, www e gateway (frontends sem cache)."
   mark_all
 elif [[ "$OLD_SHA" == "$NEW_SHA" ]]; then
-  echo "Servidor já está nesse commit. Sem build."
-  smoke_test
-  echo
-  echo "Deploy concluído: ${NEW_SHA}"
-  exit 0
+  # Mesmo commit ≠ imagens atualizadas (ex.: git já estava no SHA e só docs/CI mudaram antes).
+  echo "Mesmo commit no git — forçando rebuild de web+www (layout/UI)."
+  need_web=1
+  need_www=1
+  need_gateway=1
 else
   while IFS= read -r f; do
     [[ -z "$f" ]] && continue
@@ -121,6 +156,14 @@ else
         ;;
     esac
   done < <(git diff --name-only "$OLD_SHA" "$NEW_SHA")
+
+  # Se o diff só tinha skip (ex.: só .github), ainda assim atualiza frontends
+  if [[ "$need_api" != "1" && "$need_web" != "1" && "$need_www" != "1" && "$need_gateway" != "1" ]]; then
+    echo "Diff só com arquivos skip — forçando rebuild web+www."
+    need_web=1
+    need_www=1
+    need_gateway=1
+  fi
 fi
 
 services=()
@@ -129,20 +172,11 @@ services=()
 [[ "$need_web" == "1" ]] && services+=(web)
 [[ "$need_www" == "1" ]] && services+=(www)
 
-if [[ ${#services[@]} -eq 0 && "$need_gateway" != "1" ]]; then
-  echo "Nenhuma imagem Docker para rebuild (só docs/CI/scripts)."
-  smoke_test
-  echo
-  echo "Deploy concluído: ${NEW_SHA}"
-  exit 0
-fi
-
 echo
 echo "Serviços: ${services[*]:-nenhum}  gateway=${need_gateway}"
 
 "${COMPOSE[@]}" up -d postgres redis
 
-# Frontends precisam da API no ar; migrate/seed rodam no start da api.
 if [[ "$need_api" != "1" && ( ${#services[@]} -gt 0 || "$need_gateway" == "1" ) ]]; then
   "${COMPOSE[@]}" up -d api api-worker
 fi
@@ -150,14 +184,15 @@ fi
 if [[ ${#services[@]} -gt 0 ]]; then
   build_fail=0
   for svc in "${services[@]}"; do
-    echo
-    echo "Build ${svc}…"
-    if ! "${COMPOSE[@]}" build "$svc"; then
+    # web/www: sempre --no-cache (Vite embute UI/URLs no build)
+    no_cache=0
+    if [[ "$svc" == "web" || "$svc" == "www" || "$FORCE_ALL" == "1" ]]; then
+      no_cache=1
+    fi
+    if ! build_up "$svc" "$no_cache"; then
       echo "Falha no build: ${svc}"
       build_fail=1
-      continue
     fi
-    "${COMPOSE[@]}" up -d --no-deps --remove-orphans "$svc"
   done
   if [[ "$build_fail" == "1" ]]; then
     echo
@@ -177,3 +212,4 @@ smoke_test
 
 echo
 echo "Deploy concluído: ${NEW_SHA}"
+echo "Se o browser ainda mostrar layout antigo: hard refresh (Ctrl+Shift+R) ou purge Cloudflare."

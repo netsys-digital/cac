@@ -92,7 +92,9 @@ Roteiro: [`_REQUISITOS/roteiro-demo-marco1.md`](./_REQUISITOS/roteiro-demo-marco
 
 No push em `main` roda só o **CI** (lint/test/build).
 
-O **Deploy produção** é manual por enquanto (`workflow_dispatch`), para não falhar com `missing server host` quando os secrets ainda não existem.
+O **Deploy produção** é manual por enquanto (`workflow_dispatch`). Roda `bash deploy.sh --full` (rebuild web/www **sem cache** Docker).
+
+Se o layout não atualizar no browser: `Ctrl+Shift+R` ou purge na Cloudflare (HTML/JS em cache).
 
 | Item | Valor |
 |---|---|

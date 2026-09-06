@@ -49,4 +49,5 @@ jobs:
           script: |
             set -euo pipefail
             cd /app/cac
-            bash deploy.sh
+            # --full: garante rebuild de web/www sem cache Docker (layout/UI Vite)
+            bash deploy.sh --full
