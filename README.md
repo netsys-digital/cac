@@ -96,14 +96,14 @@ Mesmo padrão do `escolar`: push em `main` (paths relevantes) ou `workflow_dispa
 |---|---|
 | Workflow | `.github/workflows/deploy.yml` |
 | Script | `deploy.sh` (`--full` força rebuild geral) |
-| Path no servidor | `/app/netsys-apps/cac` |
+| Path no servidor | `/app/cac` |
 | Environment GitHub | `DEPLOY_HETZNER` |
 | Secrets | `DEPLOY_HOST` · `DEPLOY_USER` · `DEPLOY_SSH_KEY` |
 
 No servidor (uma vez):
 
 ```bash
-cd /app/netsys-apps/cac
+cd /app/cac
 cp .env.prod.example .env.prod   # JWT, senhas, CORS dos domínios
 chmod +x deploy.sh
 # clone/remote já apontando para origin; Actions faz git reset --hard $DEPLOY_SHA
