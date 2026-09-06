@@ -1,18 +1,22 @@
 name: Deploy produção
 
+# Por padrão só manual (Actions → Deploy produção → Run workflow).
+# Assim o push em main roda apenas o CI e não fica vermelho sem secrets.
+# Para deploy automático no push (como no escolar), descomente o bloco `push:`
+# depois de criar o environment DEPLOY_HETZNER com DEPLOY_HOST, DEPLOY_USER, DEPLOY_SSH_KEY.
 on:
-  push:
-    branches: [main]
-    paths:
-      - "apps/**"
-      - "packages/**"
-      - "package.json"
-      - "package-lock.json"
-      - "docker-compose.prod.yml"
-      - "deploy/**"
-      - "deploy.sh"
-      - ".github/workflows/deploy.yml"
   workflow_dispatch:
+  # push:
+  #   branches: [main]
+  #   paths:
+  #     - "apps/**"
+  #     - "packages/**"
+  #     - "package.json"
+  #     - "package-lock.json"
+  #     - "docker-compose.prod.yml"
+  #     - "deploy/**"
+  #     - "deploy.sh"
+  #     - ".github/workflows/deploy.yml"
 
 concurrency:
   group: deploy-producao-cac
@@ -24,6 +28,13 @@ jobs:
     environment: DEPLOY_HETZNER
     timeout-minutes: 30
     steps:
+      - name: Conferir secrets SSH
+        run: |
+          if [ -z "${{ secrets.DEPLOY_HOST }}" ] || [ -z "${{ secrets.DEPLOY_USER }}" ] || [ -z "${{ secrets.DEPLOY_SSH_KEY }}" ]; then
+            echo "::error::Faltam secrets no environment DEPLOY_HETZNER: DEPLOY_HOST, DEPLOY_USER, DEPLOY_SSH_KEY"
+            exit 1
+          fi
+
       - name: Deploy no servidor
         uses: appleboy/ssh-action@v1.2.0
         env:

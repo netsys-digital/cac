@@ -90,15 +90,23 @@ Roteiro: [`_REQUISITOS/roteiro-demo-marco1.md`](./_REQUISITOS/roteiro-demo-marco
 
 ### Deploy automatizado (GitHub Actions)
 
-Mesmo padrão do `escolar`: push em `main` (paths relevantes) ou `workflow_dispatch` → SSH no servidor → `bash deploy.sh`.
+No push em `main` roda só o **CI** (lint/test/build).
+
+O **Deploy produção** é manual por enquanto (`workflow_dispatch`), para não falhar com `missing server host` quando os secrets ainda não existem.
 
 | Item | Valor |
 |---|---|
-| Workflow | `.github/workflows/deploy.yml` |
+| Workflow CI | `.github/workflows/ci.yml` — automático no push/PR |
+| Workflow deploy | `.github/workflows/deploy.yml` — **Run workflow** na UI |
 | Script | `deploy.sh` (`--full` força rebuild geral) |
 | Path no servidor | `/app/cac` |
 | Environment GitHub | `DEPLOY_HETZNER` |
-| Secrets | `DEPLOY_HOST` · `DEPLOY_USER` · `DEPLOY_SSH_KEY` |
+| Secrets (obrigatórios) | `DEPLOY_HOST` · `DEPLOY_USER` · `DEPLOY_SSH_KEY` |
+
+**Configurar secrets (uma vez):** Settings → Environments → `DEPLOY_HETZNER` → Environment secrets  
+(mesmo padrão do `escolar`, se for o mesmo servidor pode reutilizar host/user/key).
+
+Depois dos secrets, para voltar o deploy no push: descomente o bloco `push:` em `deploy.yml`.
 
 No servidor (uma vez):
 
@@ -106,7 +114,6 @@ No servidor (uma vez):
 cd /app/cac
 cp .env.prod.example .env.prod   # JWT, senhas, CORS dos domínios
 chmod +x deploy.sh
-# clone/remote já apontando para origin; Actions faz git reset --hard $DEPLOY_SHA
 ```
 
 Manual no host:
