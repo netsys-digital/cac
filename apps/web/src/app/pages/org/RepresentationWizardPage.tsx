@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Button, Input, TextArea } from '@cac/ui';
 import { useAuth } from '../../auth/AuthContext';
+import { useRepresentation } from '../../auth/RepresentationContext';
 import { catalogApi, type Organization } from '../../api/catalogApi';
 import { SelectField } from '../../components/forms/FormPage';
 
@@ -10,6 +11,7 @@ const steps = ['account', 'organization', 'link', 'interest', 'confirm'] as cons
 export function RepresentationWizardPage() {
   const { t } = useTranslation();
   const { user, accessToken } = useAuth();
+  const { refresh } = useRepresentation();
   const [step, setStep] = useState(0);
   const [orgs, setOrgs] = useState<Organization[]>([]);
   const [mode, setMode] = useState<'existing' | 'create'>('existing');
@@ -64,6 +66,7 @@ export function RepresentationWizardPage() {
     try {
       const orgId = await ensureOrganization();
       await catalogApi.createRepresentation(accessToken, orgId, { unit, linkRole, interest });
+      await refresh();
       setDone(true);
     } catch (e) {
       setError(e instanceof Error ? e.message : 'error');
@@ -78,6 +81,9 @@ export function RepresentationWizardPage() {
         <p className="text-[10px] font-black tracking-[1.7px] text-cac-green uppercase">{t('rep.pageBadge')}</p>
         <h1 className="mt-2 text-[28px] font-black text-cac-navy">{t('rep.doneTitle')}</h1>
         <p className="mt-2 text-[12px] text-cac-muted">{t('rep.doneBody')}</p>
+        <p className="mt-4 inline-block rounded-lg bg-amber-50 px-2 py-1 text-[10px] font-black uppercase tracking-wide text-amber-800">
+          {t('onboarding.pendingBadge')}
+        </p>
       </div>
     );
   }

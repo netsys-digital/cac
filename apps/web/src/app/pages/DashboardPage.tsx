@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import { urls } from '../../config';
 import { useAuth } from '../auth/AuthContext';
 import { myContentsApi, type DashboardResponse } from '../api/myContentsApi';
 
@@ -13,6 +14,7 @@ type CardDef = {
   muted?: boolean;
 };
 
+/** Dashboard operacional — só para quem já tem representação aprovada (ou staff). */
 export function DashboardPage() {
   const { user, accessToken } = useAuth();
   const { t } = useTranslation();
@@ -28,6 +30,7 @@ export function DashboardPage() {
   }, [accessToken]);
 
   const stats = data?.stats;
+
   const cards: CardDef[] = [
     {
       key: 'published',
@@ -132,31 +135,37 @@ export function DashboardPage() {
       </div>
 
       <div className="flex flex-wrap gap-2">
+        <a
+          href={urls.www}
+          className="rounded-[10px] bg-cac-navy px-3 py-2 text-[11px] font-black text-white"
+        >
+          {t('dash.goPortal')}
+        </a>
+        <Link
+          to="/my/connections"
+          className="rounded-[10px] bg-cac-green3 px-3 py-2 text-[11px] font-black text-cac-navy"
+        >
+          {t('nav.connections')}
+        </Link>
         <Link
           to="/my/contents"
-          className="rounded-[10px] bg-cac-navy px-3 py-2 text-[11px] font-black text-white"
+          className="rounded-[10px] border border-cac-line bg-white px-3 py-2 text-[11px] font-black text-cac-navy"
         >
           {t('nav.myContents')}
         </Link>
         <Link
-          to="/org/representation"
-          className="rounded-[10px] bg-cac-green3 px-3 py-2 text-[11px] font-black text-cac-navy"
-        >
-          {t('nav.representation')}
-        </Link>
-        <Link
           to="/catalog/technologies/new"
-          className="rounded-[10px] bg-cac-green3 px-3 py-2 text-[11px] font-black text-cac-navy"
+          className="rounded-[10px] border border-cac-line bg-white px-3 py-2 text-[11px] font-black text-cac-navy"
         >
           {t('nav.newTech')}
         </Link>
         <Link
           to="/catalog/challenges/new"
-          className="rounded-[10px] bg-cac-green3 px-3 py-2 text-[11px] font-black text-cac-navy"
+          className="rounded-[10px] border border-cac-line bg-white px-3 py-2 text-[11px] font-black text-cac-navy"
         >
           {t('nav.newChallenge')}
         </Link>
-        {(stats?.drafts || stats?.inReview) ? (
+        {stats?.drafts || stats?.inReview ? (
           <span className="rounded-[10px] border border-cac-line bg-white px-3 py-2 text-[11px] text-cac-muted">
             {t('dash.pipeline', { drafts: stats?.drafts ?? 0, review: stats?.inReview ?? 0 })}
           </span>

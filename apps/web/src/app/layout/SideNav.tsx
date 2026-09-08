@@ -5,6 +5,10 @@ export type SideNavItem = {
   to: string;
   label: string;
   icon: ReactNode;
+  /** When true, item is visible but not actionable (educates about the gate). */
+  locked?: boolean;
+  lockTitle?: string;
+  badge?: string;
 };
 
 function IconBulb() {
@@ -83,6 +87,32 @@ function IconGrid() {
   );
 }
 
+function IconGlobe() {
+  return (
+    <svg viewBox="0 0 24 24" className="size-[22px]" fill="none" stroke="currentColor" strokeWidth="1.8">
+      <circle cx="12" cy="12" r="9" />
+      <path d="M3 12h18M12 3c2.5 2.8 3.8 5.8 3.8 9s-1.3 6.2-3.8 9c-2.5-2.8-3.8-5.8-3.8-9s1.3-6.2 3.8-9Z" />
+    </svg>
+  );
+}
+
+function IconLink() {
+  return (
+    <svg viewBox="0 0 24 24" className="size-[22px]" fill="none" stroke="currentColor" strokeWidth="1.8">
+      <path d="M10 13a5 5 0 0 0 7.07 0l2.12-2.12a5 5 0 0 0-7.07-7.07L10.7 5.23" strokeLinecap="round" />
+      <path d="M14 11a5 5 0 0 0-7.07 0L4.8 13.12a5 5 0 0 0 7.07 7.07L13.3 18.77" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+function IconBadge() {
+  return (
+    <svg viewBox="0 0 24 24" className="size-[22px]" fill="none" stroke="currentColor" strokeWidth="1.8">
+      <path d="M12 3 14.5 8.5 20.5 9.3 16 13.4 17.2 19.3 12 16.5 6.8 19.3 8 13.4 3.5 9.3 9.5 8.5 12 3Z" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
 export const sideIcons = {
   mine: <IconList />,
   tech: <IconBulb />,
@@ -92,6 +122,9 @@ export const sideIcons = {
   curate: <IconStar />,
   adminRep: <IconUsers />,
   domains: <IconGrid />,
+  portal: <IconGlobe />,
+  connections: <IconLink />,
+  representation: <IconBadge />,
 };
 
 type SideNavProps = {
@@ -104,26 +137,79 @@ export function SideNav({ items }: SideNavProps) {
       className="group/side sticky top-[118px] z-30 flex h-[calc(100vh-118px)] w-[64px] shrink-0 flex-col gap-1.5 overflow-hidden border-r border-cac-line bg-[rgba(10,36,64,.98)] py-3 transition-[width] duration-200 ease-out hover:w-[220px]"
       aria-label="Secondary"
     >
-      {items.map((item) => (
-        <NavLink
-          key={item.to}
-          to={item.to}
-          title={item.label}
-          className={({ isActive }) =>
-            [
-              'mx-2 flex items-center gap-3 rounded-[10px] px-2.5 py-2.5 text-[11px] font-black transition',
-              isActive
-                ? 'border-t-2 border-cac-green2 bg-white text-cac-navy shadow-[0_6px_16px_rgba(0,0,0,.12)]'
-                : 'border-t-2 border-transparent text-[#c5d5dc] hover:bg-white/10 hover:text-white',
-            ].join(' ')
-          }
-        >
-          <span className="flex size-8 shrink-0 items-center justify-center">{item.icon}</span>
-          <span className="max-w-0 overflow-hidden whitespace-nowrap opacity-0 transition-all duration-200 group-hover/side:max-w-[140px] group-hover/side:opacity-100">
-            {item.label}
-          </span>
-        </NavLink>
-      ))}
+      {items.map((item) => {
+        if (item.locked) {
+          return (
+            <div
+              key={item.to}
+              title={item.lockTitle ?? item.label}
+              className="mx-2 flex cursor-not-allowed items-center gap-3 rounded-[10px] border-t-2 border-transparent px-2.5 py-2.5 text-[11px] font-black text-[#7a8f9a] opacity-70"
+              aria-disabled
+            >
+              <span className="flex size-8 shrink-0 items-center justify-center">{item.icon}</span>
+              <span className="flex max-w-0 flex-col overflow-hidden opacity-0 transition-all duration-200 group-hover/side:max-w-[140px] group-hover/side:opacity-100">
+                <span className="whitespace-nowrap">{item.label}</span>
+                {item.badge ? (
+                  <span className="mt-0.5 whitespace-nowrap text-[9px] font-bold tracking-wide text-amber-300/90">
+                    {item.badge}
+                  </span>
+                ) : null}
+              </span>
+            </div>
+          );
+        }
+
+        const isExternal = item.to.startsWith('http');
+        if (isExternal) {
+          return (
+            <a
+              key={item.to}
+              href={item.to}
+              title={item.label}
+              className="mx-2 flex items-center gap-3 rounded-[10px] border-t-2 border-transparent px-2.5 py-2.5 text-[11px] font-black text-[#c5d5dc] transition hover:bg-white/10 hover:text-white"
+            >
+              <span className="flex size-8 shrink-0 items-center justify-center">{item.icon}</span>
+              <span className="max-w-0 overflow-hidden whitespace-nowrap opacity-0 transition-all duration-200 group-hover/side:max-w-[140px] group-hover/side:opacity-100">
+                {item.label}
+              </span>
+            </a>
+          );
+        }
+
+        return (
+          <NavLink
+            key={item.to}
+            to={item.to}
+            title={item.lockTitle ?? item.label}
+            className={({ isActive }) =>
+              [
+                'mx-2 flex items-center gap-3 rounded-[10px] px-2.5 py-2.5 text-[11px] font-black transition',
+                isActive
+                  ? 'border-t-2 border-cac-green2 bg-white text-cac-navy shadow-[0_6px_16px_rgba(0,0,0,.12)]'
+                  : 'border-t-2 border-transparent text-[#c5d5dc] hover:bg-white/10 hover:text-white',
+              ].join(' ')
+            }
+          >
+            {({ isActive }) => (
+              <>
+                <span className="flex size-8 shrink-0 items-center justify-center">{item.icon}</span>
+                <span className="flex max-w-0 flex-col overflow-hidden opacity-0 transition-all duration-200 group-hover/side:max-w-[140px] group-hover/side:opacity-100">
+                  <span className="whitespace-nowrap">{item.label}</span>
+                  {item.badge ? (
+                    <span
+                      className={`mt-0.5 whitespace-nowrap text-[9px] font-bold tracking-wide ${
+                        isActive ? 'text-amber-700' : 'text-amber-300/90'
+                      }`}
+                    >
+                      {item.badge}
+                    </span>
+                  ) : null}
+                </span>
+              </>
+            )}
+          </NavLink>
+        );
+      })}
     </aside>
   );
 }

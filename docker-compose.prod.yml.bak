@@ -31,9 +31,7 @@ services:
     volumes:
       - uploads_data:/app/apps/api/uploads
     networks:
-      netsys:
-        aliases:
-          - cac-api
+      - netsys
     restart: unless-stopped
     healthcheck:
       test: ['CMD-SHELL', 'node -e "fetch(\"http://127.0.0.1:3003/health\").then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"']
@@ -77,9 +75,7 @@ services:
       api:
         condition: service_healthy
     networks:
-      netsys:
-        aliases:
-          - cac-www
+      - netsys
     restart: unless-stopped
 
   web:
@@ -98,9 +94,7 @@ services:
       api:
         condition: service_healthy
     networks:
-      netsys:
-        aliases:
-          - cac-web
+      - netsys
     restart: unless-stopped
 
   gateway:

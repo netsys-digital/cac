@@ -2,10 +2,10 @@ import { Link, NavLink, Outlet, useLocation } from 'react-router-dom';
 import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { BrandMark, Button } from '@cac/ui';
-import { UserRole } from '@cac/shared';
 import { brand, urls } from '../../config';
 import { normalizeLanguage } from '../../i18n';
 import { useAuth } from '../auth/AuthContext';
+import { useRepresentation } from '../auth/RepresentationContext';
 import { SideNav, sideIcons, type SideNavItem } from './SideNav';
 
 type NavItem = { to: string; label: string; end?: boolean };
@@ -23,6 +23,7 @@ function useBreadcrumbs() {
   return useMemo(() => {
     const home = { to: '/', label: t('nav.dashboard') };
     const map: Array<{ match: RegExp | string; label: string }> = [
+      { match: /^\/welcome/, label: t('nav.dashboard') },
       { match: /^\/my\/contents/, label: t('nav.myContents') },
       { match: /^\/my\/connections/, label: t('nav.connections') },
       { match: /^\/org\/representation/, label: t('nav.representation') },
@@ -52,8 +53,15 @@ function useBreadcrumbs() {
 export function AppShell() {
   const { t, i18n } = useTranslation();
   const { user, logout } = useAuth();
-  const isStaff = user?.role === UserRole.ADMIN || user?.role === UserRole.CURADOR;
+  const { canPublish, gate, isStaff } = useRepresentation();
   const crumbs = useBreadcrumbs();
+
+  const displayName = (() => {
+    const parts = (user?.name ?? '').trim().split(/\s+/).filter(Boolean);
+    if (parts.length === 0) return '';
+    if (parts.length === 1) return parts[0];
+    return `${parts[0]} ${parts[parts.length - 1]}`;
+  })();
 
   const primary: NavItem[] = [
     { to: '/', label: t('nav.dashboard'), end: true },
@@ -61,12 +69,57 @@ export function AppShell() {
     { to: '/org/representation', label: t('nav.representation') },
   ];
 
+  const pendingBadge = gate === 'pending' ? t('onboarding.pendingBadge') : undefined;
+  const lockedHint = !canPublish ? t('nav.publishLocked') : undefined;
+
+  const publishItems: SideNavItem[] = [
+    {
+      to: '/my/contents',
+      label: t('nav.myContents'),
+      icon: sideIcons.mine,
+      badge: !canPublish ? t('nav.lockedShort') : undefined,
+      lockTitle: lockedHint,
+    },
+    {
+      to: '/catalog/technologies/new',
+      label: t('nav.newTech'),
+      icon: sideIcons.tech,
+      badge: !canPublish ? t('nav.lockedShort') : undefined,
+      lockTitle: lockedHint,
+    },
+    {
+      to: '/catalog/challenges/new',
+      label: t('nav.newChallenge'),
+      icon: sideIcons.challenge,
+      badge: !canPublish ? t('nav.lockedShort') : undefined,
+      lockTitle: lockedHint,
+    },
+    {
+      to: '/funding-offers/new',
+      label: t('nav.newOffer'),
+      icon: sideIcons.offer,
+      badge: !canPublish ? t('nav.lockedShort') : undefined,
+      lockTitle: lockedHint,
+    },
+    {
+      to: '/cases/new',
+      label: t('nav.newCase'),
+      icon: sideIcons.case,
+      badge: !canPublish ? t('nav.lockedShort') : undefined,
+      lockTitle: lockedHint,
+    },
+  ];
+
   const sideItems: SideNavItem[] = [
-    { to: '/my/contents', label: t('nav.myContents'), icon: sideIcons.mine },
-    { to: '/catalog/technologies/new', label: t('nav.newTech'), icon: sideIcons.tech },
-    { to: '/catalog/challenges/new', label: t('nav.newChallenge'), icon: sideIcons.challenge },
-    { to: '/funding-offers/new', label: t('nav.newOffer'), icon: sideIcons.offer },
-    { to: '/cases/new', label: t('nav.newCase'), icon: sideIcons.case },
+    { to: urls.www, label: t('nav.backPortal'), icon: sideIcons.portal },
+    { to: '/my/connections', label: t('nav.connections'), icon: sideIcons.connections },
+    {
+      to: '/org/representation',
+      label: t('nav.representation'),
+      icon: sideIcons.representation,
+      badge: pendingBadge,
+    },
+    ...publishItems,
     ...(isStaff
       ? [
           { to: '/admin/curate', label: t('nav.adminCurate'), icon: sideIcons.curate },
@@ -116,6 +169,24 @@ export function AppShell() {
             <a href={urls.www} className="hidden sm:inline-flex">
               <Button variant="ghostDark">{t('shell.portal')}</Button>
             </a>
+            {displayName ? (
+              <>
+                <Link
+                  to="/"
+                  className="hidden min-w-0 max-w-[180px] flex-col items-end leading-tight text-right sm:flex"
+                  title={user?.name}
+                >
+                  <span className="truncate text-[12px] font-semibold text-white">{displayName}</span>
+                  <span className="text-[10px] font-medium tracking-wide text-[#90d6b6]">
+                    {user?.role ? t(`roles.${user.role}`) : t('shell.profile')}
+                  </span>
+                </Link>
+                <span
+                  className="hidden h-8 w-px shrink-0 bg-[rgba(255,255,255,.28)] sm:block"
+                  aria-hidden
+                />
+              </>
+            ) : null}
             <Button variant="ghostDark" onClick={() => void logout()}>
               {t('shell.signOut')}
             </Button>
@@ -123,7 +194,6 @@ export function AppShell() {
         </div>
       </header>
 
-      {/* Breadcrumb full-width: separa header da sidebar */}
       <div className="sticky top-[92px] z-40 border-b border-cac-line bg-white">
         <div className="flex h-12 items-center gap-2 px-5 text-[13px] md:px-7">
           <nav aria-label="Breadcrumb" className="flex min-w-0 flex-wrap items-center gap-1.5 font-mono text-[#76838a]">

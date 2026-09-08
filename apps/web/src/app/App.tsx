@@ -2,11 +2,12 @@ import { Navigate, Route, Routes, useSearchParams } from 'react-router-dom';
 import { UserRole } from '@cac/shared';
 import { RequireAuth } from './components/RequireAuth';
 import { RequireRole } from './components/RequireRole';
+import { PublishGate } from './components/PublishGate';
 import { AuthLayout } from './layout/AuthLayout';
 import { AppShell } from './layout/AppShell';
 import { LoginPage } from './pages/auth/LoginPage';
 import { RegisterPage } from './pages/auth/RegisterPage';
-import { DashboardPage } from './pages/DashboardPage';
+import { HomePage } from './pages/HomePage';
 import { RepresentationWizardPage } from './pages/org/RepresentationWizardPage';
 import { AdminRepresentationPage } from './pages/admin/AdminRepresentationPage';
 import { AdminDomainsPage } from './pages/admin/AdminDomainsPage';
@@ -22,11 +23,20 @@ import { EditFundingOfferPage } from './pages/catalog/EditFundingOfferPage';
 import { EditCasePage } from './pages/catalog/EditCasePage';
 import { NewConnectionPage } from './pages/connections/NewConnectionPage';
 import { MyConnectionsPage } from './pages/connections/MyConnectionsPage';
+import { RepresentationProvider } from './auth/RepresentationContext';
 
 function LoginWithReturn() {
   const [params] = useSearchParams();
   const returnUrl = params.get('returnUrl');
   return <LoginPage forcedFrom={returnUrl} />;
+}
+
+function AuthedShell() {
+  return (
+    <RepresentationProvider>
+      <AppShell />
+    </RepresentationProvider>
+  );
 }
 
 export default function App() {
@@ -40,20 +50,56 @@ export default function App() {
         path="/"
         element={
           <RequireAuth>
-            <AppShell />
+            <AuthedShell />
           </RequireAuth>
         }
       >
-        <Route index element={<DashboardPage />} />
+        <Route index element={<HomePage />} />
+        <Route path="welcome" element={<Navigate to="/" replace />} />
         <Route path="org/representation" element={<RepresentationWizardPage />} />
-        <Route path="my/contents" element={<MyContentsPage />} />
-        <Route path="catalog/technologies/new" element={<NewTechnologyPage />} />
+        <Route
+          path="my/contents"
+          element={
+            <PublishGate>
+              <MyContentsPage />
+            </PublishGate>
+          }
+        />
+        <Route
+          path="catalog/technologies/new"
+          element={
+            <PublishGate>
+              <NewTechnologyPage />
+            </PublishGate>
+          }
+        />
         <Route path="catalog/technologies/:id/edit" element={<EditTechnologyPage />} />
-        <Route path="catalog/challenges/new" element={<NewChallengePage />} />
+        <Route
+          path="catalog/challenges/new"
+          element={
+            <PublishGate>
+              <NewChallengePage />
+            </PublishGate>
+          }
+        />
         <Route path="catalog/challenges/:id/edit" element={<EditChallengePage />} />
-        <Route path="funding-offers/new" element={<NewFundingOfferPage />} />
+        <Route
+          path="funding-offers/new"
+          element={
+            <PublishGate>
+              <NewFundingOfferPage />
+            </PublishGate>
+          }
+        />
         <Route path="funding-offers/:id/edit" element={<EditFundingOfferPage />} />
-        <Route path="cases/new" element={<NewCasePage />} />
+        <Route
+          path="cases/new"
+          element={
+            <PublishGate>
+              <NewCasePage />
+            </PublishGate>
+          }
+        />
         <Route path="cases/:id/edit" element={<EditCasePage />} />
         <Route path="connections/new" element={<NewConnectionPage />} />
         <Route path="my/connections" element={<MyConnectionsPage />} />

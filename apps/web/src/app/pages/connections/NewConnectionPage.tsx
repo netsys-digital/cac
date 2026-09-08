@@ -1,5 +1,5 @@
 import { type FormEvent, useEffect, useMemo, useState } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { TextArea } from '@cac/ui';
 import { ConnectionObjective } from '@cac/shared';
@@ -13,6 +13,8 @@ export function NewConnectionPage() {
   const { accessToken } = useAuth();
   const [params] = useSearchParams();
   const navigate = useNavigate();
+  const location = useLocation();
+  const justRegistered = Boolean((location.state as { justRegistered?: boolean } | null)?.justRegistered);
   const targetType = params.get('targetType') ?? 'TECHNOLOGY';
   const targetId = params.get('targetId') ?? '';
   const [orgs, setOrgs] = useState<Array<{ id: string; name: string }>>([]);
@@ -81,6 +83,12 @@ export function NewConnectionPage() {
   }
 
   return (
+    <div className="space-y-4">
+      {justRegistered ? (
+        <p className="rounded-[12px] border border-cac-green/30 bg-cac-green3 px-4 py-3 text-[12px] font-medium text-cac-navy">
+          {t('auth.justRegisteredConnect')}
+        </p>
+      ) : null}
     <FormPage
       badge="conexão"
       title={t('conn.newTitle')}
@@ -137,5 +145,6 @@ export function NewConnectionPage() {
         />
       </FieldFull>
     </FormPage>
+    </div>
   );
 }

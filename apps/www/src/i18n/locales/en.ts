@@ -8,6 +8,14 @@ export const en = {
     home: 'Home',
     signIn: 'Sign in',
     signUp: 'Create account',
+    panel: 'Panel',
+    profile: 'Profile',
+  },
+  roles: {
+    ADMIN: 'Admin',
+    CURADOR: 'Curator',
+    ORG_ADMIN: 'Org admin',
+    ORG_MEMBER: 'Member',
   },
   home: {
     kicker: 'Global ↔ Local • connecting challenges to action',

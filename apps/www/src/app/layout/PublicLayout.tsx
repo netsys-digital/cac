@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { BrandMark } from '@cac/ui';
 import { brand, urls } from '../../config';
 import { normalizeLanguage } from '../../i18n';
+import { usePortalAuth } from '../auth/PortalAuthContext';
 
 /** Conteúdo centralizado — classes no app para o Tailwind escanear. */
 const shell = 'mx-auto w-full max-w-[1220px] px-[22px]';
@@ -10,8 +11,16 @@ const shell = 'mx-auto w-full max-w-[1220px] px-[22px]';
 const btnBase =
   'inline-flex items-center justify-center rounded-[10px] px-[14px] py-[11px] text-[11px] font-black whitespace-nowrap transition';
 
+function displayName(name: string) {
+  const parts = name.trim().split(/\s+/).filter(Boolean);
+  if (parts.length === 0) return '';
+  if (parts.length === 1) return parts[0];
+  return `${parts[0]} ${parts[parts.length - 1]}`;
+}
+
 export function PublicLayout() {
   const { t, i18n } = useTranslation();
+  const { user, loading } = usePortalAuth();
 
   const desktopLinks = [
     { to: '/search', label: t('nav.search') },
@@ -28,9 +37,10 @@ export function PublicLayout() {
     { to: '/cases', label: t('nav.cases'), icon: '◆' },
   ];
 
+  const name = user ? displayName(user.name) : '';
+
   return (
     <div className="min-h-screen bg-cac-bg pb-14 font-sans md:pb-0">
-      {/* Fundo 100% · conteúdo centralizado */}
       <header className="sticky top-0 z-50 h-[74px] w-full bg-[rgba(10,36,64,.98)] text-white">
         <div className={`${shell} flex h-full items-center gap-5`}>
           <NavLink to="/" className="shrink-0">
@@ -61,7 +71,7 @@ export function PublicLayout() {
             ))}
           </nav>
 
-          <div className="ml-auto flex shrink-0 items-center gap-[7px]">
+          <div className="ml-auto flex shrink-0 items-center gap-[10px]">
             <button
               type="button"
               className="rounded-lg px-2 py-1 text-[10px] font-black tracking-[1px] text-[#90d6b6] hover:bg-white/10"
@@ -72,18 +82,46 @@ export function PublicLayout() {
             >
               {normalizeLanguage(i18n.language) === 'pt' ? t('lang.en') : t('lang.pt')}
             </button>
-            <a
-              href={`${urls.web}/login`}
-              className={`${btnBase} border border-[rgba(255,255,255,.22)] bg-transparent text-white hover:bg-white/10`}
-            >
-              {t('nav.signIn')}
-            </a>
-            <a
-              href={`${urls.web}/register`}
-              className={`${btnBase} bg-cac-green2 text-white hover:brightness-105 max-[620px]:hidden`}
-            >
-              {t('nav.signUp')}
-            </a>
+
+            {!loading && user && name ? (
+              <>
+                <a
+                  href={urls.web}
+                  className="hidden min-w-0 max-w-[180px] flex-col items-end leading-tight text-right sm:flex"
+                  title={user.name}
+                >
+                  <span className="truncate text-[12px] font-semibold text-white">{name}</span>
+                  <span className="text-[10px] font-medium tracking-wide text-[#90d6b6]">
+                    {t(`roles.${user.role}`, { defaultValue: user.role })}
+                  </span>
+                </a>
+                <span
+                  className="hidden h-7 w-px shrink-0 bg-[rgba(255,255,255,.28)] sm:block"
+                  aria-hidden
+                />
+                <a
+                  href={urls.web}
+                  className={`${btnBase} bg-cac-green2 text-white hover:brightness-105`}
+                >
+                  {t('nav.panel')}
+                </a>
+              </>
+            ) : (
+              <>
+                <a
+                  href={`${urls.web}/login`}
+                  className={`${btnBase} border border-[rgba(255,255,255,.22)] bg-transparent text-white hover:bg-white/10`}
+                >
+                  {t('nav.signIn')}
+                </a>
+                <a
+                  href={`${urls.web}/register`}
+                  className={`${btnBase} bg-cac-green2 text-white hover:brightness-105 max-[620px]:hidden`}
+                >
+                  {t('nav.signUp')}
+                </a>
+              </>
+            )}
           </div>
         </div>
       </header>
