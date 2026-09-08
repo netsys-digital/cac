@@ -9,6 +9,8 @@ export type SideNavItem = {
   locked?: boolean;
   lockTitle?: string;
   badge?: string;
+  /** Numeric count shown on the icon when the rail is collapsed. */
+  count?: number;
 };
 
 function IconBulb() {
@@ -192,7 +194,14 @@ export function SideNav({ items }: SideNavProps) {
           >
             {({ isActive }) => (
               <>
-                <span className="flex size-8 shrink-0 items-center justify-center">{item.icon}</span>
+                <span className="relative flex size-8 shrink-0 items-center justify-center">
+                  {item.icon}
+                  {item.count && item.count > 0 ? (
+                    <span className="absolute -right-0.5 -top-0.5 grid min-w-[1.1rem] place-items-center rounded-full bg-amber-400 px-1 text-[9px] font-black leading-none text-cac-navy">
+                      {item.count > 99 ? '99+' : item.count}
+                    </span>
+                  ) : null}
+                </span>
                 <span className="flex max-w-0 flex-col overflow-hidden opacity-0 transition-all duration-200 group-hover/side:max-w-[140px] group-hover/side:opacity-100">
                   <span className="whitespace-nowrap">{item.label}</span>
                   {item.badge ? (

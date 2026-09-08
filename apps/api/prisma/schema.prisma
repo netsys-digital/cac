@@ -201,6 +201,8 @@ model Technology {
   problemStatement String
   howItWorks       String
   status           ContentStatus     @default(DRAFT)
+  curationNote     String?
+  reviewedAt       DateTime?
   organizationId   String            @db.Uuid
   country          String
   region           String?
@@ -251,6 +253,8 @@ model Challenge {
   context        String?
   needType       NeedType
   status         ContentStatus  @default(DRAFT)
+  curationNote   String?
+  reviewedAt     DateTime?
   organizationId String         @db.Uuid
   country        String?
   region         String?
@@ -282,6 +286,8 @@ model Project {
   type           ProjectType
   summary        String
   status         ContentStatus @default(DRAFT)
+  curationNote   String?
+  reviewedAt     DateTime?
   organizationId String        @db.Uuid
   country        String?
   region         String?
@@ -361,6 +367,8 @@ model FundingOffer {
   region         String?
   organizationId String        @db.Uuid
   status         ContentStatus @default(DRAFT)
+  curationNote   String?
+  reviewedAt     DateTime?
   createdAt      DateTime      @default(now())
   updatedAt      DateTime      @updatedAt
   organization   Organization  @relation(fields: [organizationId], references: [id], onDelete: Cascade)
@@ -381,6 +389,8 @@ model SuccessCase {
   region         String?
   organizationId String            @db.Uuid
   status         ContentStatus     @default(DRAFT)
+  curationNote   String?
+  reviewedAt     DateTime?
   createdAt      DateTime          @default(now())
   updatedAt      DateTime          @updatedAt
   organization   Organization      @relation(fields: [organizationId], references: [id], onDelete: Cascade)

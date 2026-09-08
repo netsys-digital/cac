@@ -10,12 +10,45 @@ type PublishGateProps = {
 
 export function PublishGate({ children }: PublishGateProps) {
   const { t } = useTranslation();
-  const { loading, canPublish, gate } = useRepresentation();
+  const { loading, canPublish, gate, isStaff } = useRepresentation();
 
   if (loading) {
     return (
       <div className="rounded-[16px] border border-cac-line bg-white p-6 text-[12px] text-cac-muted shadow-cac">
         {t('gate.loading')}
+      </div>
+    );
+  }
+
+  if (isStaff) {
+    return (
+      <div className="mx-auto max-w-2xl overflow-hidden rounded-[19px] border border-cac-line bg-white shadow-cac">
+        <div className="border-b border-cac-line bg-[#edf1f3] px-5 py-2 font-mono text-[10px] text-[#76838a]">
+          climateactionconnect · {t('gate.staffBadge')}
+        </div>
+        <div className="space-y-4 p-5 md:p-6">
+          <p className="text-[10px] font-black tracking-[1.7px] text-cac-green uppercase">
+            {t('gate.staffBadge')}
+          </p>
+          <h1 className="text-[24px] font-black leading-tight text-cac-navy md:text-[28px]">
+            {t('gate.staffTitle')}
+          </h1>
+          <p className="text-[12px] leading-relaxed text-cac-muted">{t('gate.staffBody')}</p>
+          <div className="flex flex-wrap gap-2 pt-1">
+            <Link
+              to="/admin/curate"
+              className="rounded-[10px] bg-cac-navy px-3 py-2 text-[11px] font-black text-white transition hover:bg-cac-green2"
+            >
+              {t('gate.staffCta')}
+            </Link>
+            <Link
+              to="/"
+              className="rounded-[10px] border border-cac-line bg-white px-3 py-2 text-[11px] font-black text-cac-navy transition hover:bg-cac-bg"
+            >
+              {t('gate.back')}
+            </Link>
+          </div>
+        </div>
       </div>
     );
   }

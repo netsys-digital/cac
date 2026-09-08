@@ -25,11 +25,7 @@ type RepresentationContextValue = {
 
 const RepresentationContext = createContext<RepresentationContextValue | null>(null);
 
-function deriveGate(
-  requests: RepresentationRequest[],
-  isStaff: boolean,
-): RepresentationGate {
-  if (isStaff) return 'approved';
+function deriveGate(requests: RepresentationRequest[]): RepresentationGate {
   if (requests.some((r) => r.status === RepresentationStatus.APPROVED)) return 'approved';
   if (
     requests.some(
@@ -55,6 +51,11 @@ export function RepresentationProvider({ children }: PropsWithChildren) {
       setRequests([]);
       return;
     }
+    // Staff (ADMIN/CURADOR) curates; they do not publish as an organization.
+    if (isStaff) {
+      setRequests([]);
+      return;
+    }
     setLoading(true);
     try {
       const res = await catalogApi.myRepresentations(accessToken);
@@ -64,14 +65,15 @@ export function RepresentationProvider({ children }: PropsWithChildren) {
     } finally {
       setLoading(false);
     }
-  }, [accessToken, user]);
+  }, [accessToken, user, isStaff]);
 
   useEffect(() => {
     void refresh();
   }, [refresh]);
 
-  const gate = useMemo(() => deriveGate(requests, Boolean(isStaff)), [requests, isStaff]);
-  const canPublish = gate === 'approved';
+  const gate = useMemo(() => (isStaff ? 'none' : deriveGate(requests)), [requests, isStaff]);
+  /** Institutional publish: org members with approved representation only — never staff. */
+  const canPublish = !isStaff && gate === 'approved';
   const approvedOrgIds = useMemo(
     () =>
       requests

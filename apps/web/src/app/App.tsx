@@ -24,6 +24,7 @@ import { EditCasePage } from './pages/catalog/EditCasePage';
 import { NewConnectionPage } from './pages/connections/NewConnectionPage';
 import { MyConnectionsPage } from './pages/connections/MyConnectionsPage';
 import { RepresentationProvider } from './auth/RepresentationContext';
+import { StaffTasksProvider } from './auth/StaffTasksContext';
 
 function LoginWithReturn() {
   const [params] = useSearchParams();
@@ -34,7 +35,9 @@ function LoginWithReturn() {
 function AuthedShell() {
   return (
     <RepresentationProvider>
-      <AppShell />
+      <StaffTasksProvider>
+        <AppShell />
+      </StaffTasksProvider>
     </RepresentationProvider>
   );
 }

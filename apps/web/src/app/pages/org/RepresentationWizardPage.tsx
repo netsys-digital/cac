@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import { Navigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Button, Input, TextArea } from '@cac/ui';
 import { useAuth } from '../../auth/AuthContext';
@@ -11,7 +12,7 @@ const steps = ['account', 'organization', 'link', 'interest', 'confirm'] as cons
 export function RepresentationWizardPage() {
   const { t } = useTranslation();
   const { user, accessToken } = useAuth();
-  const { refresh } = useRepresentation();
+  const { refresh, isStaff } = useRepresentation();
   const [step, setStep] = useState(0);
   const [orgs, setOrgs] = useState<Organization[]>([]);
   const [mode, setMode] = useState<'existing' | 'create'>('existing');
@@ -25,9 +26,9 @@ export function RepresentationWizardPage() {
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
-    if (!accessToken) return;
+    if (!accessToken || isStaff) return;
     void catalogApi.listOrganizations(accessToken).then((res) => setOrgs(res.items));
-  }, [accessToken]);
+  }, [accessToken, isStaff]);
 
   const current = steps[step];
   const selectedOrg = useMemo(
@@ -43,6 +44,10 @@ export function RepresentationWizardPage() {
     ],
     [t],
   );
+
+  if (isStaff) {
+    return <Navigate to="/" replace />;
+  }
 
   async function ensureOrganization(): Promise<string> {
     if (!accessToken) throw new Error('unauthorized');

@@ -168,6 +168,11 @@ adminRouter.get('/pending', async (_req, res, next) => {
         id: t.id,
         title: t.title,
         slug: t.slug,
+        summary: t.summary,
+        country: t.country,
+        region: t.region,
+        status: t.status,
+        curationNote: t.curationNote,
         organization: t.organization,
         updatedAt: t.updatedAt,
       })),
@@ -176,6 +181,11 @@ adminRouter.get('/pending', async (_req, res, next) => {
         id: c.id,
         title: c.title,
         slug: c.slug,
+        summary: c.summary,
+        country: c.country,
+        region: c.region,
+        status: c.status,
+        curationNote: c.curationNote,
         organization: c.organization,
         updatedAt: c.updatedAt,
       })),
@@ -184,6 +194,11 @@ adminRouter.get('/pending', async (_req, res, next) => {
         id: p.id,
         title: p.title,
         slug: p.slug,
+        summary: p.summary,
+        country: p.country,
+        region: p.region,
+        status: p.status,
+        curationNote: p.curationNote,
         organization: p.organization,
         updatedAt: p.updatedAt,
       })),
@@ -192,6 +207,11 @@ adminRouter.get('/pending', async (_req, res, next) => {
         id: f.id,
         title: f.title,
         slug: f.slug,
+        summary: f.summary,
+        country: f.country,
+        region: f.region,
+        status: f.status,
+        curationNote: f.curationNote,
         organization: f.organization,
         updatedAt: f.updatedAt,
       })),
@@ -200,6 +220,11 @@ adminRouter.get('/pending', async (_req, res, next) => {
         id: s.id,
         title: s.title,
         slug: s.slug,
+        summary: s.summary,
+        country: s.country,
+        region: s.region,
+        status: s.status,
+        curationNote: s.curationNote,
         organization: s.organization,
         updatedAt: s.updatedAt,
       })),
@@ -210,76 +235,112 @@ adminRouter.get('/pending', async (_req, res, next) => {
   }
 });
 
+type CurationDecision = 'PUBLISHED' | 'DRAFT' | 'ARCHIVED';
+
+function readCurationNote(body: unknown): string {
+  if (!body || typeof body !== 'object') return '';
+  const note = (body as { note?: unknown }).note;
+  return typeof note === 'string' ? note.trim() : '';
+}
+
+async function applyCurationDecision(
+  kind: string,
+  id: string,
+  nextStatus: CurationDecision,
+  note: string | null,
+) {
+  const data = {
+    status: nextStatus,
+    curationNote: note,
+    reviewedAt: new Date(),
+  };
+  if (kind === 'TECHNOLOGY') {
+    const current = await prisma.technology.findUnique({ where: { id } });
+    if (!current || current.status !== 'IN_REVIEW') return { error: 'invalid_status' as const };
+    const item = await prisma.technology.update({ where: { id }, data });
+    return { item, kind };
+  }
+  if (kind === 'CHALLENGE') {
+    const current = await prisma.challenge.findUnique({ where: { id } });
+    if (!current || current.status !== 'IN_REVIEW') return { error: 'invalid_status' as const };
+    const item = await prisma.challenge.update({ where: { id }, data });
+    return { item, kind };
+  }
+  if (kind === 'PROJECT') {
+    const current = await prisma.project.findUnique({ where: { id } });
+    if (!current || current.status !== 'IN_REVIEW') return { error: 'invalid_status' as const };
+    const item = await prisma.project.update({ where: { id }, data });
+    return { item, kind };
+  }
+  if (kind === 'FUNDING_OFFER') {
+    const current = await prisma.fundingOffer.findUnique({ where: { id } });
+    if (!current || current.status !== 'IN_REVIEW') return { error: 'invalid_status' as const };
+    const item = await prisma.fundingOffer.update({ where: { id }, data });
+    return { item, kind };
+  }
+  if (kind === 'SUCCESS_CASE') {
+    const current = await prisma.successCase.findUnique({ where: { id } });
+    if (!current || current.status !== 'IN_REVIEW') return { error: 'invalid_status' as const };
+    const item = await prisma.successCase.update({ where: { id }, data });
+    return { item, kind };
+  }
+  return { error: 'unsupported_kind' as const };
+}
+
+/** Approve for portal publication (optional conclusion note). */
 adminRouter.post('/pending/:kind/:id/publish', async (req, res, next) => {
   try {
     const kind = param(req.params.kind).toUpperCase();
     const id = param(req.params.id);
-    if (kind === 'TECHNOLOGY') {
-      const current = await prisma.technology.findUnique({ where: { id } });
-      if (!current || current.status !== 'IN_REVIEW') {
-        res.status(400).json({ error: 'invalid_status' });
-        return;
-      }
-      const item = await prisma.technology.update({
-        where: { id },
-        data: { status: 'PUBLISHED' },
-      });
-      res.json({ item, kind });
+    const note = readCurationNote(req.body);
+    const result = await applyCurationDecision(kind, id, 'PUBLISHED', note || null);
+    if ('error' in result) {
+      res.status(result.error === 'unsupported_kind' ? 400 : 400).json({ error: result.error });
       return;
     }
-    if (kind === 'CHALLENGE') {
-      const current = await prisma.challenge.findUnique({ where: { id } });
-      if (!current || current.status !== 'IN_REVIEW') {
-        res.status(400).json({ error: 'invalid_status' });
-        return;
-      }
-      const item = await prisma.challenge.update({
-        where: { id },
-        data: { status: 'PUBLISHED' },
-      });
-      res.json({ item, kind });
+    res.json(result);
+  } catch (error) {
+    next(error);
+  }
+});
+
+/** Return to author for adjustments (required note). */
+adminRouter.post('/pending/:kind/:id/return', async (req, res, next) => {
+  try {
+    const kind = param(req.params.kind).toUpperCase();
+    const id = param(req.params.id);
+    const note = readCurationNote(req.body);
+    if (!note) {
+      res.status(400).json({ error: 'note_required' });
       return;
     }
-    if (kind === 'PROJECT') {
-      const current = await prisma.project.findUnique({ where: { id } });
-      if (!current || current.status !== 'IN_REVIEW') {
-        res.status(400).json({ error: 'invalid_status' });
-        return;
-      }
-      const item = await prisma.project.update({
-        where: { id },
-        data: { status: 'PUBLISHED' },
-      });
-      res.json({ item, kind });
+    const result = await applyCurationDecision(kind, id, 'DRAFT', note);
+    if ('error' in result) {
+      res.status(400).json({ error: result.error });
       return;
     }
-    if (kind === 'FUNDING_OFFER') {
-      const current = await prisma.fundingOffer.findUnique({ where: { id } });
-      if (!current || current.status !== 'IN_REVIEW') {
-        res.status(400).json({ error: 'invalid_status' });
-        return;
-      }
-      const item = await prisma.fundingOffer.update({
-        where: { id },
-        data: { status: 'PUBLISHED' },
-      });
-      res.json({ item, kind });
+    res.json(result);
+  } catch (error) {
+    next(error);
+  }
+});
+
+/** Reject publication (required note → ARCHIVED). */
+adminRouter.post('/pending/:kind/:id/reject', async (req, res, next) => {
+  try {
+    const kind = param(req.params.kind).toUpperCase();
+    const id = param(req.params.id);
+    const note = readCurationNote(req.body);
+    if (!note) {
+      res.status(400).json({ error: 'note_required' });
       return;
     }
-    if (kind === 'SUCCESS_CASE') {
-      const current = await prisma.successCase.findUnique({ where: { id } });
-      if (!current || current.status !== 'IN_REVIEW') {
-        res.status(400).json({ error: 'invalid_status' });
-        return;
-      }
-      const item = await prisma.successCase.update({
-        where: { id },
-        data: { status: 'PUBLISHED' },
-      });
-      res.json({ item, kind });
+    const result = await applyCurationDecision(kind, id, 'ARCHIVED', note);
+    if ('error' in result) {
+      res.status(400).json({ error: result.error });
       return;
     }
-    res.status(400).json({ error: 'unsupported_kind' });
+    res.json(result);
   } catch (error) {
     next(error);
   }

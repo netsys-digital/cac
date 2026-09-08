@@ -226,7 +226,7 @@ meRouter.get('/contents', requireAuth, async (req, res, next) => {
 
     const [allTechs, allChallenges, allOffers, allCases] = countRows;
     const allForFacets = [...allTechs, ...allChallenges, ...allOffers, ...allCases];
-    const counts = { DRAFT: 0, IN_REVIEW: 0, PUBLISHED: 0 };
+    const counts = { DRAFT: 0, IN_REVIEW: 0, PUBLISHED: 0, ARCHIVED: 0 };
     for (const row of allForFacets) {
       if (row.status in counts) counts[row.status as keyof typeof counts] += 1;
     }
@@ -244,6 +244,8 @@ meRouter.get('/contents', requireAuth, async (req, res, next) => {
         title: t.title,
         slug: t.slug,
         status: t.status,
+        curationNote: t.curationNote,
+        reviewedAt: t.reviewedAt,
         country: t.country ?? '',
         organizationId: t.organizationId,
         organizationName: t.organization.name,
@@ -257,6 +259,8 @@ meRouter.get('/contents', requireAuth, async (req, res, next) => {
         title: c.title,
         slug: c.slug,
         status: c.status,
+        curationNote: c.curationNote,
+        reviewedAt: c.reviewedAt,
         country: c.country ?? '',
         organizationId: c.organizationId,
         organizationName: c.organization.name,
@@ -270,6 +274,8 @@ meRouter.get('/contents', requireAuth, async (req, res, next) => {
         title: o.title,
         slug: o.slug,
         status: o.status,
+        curationNote: o.curationNote,
+        reviewedAt: o.reviewedAt,
         country: o.country ?? '',
         organizationId: o.organizationId,
         organizationName: o.organization.name,
@@ -283,6 +289,8 @@ meRouter.get('/contents', requireAuth, async (req, res, next) => {
         title: s.title,
         slug: s.slug,
         status: s.status,
+        curationNote: s.curationNote,
+        reviewedAt: s.reviewedAt,
         country: s.country ?? '',
         organizationId: s.organizationId,
         organizationName: s.organization.name,

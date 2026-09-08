@@ -6,9 +6,10 @@ import { brand, urls } from '../../config';
 import { normalizeLanguage } from '../../i18n';
 import { useAuth } from '../auth/AuthContext';
 import { useRepresentation } from '../auth/RepresentationContext';
+import { useStaffTasks } from '../auth/StaffTasksContext';
 import { SideNav, sideIcons, type SideNavItem } from './SideNav';
 
-type NavItem = { to: string; label: string; end?: boolean };
+type NavItem = { to: string; label: string; end?: boolean; badge?: string };
 
 function primaryLinkClass(isActive: boolean) {
   return `rounded-xl px-4 py-2.5 text-[14px] font-semibold whitespace-nowrap text-[#dbe8ec] hover:bg-white/[0.1] ${
@@ -54,6 +55,7 @@ export function AppShell() {
   const { t, i18n } = useTranslation();
   const { user, logout } = useAuth();
   const { canPublish, gate, isStaff } = useRepresentation();
+  const { contentCount, repCount } = useStaffTasks();
   const crumbs = useBreadcrumbs();
 
   const displayName = (() => {
@@ -63,11 +65,27 @@ export function AppShell() {
     return `${parts[0]} ${parts[parts.length - 1]}`;
   })();
 
-  const primary: NavItem[] = [
-    { to: '/', label: t('nav.dashboard'), end: true },
-    { to: '/my/connections', label: t('nav.connections') },
-    { to: '/org/representation', label: t('nav.representation') },
-  ];
+  const primary: NavItem[] = isStaff
+    ? [
+        { to: '/', label: t('nav.dashboard'), end: true },
+        {
+          to: '/admin/curate',
+          label: t('nav.adminCurate'),
+          badge: contentCount > 0 ? String(contentCount) : undefined,
+        },
+        {
+          to: '/admin/representation',
+          label: t('nav.adminRep'),
+          badge: repCount > 0 ? String(repCount) : undefined,
+        },
+        { to: '/admin/domains', label: t('nav.adminDomains') },
+        { to: '/my/connections', label: t('nav.connections') },
+      ]
+    : [
+        { to: '/', label: t('nav.dashboard'), end: true },
+        { to: '/my/connections', label: t('nav.connections') },
+        { to: '/org/representation', label: t('nav.representation') },
+      ];
 
   const pendingBadge = gate === 'pending' ? t('onboarding.pendingBadge') : undefined;
   const lockedHint = !canPublish ? t('nav.publishLocked') : undefined;
@@ -110,23 +128,41 @@ export function AppShell() {
     },
   ];
 
+  const staffItems: SideNavItem[] = isStaff
+    ? [
+        {
+          to: '/admin/curate',
+          label: t('nav.adminCurate'),
+          icon: sideIcons.curate,
+          badge: contentCount > 0 ? t('nav.tasksBadge', { count: contentCount }) : undefined,
+          count: contentCount,
+        },
+        {
+          to: '/admin/representation',
+          label: t('nav.adminRep'),
+          icon: sideIcons.adminRep,
+          badge: repCount > 0 ? t('nav.tasksBadge', { count: repCount }) : undefined,
+          count: repCount,
+        },
+        { to: '/admin/domains', label: t('nav.adminDomains'), icon: sideIcons.domains },
+      ]
+    : [];
+
   const sideItems: SideNavItem[] = [
     { to: urls.www, label: t('nav.backPortal'), icon: sideIcons.portal },
+    ...staffItems,
     { to: '/my/connections', label: t('nav.connections'), icon: sideIcons.connections },
-    {
-      to: '/org/representation',
-      label: t('nav.representation'),
-      icon: sideIcons.representation,
-      badge: pendingBadge,
-    },
-    ...publishItems,
     ...(isStaff
-      ? [
-          { to: '/admin/curate', label: t('nav.adminCurate'), icon: sideIcons.curate },
-          { to: '/admin/representation', label: t('nav.adminRep'), icon: sideIcons.adminRep },
-          { to: '/admin/domains', label: t('nav.adminDomains'), icon: sideIcons.domains },
-        ]
-      : []),
+      ? []
+      : [
+          {
+            to: '/org/representation',
+            label: t('nav.representation'),
+            icon: sideIcons.representation,
+            badge: pendingBadge,
+          } satisfies SideNavItem,
+          ...publishItems,
+        ]),
   ];
 
   return (
@@ -150,7 +186,14 @@ export function AppShell() {
                 end={link.end}
                 className={({ isActive }) => primaryLinkClass(isActive)}
               >
-                {link.label}
+                <span className="inline-flex items-center gap-2">
+                  {link.label}
+                  {link.badge ? (
+                    <span className="grid min-w-5 place-items-center rounded-full bg-amber-400 px-1.5 py-0.5 text-[10px] font-black text-cac-navy">
+                      {link.badge}
+                    </span>
+                  ) : null}
+                </span>
               </NavLink>
             ))}
           </nav>
@@ -219,19 +262,24 @@ export function AppShell() {
                 to={link.to}
                 end={link.end}
                 className={({ isActive }) =>
-                  `rounded-lg px-2.5 py-1.5 text-[12px] font-black ${
+                  `inline-flex items-center gap-1 rounded-lg px-2.5 py-1.5 text-[12px] font-black ${
                     isActive ? 'bg-cac-green3 text-cac-navy' : 'text-cac-muted'
                   }`
                 }
               >
                 {link.label}
+                {link.badge ? (
+                  <span className="rounded-full bg-amber-400 px-1.5 text-[10px] text-cac-navy">
+                    {link.badge}
+                  </span>
+                ) : null}
               </NavLink>
             ))}
           </nav>
         </div>
       </div>
 
-        <div className="flex min-h-[calc(100vh-92px-48px)]">
+      <div className="flex min-h-[calc(100vh-92px-48px)]">
         <SideNav items={sideItems} />
         <div className="min-w-0 flex-1 px-4 py-4 md:px-6 md:py-5 xl:px-8 xl:py-6">
           <Outlet />

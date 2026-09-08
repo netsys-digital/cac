@@ -40,6 +40,11 @@ export type PendingItem = {
   id: string;
   title: string;
   slug: string;
+  summary?: string | null;
+  country?: string | null;
+  region?: string | null;
+  status?: string;
+  curationNote?: string | null;
   organization?: { id: string; name: string };
   updatedAt: string;
 };
@@ -86,10 +91,23 @@ export const connectionsApi = {
     }),
   adminPending: (token: string) =>
     api<{ items: PendingItem[] }>('/api/admin/pending', { accessToken: token }),
-  publishPending: (token: string, kind: string, id: string) =>
+  publishPending: (token: string, kind: string, id: string, note?: string) =>
     api<{ item: unknown }>(`/api/admin/pending/${kind}/${id}/publish`, {
       method: 'POST',
       accessToken: token,
+      body: JSON.stringify({ note: note ?? '' }),
+    }),
+  returnPending: (token: string, kind: string, id: string, note: string) =>
+    api<{ item: unknown }>(`/api/admin/pending/${kind}/${id}/return`, {
+      method: 'POST',
+      accessToken: token,
+      body: JSON.stringify({ note }),
+    }),
+  rejectPending: (token: string, kind: string, id: string, note: string) =>
+    api<{ item: unknown }>(`/api/admin/pending/${kind}/${id}/reject`, {
+      method: 'POST',
+      accessToken: token,
+      body: JSON.stringify({ note }),
     }),
   kpis: (token: string) =>
     api<{ kpis: Record<string, number> }>('/api/admin/kpis', { accessToken: token }),

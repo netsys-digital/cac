@@ -18,7 +18,7 @@ const KINDS: Array<ContentKind | 'ALL'> = [
   'SUCCESS_CASE',
 ];
 
-const STATUSES = ['ALL', 'DRAFT', 'IN_REVIEW', 'PUBLISHED'] as const;
+const STATUSES = ['ALL', 'DRAFT', 'IN_REVIEW', 'PUBLISHED', 'ARCHIVED'] as const;
 type SortKey = 'recent' | 'title' | 'likes' | 'connections';
 
 const emptyMetrics: ContentMetrics = {
@@ -33,7 +33,15 @@ const emptyMetrics: ContentMetrics = {
 function statusClass(status: string) {
   if (status === 'PUBLISHED') return 'bg-cac-green3 text-cac-navy';
   if (status === 'IN_REVIEW') return 'bg-amber-100 text-amber-900';
+  if (status === 'ARCHIVED') return 'bg-red-100 text-red-900';
   return 'bg-[#edf1f3] text-cac-muted';
+}
+
+function curationNoteLabel(status: string, t: (key: string) => string) {
+  if (status === 'ARCHIVED') return t('mine.curationNoteRejected');
+  if (status === 'DRAFT') return t('mine.curationNoteReturned');
+  if (status === 'PUBLISHED') return t('mine.curationNoteApproved');
+  return t('mine.curationNoteTitle');
 }
 
 function MetricCard({ label, value, hint }: { label: string; value: string | number; hint?: string }) {
@@ -52,7 +60,7 @@ export function MyContentsPage() {
   const { t } = useTranslation();
   const { accessToken } = useAuth();
   const [items, setItems] = useState<MyContentItem[]>([]);
-  const [counts, setCounts] = useState({ DRAFT: 0, IN_REVIEW: 0, PUBLISHED: 0 });
+  const [counts, setCounts] = useState({ DRAFT: 0, IN_REVIEW: 0, PUBLISHED: 0, ARCHIVED: 0 });
   const [organizations, setOrganizations] = useState<Array<{ id: string; name: string }>>([]);
   const [countries, setCountries] = useState<string[]>([]);
   const [kind, setKind] = useState<(typeof KINDS)[number]>('ALL');
@@ -89,7 +97,7 @@ export function MyContentsPage() {
           metrics: item.metrics ?? emptyMetrics,
         })),
       );
-      setCounts(res.counts ?? { DRAFT: 0, IN_REVIEW: 0, PUBLISHED: 0 });
+      setCounts(res.counts ?? { DRAFT: 0, IN_REVIEW: 0, PUBLISHED: 0, ARCHIVED: 0 });
       setOrganizations(res.facets?.organizations ?? []);
       setCountries(res.facets?.countries ?? []);
     } catch (e) {
@@ -164,7 +172,7 @@ export function MyContentsPage() {
           <p className="mt-2 max-w-[780px] text-[14px] leading-relaxed text-cac-muted">{t('mine.desc')}</p>
         </div>
         <div className="flex flex-wrap gap-2 text-[12px] font-black">
-          {(['DRAFT', 'IN_REVIEW', 'PUBLISHED'] as const).map((s) => (
+          {(['DRAFT', 'IN_REVIEW', 'PUBLISHED', 'ARCHIVED'] as const).map((s) => (
             <button
               key={s}
               type="button"
@@ -173,7 +181,7 @@ export function MyContentsPage() {
                 status === s ? 'ring-2 ring-cac-navy/30 ' : ''
               } ${statusClass(s)}`}
             >
-              {t(`mine.status.${s}`)} {counts[s]}
+              {t(`mine.status.${s}`)} {counts[s] ?? 0}
             </button>
           ))}
         </div>
@@ -333,6 +341,12 @@ export function MyContentsPage() {
                     <p className="mt-0.5 text-[12px] text-cac-muted">
                       {item.organizationName} · {item.country} · {new Date(item.updatedAt).toLocaleString()}
                     </p>
+                    {item.curationNote ? (
+                      <p className="mt-2 rounded-lg border border-cac-line bg-[#fbfcfb] px-2.5 py-2 text-[12px] leading-snug text-cac-navy">
+                        <span className="font-black">{curationNoteLabel(item.status, t)}: </span>
+                        {item.curationNote}
+                      </p>
+                    ) : null}
                   </div>
 
                   <div className="flex flex-wrap gap-2">

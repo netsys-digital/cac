@@ -497,8 +497,59 @@ async function upsertCatalog() {
     },
   });
 
+  // Itens na fila do curador (demo de decisão com observações)
+  await prisma.technology.upsert({
+    where: { slug: 'biochar-pequenos-produtores-review' },
+    create: {
+      slug: 'biochar-pequenos-produtores-review',
+      title: 'Biochar para pequenos produtores (em revisão)',
+      summary:
+        'Proposta de fornos de baixo custo para produzir biochar e melhorar retenção de carbono e água em solos degradados.',
+      problemStatement: 'Solos pobres e perda de fertilidade sob clima irregular.',
+      howItWorks: 'Treinamento local, fornos metálicos simples e protocolo de aplicação em hortas.',
+      organizationId: orgIds.embrapa,
+      country: 'BR',
+      region: 'south_america',
+      climateAction: ClimateAction.BOTH,
+      maturity: Maturity.VALIDATION,
+      status: ContentStatus.IN_REVIEW,
+      tags: { create: [{ tag: 'solo' }, { tag: 'mitigação' }] },
+    },
+    update: {
+      title: 'Biochar para pequenos produtores (em revisão)',
+      summary:
+        'Proposta de fornos de baixo custo para produzir biochar e melhorar retenção de carbono e água em solos degradados.',
+      status: ContentStatus.IN_REVIEW,
+      curationNote: null,
+      reviewedAt: null,
+    },
+  });
+
+  await prisma.challenge.upsert({
+    where: { slug: 'alerta-cheia-comunitario-review' },
+    create: {
+      slug: 'alerta-cheia-comunitario-review',
+      title: 'Sistema comunitário de alerta de cheias (em revisão)',
+      summary: 'Buscamos parceiros para implantar alertas simples em bacias com risco de inundação.',
+      context: 'Comunidades ribeirinhas com pouco acesso a sensores e internet estável.',
+      needType: NeedType.TECHNOLOGY,
+      organizationId: orgIds.iita,
+      country: 'NG',
+      region: 'africa',
+      status: ContentStatus.IN_REVIEW,
+      tags: { create: [{ tag: 'alerta' }, { tag: 'adaptação' }] },
+    },
+    update: {
+      title: 'Sistema comunitário de alerta de cheias (em revisão)',
+      summary: 'Buscamos parceiros para implantar alertas simples em bacias com risco de inundação.',
+      status: ContentStatus.IN_REVIEW,
+      curationNote: null,
+      reviewedAt: null,
+    },
+  });
+
   console.log(
-    `[seed] catalog orgs=${orgs.length} technologies=${technologies.length} challenges=${challenges.length} projects=${projects.length} funders=1 offers=1 cases=1`,
+    `[seed] catalog orgs=${orgs.length} technologies=${technologies.length} challenges=${challenges.length} projects=${projects.length} funders=1 offers=1 cases=1 (+2 IN_REVIEW for curator)`,
   );
 
   const { upsertDemoVolumes } = await import('./seed-demo-volumes.js');

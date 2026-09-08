@@ -1,0 +1,15 @@
+-- Curator decision notes on catalog content
+ALTER TABLE "Technology" ADD COLUMN IF NOT EXISTS "curationNote" TEXT;
+ALTER TABLE "Technology" ADD COLUMN IF NOT EXISTS "reviewedAt" TIMESTAMP(3);
+
+ALTER TABLE "Challenge" ADD COLUMN IF NOT EXISTS "curationNote" TEXT;
+ALTER TABLE "Challenge" ADD COLUMN IF NOT EXISTS "reviewedAt" TIMESTAMP(3);
+
+ALTER TABLE "Project" ADD COLUMN IF NOT EXISTS "curationNote" TEXT;
+ALTER TABLE "Project" ADD COLUMN IF NOT EXISTS "reviewedAt" TIMESTAMP(3);
+
+ALTER TABLE "FundingOffer" ADD COLUMN IF NOT EXISTS "curationNote" TEXT;
+ALTER TABLE "FundingOffer" ADD COLUMN IF NOT EXISTS "reviewedAt" TIMESTAMP(3);
+
+ALTER TABLE "SuccessCase" ADD COLUMN IF NOT EXISTS "curationNote" TEXT;
+ALTER TABLE "SuccessCase" ADD COLUMN IF NOT EXISTS "reviewedAt" TIMESTAMP(3);
