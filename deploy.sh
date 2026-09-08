@@ -9,6 +9,8 @@ COMPOSE=(docker compose -f docker-compose.prod.yml --env-file .env.prod)
 FORCE_ALL=0
 [[ "${1:-}" == "--full" ]] && FORCE_ALL=1
 
+DOCKER_CONFIG_DIR="$(cd ../docker-config 2>/dev/null && pwd || true)"
+
 mkdir -p /var/lock
 exec 9>/var/lock/cac-deploy.lock
 flock -n 9 || { echo "Deploy já em andamento"; exit 1; }
@@ -73,6 +75,32 @@ build_up() {
     "${COMPOSE[@]}" build "$svc"
   fi
   "${COMPOSE[@]}" up -d --no-deps --force-recreate --remove-orphans "$svc"
+}
+
+ensure_netsys_infra() {
+  if [[ -z "${DOCKER_CONFIG_DIR}" || ! -f "${DOCKER_CONFIG_DIR}/docker-compose.yml" ]]; then
+    echo "docker-config não encontrado em ../docker-config (infra compartilhada)."
+    exit 1
+  fi
+  if [[ ! -f "${DOCKER_CONFIG_DIR}/.env" ]]; then
+    echo "Falta ${DOCKER_CONFIG_DIR}/.env"
+    exit 1
+  fi
+
+  echo "Garante infra compartilhada (postgres + redis)…"
+  (cd "${DOCKER_CONFIG_DIR}" && docker compose --env-file .env up -d postgres redis)
+
+  local i
+  for i in $(seq 1 30); do
+    if docker exec netsys-postgres pg_isready -U netsys >/dev/null 2>&1 \
+      && docker exec netsys-redis redis-cli ping 2>/dev/null | grep -q PONG; then
+      echo "  netsys-postgres + netsys-redis OK"
+      return 0
+    fi
+    sleep 2
+  done
+  echo "Timeout aguardando netsys-postgres / netsys-redis"
+  exit 1
 }
 
 if [[ ! -f .env.prod ]]; then
@@ -175,7 +203,7 @@ services=()
 echo
 echo "Serviços: ${services[*]:-nenhum}  gateway=${need_gateway}"
 
-"${COMPOSE[@]}" up -d postgres redis
+ensure_netsys_infra
 
 if [[ "$need_api" != "1" && ( ${#services[@]} -gt 0 || "$need_gateway" == "1" ) ]]; then
   "${COMPOSE[@]}" up -d api api-worker
