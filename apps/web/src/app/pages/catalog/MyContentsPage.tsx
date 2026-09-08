@@ -97,7 +97,12 @@ export function MyContentsPage() {
           metrics: item.metrics ?? emptyMetrics,
         })),
       );
-      setCounts(res.counts ?? { DRAFT: 0, IN_REVIEW: 0, PUBLISHED: 0, ARCHIVED: 0 });
+      setCounts({
+        DRAFT: res.counts?.DRAFT ?? 0,
+        IN_REVIEW: res.counts?.IN_REVIEW ?? 0,
+        PUBLISHED: res.counts?.PUBLISHED ?? 0,
+        ARCHIVED: res.counts?.ARCHIVED ?? 0,
+      });
       setOrganizations(res.facets?.organizations ?? []);
       setCountries(res.facets?.countries ?? []);
     } catch (e) {

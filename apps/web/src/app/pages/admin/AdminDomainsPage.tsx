@@ -1,4 +1,4 @@
-import { type FormEvent, useEffect, useState } from 'react';
+import { type FormEvent, useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Button, Input } from '@cac/ui';
 import { useAuth } from '../../auth/AuthContext';
@@ -15,14 +15,14 @@ export function AdminDomainsPage() {
   const [labelPt, setLabelPt] = useState('');
   const [labelEn, setLabelEn] = useState('');
 
-  async function load(g = grouping) {
+  const load = useCallback(async (g = grouping) => {
     const res = await catalogApi.listDomains(g);
     setItems(res.items);
-  }
+  }, [grouping]);
 
   useEffect(() => {
     void load();
-  }, [grouping]);
+  }, [load]);
 
   async function onCreate(e: FormEvent) {
     e.preventDefault();

@@ -51,7 +51,7 @@ export type MyContentItem = {
 
 export type MyContentsResponse = {
   items: MyContentItem[];
-  counts: { DRAFT: number; IN_REVIEW: number; PUBLISHED: number; ARCHIVED?: number };
+  counts: { DRAFT: number; IN_REVIEW: number; PUBLISHED: number; ARCHIVED: number };
   facets: {
     organizations: Array<{ id: string; name: string }>;
     countries: string[];

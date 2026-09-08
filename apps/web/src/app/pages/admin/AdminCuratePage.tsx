@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Button } from '@cac/ui';
 import { useAuth } from '../../auth/AuthContext';
@@ -44,23 +44,25 @@ export function AdminCuratePage() {
   const [notes, setNotes] = useState<Record<string, string>>({});
   const [expanded, setExpanded] = useState<string | null>(null);
 
-  async function load() {
+  const load = useCallback(async () => {
     if (!accessToken) return;
     setLoading(true);
     try {
       const pending = await connectionsApi.adminPending(accessToken);
       setItems(pending.items);
-      if (pending.items.length && !expanded) {
-        setExpanded(`${pending.items[0].kind}-${pending.items[0].id}`);
-      }
+      setExpanded((prev) => {
+        if (prev || !pending.items.length) return prev;
+        const first = pending.items[0];
+        return `${first.kind}-${first.id}`;
+      });
     } finally {
       setLoading(false);
     }
-  }
+  }, [accessToken]);
 
   useEffect(() => {
     void load();
-  }, [accessToken]);
+  }, [load]);
 
   const byKind = useMemo(() => {
     const counts: Record<string, number> = {};

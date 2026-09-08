@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Button } from '@cac/ui';
 import { useAuth } from '../../auth/AuthContext';
@@ -14,7 +14,7 @@ export function AdminRepresentationPage() {
   const [message, setMessage] = useState('');
   const [loading, setLoading] = useState(true);
 
-  async function load() {
+  const load = useCallback(async () => {
     if (!accessToken) return;
     setLoading(true);
     try {
@@ -23,11 +23,11 @@ export function AdminRepresentationPage() {
     } finally {
       setLoading(false);
     }
-  }
+  }, [accessToken]);
 
   useEffect(() => {
     void load();
-  }, [accessToken]);
+  }, [load]);
 
   async function approve(item: RepresentationRequest) {
     if (!accessToken) return;

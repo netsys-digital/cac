@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Button } from '@cac/ui';
 import { useAuth } from '../../auth/AuthContext';
@@ -10,15 +10,15 @@ export function MyConnectionsPage() {
   const [items, setItems] = useState<Connection[]>([]);
   const [message, setMessage] = useState('');
 
-  async function load() {
+  const load = useCallback(async () => {
     if (!accessToken) return;
     const res = await connectionsApi.list(accessToken);
     setItems(res.items);
-  }
+  }, [accessToken]);
 
   useEffect(() => {
     void load();
-  }, [accessToken]);
+  }, [load]);
 
   async function accept(id: string) {
     if (!accessToken) return;
