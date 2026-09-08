@@ -173,11 +173,11 @@ export function AppShell() {
               <>
                 <Link
                   to="/"
-                  className="hidden min-w-0 max-w-[180px] flex-col items-end leading-tight text-right sm:flex"
+                  className="hidden min-w-0 max-w-[200px] flex-col items-end leading-tight text-right sm:flex"
                   title={user?.name}
                 >
-                  <span className="truncate text-[12px] font-semibold text-white">{displayName}</span>
-                  <span className="text-[10px] font-medium tracking-wide text-[#90d6b6]">
+                  <span className="truncate text-sm font-semibold text-white">{displayName}</span>
+                  <span className="text-xs font-medium tracking-wide text-[#90d6b6]">
                     {user?.role ? t(`roles.${user.role}`) : t('shell.profile')}
                   </span>
                 </Link>
@@ -231,9 +231,9 @@ export function AppShell() {
         </div>
       </div>
 
-      <div className="flex min-h-[calc(100vh-92px-48px)]">
+        <div className="flex min-h-[calc(100vh-92px-48px)]">
         <SideNav items={sideItems} />
-        <div className="min-w-0 flex-1 px-5 py-7 md:px-7 md:py-9">
+        <div className="min-w-0 flex-1 px-4 py-4 md:px-6 md:py-5 xl:px-8 xl:py-6">
           <Outlet />
         </div>
       </div>

@@ -84,8 +84,12 @@ export const en = {
     title: 'Hello, {{name}}',
     subtitle:
       'This is your dashboard until the institutional profile is complete. You can already explore the portal and request connections; publishing unlocks after an organization link is approved.',
+    subtitleShort:
+      'Institutional profile incomplete: explore and connect now; publishing unlocks after the link is approved.',
     subtitlePending:
       'Your representation request is under review. Meanwhile, keep exploring the portal and tracking connections — publishing unlocks once the link is approved.',
+    subtitlePendingShort:
+      'Representation under review. Explore and connect; publishing unlocks after approval.',
     profileTitle: 'Profile completeness',
     profileAccount: 'Personal account',
     profileAccountDone: 'Created and active',
@@ -131,7 +135,8 @@ export const en = {
     timeline5: 'Publish',
     timelineHint:
       'When Validate is completed, this dashboard switches to publication metrics and shortcuts.',
-    laterTitle: 'Quick shortcuts',
+    timelineHintShort: 'After Validate, the publications dashboard unlocks.',
+    laterTitle: 'Shortcuts',
     laterBody: 'Connections and the portal stay available even without an approved link.',
   },
   gate: {

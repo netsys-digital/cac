@@ -84,8 +84,12 @@ export const pt = {
     title: 'Olá, {{name}}',
     subtitle:
       'Este é o seu painel enquanto o perfil institucional não está completo. Você já pode explorar o portal e pedir conexões; publicar fica liberado após o vínculo com uma organização ser aprovado.',
+    subtitleShort:
+      'Perfil institucional incompleto: explore o portal e conecte-se agora; publicar libera após o vínculo aprovado.',
     subtitlePending:
       'Sua solicitação de representação está em análise. Enquanto isso, continue explorando o portal e acompanhando conexões — a publicação será liberada assim que o vínculo for aprovado.',
+    subtitlePendingShort:
+      'Representação em análise. Explore e conecte-se; publicar libera após a aprovação.',
     profileTitle: 'Completude do perfil',
     profileAccount: 'Conta pessoal',
     profileAccountDone: 'Criada e ativa',
@@ -131,7 +135,8 @@ export const pt = {
     timeline5: 'Publicar',
     timelineHint:
       'Quando o passo Validar for concluído, este painel passa a mostrar indicadores e atalhos de publicação.',
-    laterTitle: 'Atalhos rápidos',
+    timelineHintShort: 'Após Validar, o painel de publicações é liberado.',
+    laterTitle: 'Atalhos',
     laterBody: 'Conexões e o portal ficam disponíveis mesmo sem vínculo aprovado.',
   },
   gate: {
