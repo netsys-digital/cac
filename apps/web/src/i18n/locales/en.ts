@@ -298,6 +298,8 @@ export const en = {
       sortLikes: 'Most saved',
       sortConnections: 'Most connections',
       clear: 'Clear filters',
+      kind: 'Type',
+      status: 'Status',
     },
     metrics: {
       likes: 'Saved',

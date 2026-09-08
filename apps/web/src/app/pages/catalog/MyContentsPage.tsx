@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Button } from '@cac/ui';
 import { useAuth } from '../../auth/AuthContext';
@@ -71,7 +71,7 @@ export function MyContentsPage() {
     return () => window.clearTimeout(id);
   }, [q]);
 
-  async function load() {
+  const load = useCallback(async () => {
     if (!accessToken) return;
     setLoading(true);
     setError('');
@@ -97,11 +97,11 @@ export function MyContentsPage() {
     } finally {
       setLoading(false);
     }
-  }
+  }, [accessToken, kind, status, qDebounced, organizationId, country]);
 
   useEffect(() => {
     void load();
-  }, [accessToken, kind, status, qDebounced, organizationId, country]);
+  }, [load]);
 
   const sortedItems = useMemo(() => {
     const next = [...items];
@@ -252,7 +252,10 @@ export function MyContentsPage() {
           ) : null}
         </div>
 
-        <div className="flex flex-wrap gap-2">
+        <div className="flex flex-wrap items-center gap-x-2 gap-y-3">
+          <span className="mr-1 text-[11px] font-black uppercase tracking-wide text-cac-muted">
+            {t('mine.filters.kind')}
+          </span>
           {KINDS.map((k) => (
             <button
               key={k}
@@ -265,8 +268,10 @@ export function MyContentsPage() {
               {t(`mine.kind.${k}`)}
             </button>
           ))}
-        </div>
-        <div className="flex flex-wrap gap-2">
+          <span className="mx-4 hidden h-7 w-px bg-cac-line sm:block" aria-hidden />
+          <span className="mr-1 text-[11px] font-black uppercase tracking-wide text-cac-muted sm:ml-1">
+            {t('mine.filters.status')}
+          </span>
           {STATUSES.map((s) => (
             <button
               key={s}

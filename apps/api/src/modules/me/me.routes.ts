@@ -244,7 +244,7 @@ meRouter.get('/contents', requireAuth, async (req, res, next) => {
         title: t.title,
         slug: t.slug,
         status: t.status,
-        country: t.country,
+        country: t.country ?? '',
         organizationId: t.organizationId,
         organizationName: t.organization.name,
         updatedAt: t.updatedAt,
@@ -257,7 +257,7 @@ meRouter.get('/contents', requireAuth, async (req, res, next) => {
         title: c.title,
         slug: c.slug,
         status: c.status,
-        country: c.country,
+        country: c.country ?? '',
         organizationId: c.organizationId,
         organizationName: c.organization.name,
         updatedAt: c.updatedAt,
@@ -270,7 +270,7 @@ meRouter.get('/contents', requireAuth, async (req, res, next) => {
         title: o.title,
         slug: o.slug,
         status: o.status,
-        country: o.country,
+        country: o.country ?? '',
         organizationId: o.organizationId,
         organizationName: o.organization.name,
         updatedAt: o.updatedAt,
@@ -283,7 +283,7 @@ meRouter.get('/contents', requireAuth, async (req, res, next) => {
         title: s.title,
         slug: s.slug,
         status: s.status,
-        country: s.country,
+        country: s.country ?? '',
         organizationId: s.organizationId,
         organizationName: s.organization.name,
         updatedAt: s.updatedAt,
@@ -297,7 +297,7 @@ meRouter.get('/contents', requireAuth, async (req, res, next) => {
         (item) =>
           item.title.toLowerCase().includes(q) ||
           item.organizationName.toLowerCase().includes(q) ||
-          item.country.toLowerCase().includes(q) ||
+          (item.country ?? '').toLowerCase().includes(q) ||
           item.slug.toLowerCase().includes(q),
       );
     }

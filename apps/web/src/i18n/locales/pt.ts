@@ -298,6 +298,8 @@ export const pt = {
       sortLikes: 'Mais favoritos',
       sortConnections: 'Mais conexões',
       clear: 'Limpar filtros',
+      kind: 'Tipo',
+      status: 'Status',
     },
     metrics: {
       likes: 'Favoritos',
