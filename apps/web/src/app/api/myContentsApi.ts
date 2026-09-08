@@ -24,6 +24,15 @@ async function api<T>(
 
 export type ContentKind = 'TECHNOLOGY' | 'CHALLENGE' | 'FUNDING_OFFER' | 'SUCCESS_CASE';
 
+export type ContentMetrics = {
+  likes: number;
+  connections: number;
+  connectionsPending: number;
+  contacts: number;
+  views: number;
+  viewsTracked: boolean;
+};
+
 export type MyContentItem = {
   kind: ContentKind;
   id: string;
@@ -35,6 +44,16 @@ export type MyContentItem = {
   organizationName: string;
   updatedAt: string;
   editPath: string;
+  metrics: ContentMetrics;
+};
+
+export type MyContentsResponse = {
+  items: MyContentItem[];
+  counts: { DRAFT: number; IN_REVIEW: number; PUBLISHED: number };
+  facets: {
+    organizations: Array<{ id: string; name: string }>;
+    countries: string[];
+  };
 };
 
 export type DashboardStats = {
@@ -65,12 +84,24 @@ export type DashboardResponse = {
 export const myContentsApi = {
   dashboard: (token: string) =>
     api<DashboardResponse>('/api/me/dashboard', { accessToken: token }),
-  list: (token: string, query?: { kind?: string; status?: string }) => {
+  list: (
+    token: string,
+    query?: {
+      kind?: string;
+      status?: string;
+      q?: string;
+      organizationId?: string;
+      country?: string;
+    },
+  ) => {
     const qs = new URLSearchParams();
     if (query?.kind) qs.set('kind', query.kind);
     if (query?.status) qs.set('status', query.status);
+    if (query?.q) qs.set('q', query.q);
+    if (query?.organizationId) qs.set('organizationId', query.organizationId);
+    if (query?.country) qs.set('country', query.country);
     const suffix = qs.toString() ? `?${qs}` : '';
-    return api<{ items: MyContentItem[] }>(`/api/me/contents${suffix}`, { accessToken: token });
+    return api<MyContentsResponse>(`/api/me/contents${suffix}`, { accessToken: token });
   },
   get: (token: string, kind: ContentKind, id: string) =>
     api<{ item: Record<string, unknown> }>(`/api/me/contents/${kind}/${id}`, { accessToken: token }),

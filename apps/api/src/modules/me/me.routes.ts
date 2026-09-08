@@ -156,43 +156,88 @@ meRouter.get('/contents', requireAuth, async (req, res, next) => {
     const where = await orgFilter(req.auth!.sub, req.auth!.role);
     const kind = typeof req.query.kind === 'string' ? req.query.kind : undefined;
     const status = typeof req.query.status === 'string' ? req.query.status : undefined;
+    const q = typeof req.query.q === 'string' ? req.query.q.trim().toLowerCase() : '';
+    const organizationId =
+      typeof req.query.organizationId === 'string' ? req.query.organizationId : undefined;
+    const country = typeof req.query.country === 'string' ? req.query.country : undefined;
 
-    const [techs, challenges, offers, cases] = await Promise.all([
+    const includeOrg = { organization: { select: { id: true, name: true, slug: true } } } as const;
+    const statusFilter = status ? { status: status as ContentStatus } : {};
+    const orgIdFilter = organizationId ? { organizationId } : {};
+    const countryFilter = country ? { country } : {};
+
+    const [techs, challenges, offers, cases, countRows] = await Promise.all([
       !kind || kind === 'TECHNOLOGY'
         ? prisma.technology.findMany({
-            where: { ...where, ...(status ? { status: status as ContentStatus } : {}) },
-            include: { organization: { select: { id: true, name: true, slug: true } } },
+            where: { ...where, ...statusFilter, ...orgIdFilter, ...countryFilter },
+            include: includeOrg,
             orderBy: { updatedAt: 'desc' },
-            take: 100,
+            take: 200,
           })
         : Promise.resolve([]),
       !kind || kind === 'CHALLENGE'
         ? prisma.challenge.findMany({
-            where: { ...where, ...(status ? { status: status as ContentStatus } : {}) },
-            include: { organization: { select: { id: true, name: true, slug: true } } },
+            where: { ...where, ...statusFilter, ...orgIdFilter, ...countryFilter },
+            include: includeOrg,
             orderBy: { updatedAt: 'desc' },
-            take: 100,
+            take: 200,
           })
         : Promise.resolve([]),
       !kind || kind === 'FUNDING_OFFER'
         ? prisma.fundingOffer.findMany({
-            where: { ...where, ...(status ? { status: status as ContentStatus } : {}) },
-            include: { organization: { select: { id: true, name: true, slug: true } } },
+            where: { ...where, ...statusFilter, ...orgIdFilter, ...countryFilter },
+            include: includeOrg,
             orderBy: { updatedAt: 'desc' },
-            take: 100,
+            take: 200,
           })
         : Promise.resolve([]),
       !kind || kind === 'SUCCESS_CASE'
         ? prisma.successCase.findMany({
-            where: { ...where, ...(status ? { status: status as ContentStatus } : {}) },
-            include: { organization: { select: { id: true, name: true, slug: true } } },
+            where: { ...where, ...statusFilter, ...orgIdFilter, ...countryFilter },
+            include: includeOrg,
             orderBy: { updatedAt: 'desc' },
-            take: 100,
+            take: 200,
           })
         : Promise.resolve([]),
+      // Counts / facets ignore status filter so chips always show pipeline totals.
+      Promise.all([
+        prisma.technology.findMany({
+          where: { ...where, ...(kind && kind !== 'TECHNOLOGY' ? { id: { in: [] } } : {}) },
+          select: { id: true, status: true, country: true, organizationId: true, organization: { select: { name: true } } },
+          take: 500,
+        }),
+        prisma.challenge.findMany({
+          where: { ...where, ...(kind && kind !== 'CHALLENGE' ? { id: { in: [] } } : {}) },
+          select: { id: true, status: true, country: true, organizationId: true, organization: { select: { name: true } } },
+          take: 500,
+        }),
+        prisma.fundingOffer.findMany({
+          where: { ...where, ...(kind && kind !== 'FUNDING_OFFER' ? { id: { in: [] } } : {}) },
+          select: { id: true, status: true, country: true, organizationId: true, organization: { select: { name: true } } },
+          take: 500,
+        }),
+        prisma.successCase.findMany({
+          where: { ...where, ...(kind && kind !== 'SUCCESS_CASE' ? { id: { in: [] } } : {}) },
+          select: { id: true, status: true, country: true, organizationId: true, organization: { select: { name: true } } },
+          take: 500,
+        }),
+      ]),
     ]);
 
-    const items = [
+    const [allTechs, allChallenges, allOffers, allCases] = countRows;
+    const allForFacets = [...allTechs, ...allChallenges, ...allOffers, ...allCases];
+    const counts = { DRAFT: 0, IN_REVIEW: 0, PUBLISHED: 0 };
+    for (const row of allForFacets) {
+      if (row.status in counts) counts[row.status as keyof typeof counts] += 1;
+    }
+    const orgMap = new Map<string, string>();
+    const countrySet = new Set<string>();
+    for (const row of allForFacets) {
+      orgMap.set(row.organizationId, row.organization.name);
+      if (row.country) countrySet.add(row.country);
+    }
+
+    let items = [
       ...techs.map((t) => ({
         kind: 'TECHNOLOGY' as const,
         id: t.id,
@@ -204,6 +249,7 @@ meRouter.get('/contents', requireAuth, async (req, res, next) => {
         organizationName: t.organization.name,
         updatedAt: t.updatedAt,
         editPath: `/catalog/technologies/${t.id}/edit`,
+        metrics: { likes: 0, connections: 0, connectionsPending: 0, contacts: 0, views: 0, viewsTracked: false },
       })),
       ...challenges.map((c) => ({
         kind: 'CHALLENGE' as const,
@@ -216,6 +262,7 @@ meRouter.get('/contents', requireAuth, async (req, res, next) => {
         organizationName: c.organization.name,
         updatedAt: c.updatedAt,
         editPath: `/catalog/challenges/${c.id}/edit`,
+        metrics: { likes: 0, connections: 0, connectionsPending: 0, contacts: 0, views: 0, viewsTracked: false },
       })),
       ...offers.map((o) => ({
         kind: 'FUNDING_OFFER' as const,
@@ -228,6 +275,7 @@ meRouter.get('/contents', requireAuth, async (req, res, next) => {
         organizationName: o.organization.name,
         updatedAt: o.updatedAt,
         editPath: `/funding-offers/${o.id}/edit`,
+        metrics: { likes: 0, connections: 0, connectionsPending: 0, contacts: 0, views: 0, viewsTracked: false },
       })),
       ...cases.map((s) => ({
         kind: 'SUCCESS_CASE' as const,
@@ -240,10 +288,69 @@ meRouter.get('/contents', requireAuth, async (req, res, next) => {
         organizationName: s.organization.name,
         updatedAt: s.updatedAt,
         editPath: `/cases/${s.id}/edit`,
+        metrics: { likes: 0, connections: 0, connectionsPending: 0, contacts: 0, views: 0, viewsTracked: false },
       })),
-    ].sort((a, b) => b.updatedAt.getTime() - a.updatedAt.getTime());
+    ];
 
-    res.json({ items });
+    if (q) {
+      items = items.filter(
+        (item) =>
+          item.title.toLowerCase().includes(q) ||
+          item.organizationName.toLowerCase().includes(q) ||
+          item.country.toLowerCase().includes(q) ||
+          item.slug.toLowerCase().includes(q),
+      );
+    }
+
+    items.sort((a, b) => b.updatedAt.getTime() - a.updatedAt.getTime());
+
+    const ids = items.map((item) => item.id);
+    if (ids.length > 0) {
+      const [likesGrouped, connections] = await Promise.all([
+        prisma.savedItem.groupBy({
+          by: ['targetId'],
+          where: { targetId: { in: ids } },
+          _count: { _all: true },
+        }),
+        prisma.connection.findMany({
+          where: { targetId: { in: ids } },
+          select: { targetId: true, status: true },
+        }),
+      ]);
+
+      const likesMap = new Map(likesGrouped.map((row) => [row.targetId, row._count._all]));
+      const connMap = new Map<string, { total: number; pending: number; contacts: number }>();
+      for (const conn of connections) {
+        const cur = connMap.get(conn.targetId) ?? { total: 0, pending: 0, contacts: 0 };
+        cur.total += 1;
+        if (conn.status === 'PENDING') cur.pending += 1;
+        if (conn.status === 'ACCEPTED' || conn.status === 'CONTACT_SHARED') cur.contacts += 1;
+        connMap.set(conn.targetId, cur);
+      }
+
+      for (const item of items) {
+        const conn = connMap.get(item.id);
+        item.metrics = {
+          likes: likesMap.get(item.id) ?? 0,
+          connections: conn?.total ?? 0,
+          connectionsPending: conn?.pending ?? 0,
+          contacts: conn?.contacts ?? 0,
+          views: 0,
+          viewsTracked: false,
+        };
+      }
+    }
+
+    res.json({
+      items,
+      counts,
+      facets: {
+        organizations: [...orgMap.entries()]
+          .map(([id, name]) => ({ id, name }))
+          .sort((a, b) => a.name.localeCompare(b.name)),
+        countries: [...countrySet].sort((a, b) => a.localeCompare(b)),
+      },
+    });
   } catch (error) {
     next(error);
   }

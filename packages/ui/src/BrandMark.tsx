@@ -19,22 +19,22 @@ export function BrandMark({
   const first = parts.join(' ') || name;
 
   return (
-    <div className="flex items-center gap-2.5">
+    <div className="flex items-center gap-3">
       {logoSrc ? (
-        <img src={logoSrc} alt="" className="h-[38px] w-[38px] rounded-[11px] object-contain" />
+        <img src={logoSrc} alt="" className="h-11 w-11 rounded-[12px] object-contain" />
       ) : (
-        <span className="grid h-[38px] w-[38px] place-items-center rounded-[11px] bg-gradient-to-br from-cac-green2 to-[#92dcc0] text-[10px] font-black text-cac-navy">
+        <span className="grid h-11 w-11 place-items-center rounded-[12px] bg-gradient-to-br from-cac-green2 to-[#92dcc0] text-[11px] font-black text-cac-navy">
           {short.slice(0, 3)}
         </span>
       )}
-      <span className={`leading-tight whitespace-nowrap font-black ${onDark ? 'uppercase' : ''}`}>
+      <span className={`leading-tight whitespace-nowrap font-black text-[15px] ${onDark ? 'uppercase' : ''}`}>
         <span className={onDark ? 'text-white' : 'text-cac-navy'}>
           {first}{' '}
           <b className={onDark ? 'text-[#8ed5b5]' : 'text-cac-green'}>{last}</b>
         </span>
         {tagline ? (
           <small
-            className={`mt-0.5 block text-[10px] tracking-[1px] ${
+            className={`mt-0.5 block text-[11px] tracking-[1.2px] ${
               onDark ? 'text-[#90d6b6]' : 'text-cac-muted'
             }`}
           >

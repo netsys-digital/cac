@@ -1,7 +1,7 @@
 import { Link, NavLink, Outlet, useLocation } from 'react-router-dom';
 import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
-import { BrandMark, Button, Container } from '@cac/ui';
+import { BrandMark, Button } from '@cac/ui';
 import { UserRole } from '@cac/shared';
 import { brand, urls } from '../../config';
 import { normalizeLanguage } from '../../i18n';
@@ -11,8 +11,8 @@ import { SideNav, sideIcons, type SideNavItem } from './SideNav';
 type NavItem = { to: string; label: string; end?: boolean };
 
 function primaryLinkClass(isActive: boolean) {
-  return `rounded-lg px-2.5 py-[9px] text-[11px] whitespace-nowrap text-[#dbe8ec] hover:bg-white/[0.08] ${
-    isActive ? 'bg-white/[0.08]' : ''
+  return `rounded-xl px-4 py-2.5 text-[14px] font-semibold whitespace-nowrap text-[#dbe8ec] hover:bg-white/[0.1] ${
+    isActive ? 'bg-white/[0.12] text-white shadow-[inset_0_-2px_0_0_#8ed5b5]' : ''
   }`;
 }
 
@@ -79,8 +79,8 @@ export function AppShell() {
   return (
     <div className="min-h-screen bg-cac-bg font-sans">
       <header className="sticky top-0 z-50 w-full bg-[rgba(10,36,64,.98)] text-white">
-        <Container className="flex h-[74px] items-center gap-5">
-          <Link to="/" className="shrink-0">
+        <div className="flex h-[92px] w-full items-center gap-6 px-5 lg:gap-8 md:px-7">
+          <Link to="/" className="mr-auto shrink-0 lg:mr-0">
             <BrandMark
               name={brand.name}
               short={brand.short}
@@ -89,7 +89,7 @@ export function AppShell() {
             />
           </Link>
 
-          <nav className="hidden min-w-0 flex-1 items-center gap-[3px] lg:flex" aria-label="Primary">
+          <nav className="hidden min-w-0 flex-1 items-center gap-2 lg:flex" aria-label="Primary">
             {primary.map((link) => (
               <NavLink
                 key={link.to}
@@ -102,10 +102,10 @@ export function AppShell() {
             ))}
           </nav>
 
-          <div className="ml-auto flex shrink-0 items-center gap-[7px]">
+          <div className="flex shrink-0 items-center gap-2.5">
             <button
               type="button"
-              className="rounded-lg px-2 py-1 text-[10px] font-black tracking-[1px] text-[#90d6b6] hover:bg-white/10"
+              className="rounded-xl px-3 py-2 text-[12px] font-black tracking-[1px] text-[#90d6b6] hover:bg-white/10"
               onClick={() => {
                 const next = normalizeLanguage(i18n.language) === 'pt' ? 'en' : 'pt';
                 void i18n.changeLanguage(next);
@@ -120,12 +120,12 @@ export function AppShell() {
               {t('shell.signOut')}
             </Button>
           </div>
-        </Container>
+        </div>
       </header>
 
       {/* Breadcrumb full-width: separa header da sidebar */}
-      <div className="sticky top-[74px] z-40 border-b border-cac-line bg-white">
-        <div className="flex h-11 items-center gap-2 px-4 text-[11px] md:px-6">
+      <div className="sticky top-[92px] z-40 border-b border-cac-line bg-white">
+        <div className="flex h-12 items-center gap-2 px-5 text-[13px] md:px-7">
           <nav aria-label="Breadcrumb" className="flex min-w-0 flex-wrap items-center gap-1.5 font-mono text-[#76838a]">
             <span className="hidden text-cac-muted sm:inline">{t('shell.breadcrumbRoot')}</span>
             <span className="hidden text-cac-line sm:inline">·</span>
@@ -142,14 +142,14 @@ export function AppShell() {
               </span>
             ))}
           </nav>
-          <nav className="ml-auto flex flex-wrap items-center gap-1 lg:hidden" aria-label="Mobile primary">
+          <nav className="ml-auto flex flex-wrap items-center gap-1.5 lg:hidden" aria-label="Mobile primary">
             {primary.map((link) => (
               <NavLink
                 key={link.to}
                 to={link.to}
                 end={link.end}
                 className={({ isActive }) =>
-                  `rounded-lg px-2 py-1 text-[10px] font-black ${
+                  `rounded-lg px-2.5 py-1.5 text-[12px] font-black ${
                     isActive ? 'bg-cac-green3 text-cac-navy' : 'text-cac-muted'
                   }`
                 }
@@ -161,9 +161,9 @@ export function AppShell() {
         </div>
       </div>
 
-      <div className="flex min-h-[calc(100vh-74px-44px)]">
+      <div className="flex min-h-[calc(100vh-92px-48px)]">
         <SideNav items={sideItems} />
-        <div className="min-w-0 flex-1 px-4 py-6 md:px-6 md:py-8">
+        <div className="min-w-0 flex-1 px-5 py-7 md:px-7 md:py-9">
           <Outlet />
         </div>
       </div>
