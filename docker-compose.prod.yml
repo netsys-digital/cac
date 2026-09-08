@@ -1,37 +1,17 @@
-# Demo / staging / prod (Marco 1 — E6)
-# Uso: docker compose -f docker-compose.prod.yml --env-file .env.prod up --build -d
+# Produção — CAC na rede netsys (Postgres/Redis compartilhados).
+# Pré-requisito: docker-config no ar. Origem (cac_postgres_data) preservada.
 #
-# Portas no host NETSYS (livre vs outros apps):
-#   Portal  :8084  → portalcac.netsys.company
-#   Gestor  :8086  → gestorcac.netsys.company
-# Snippet host: deploy/nginx/netsys-apps-cac.conf.snippet
+#   cd /app/netsys-apps/cac
+#   docker compose -f docker-compose.prod.yml --env-file .env.prod up --build -d
+
+name: cac
+
+networks:
+  netsys:
+    external: true
+    name: netsys
 
 services:
-  postgres:
-    image: postgres:16-alpine
-    environment:
-      POSTGRES_USER: ${POSTGRES_USER:-cac}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-cac_secret}
-      POSTGRES_DB: ${POSTGRES_DB:-cac}
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-      - ./backups:/backups
-    healthcheck:
-      test: ['CMD-SHELL', 'pg_isready -U ${POSTGRES_USER:-cac} -d ${POSTGRES_DB:-cac}']
-      interval: 5s
-      timeout: 5s
-      retries: 15
-    restart: unless-stopped
-
-  redis:
-    image: redis:7-alpine
-    healthcheck:
-      test: ['CMD', 'redis-cli', 'ping']
-      interval: 5s
-      timeout: 5s
-      retries: 15
-    restart: unless-stopped
-
   api:
     build:
       context: .
@@ -41,8 +21,8 @@ services:
     env_file:
       - ${ENV_FILE:-.env.prod}
     environment:
-      DATABASE_URL: postgresql://${POSTGRES_USER:-cac}:${POSTGRES_PASSWORD:-cac_secret}@postgres:5432/${POSTGRES_DB:-cac}
-      REDIS_URL: redis://redis:6379
+      DATABASE_URL: postgresql://cac:${CAC_DB_PASSWORD}@postgres:5432/cac
+      REDIS_URL: redis://redis:6379/5
       API_PORT: '3003'
       NODE_ENV: production
       OFFLINE_MODE: ${OFFLINE_MODE:-true}
@@ -50,11 +30,8 @@ services:
       COOKIE_DOMAIN: ${COOKIE_DOMAIN:-.netsys.company}
     volumes:
       - uploads_data:/app/apps/api/uploads
-    depends_on:
-      postgres:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
+    networks:
+      - netsys
     restart: unless-stopped
     healthcheck:
       test: ['CMD-SHELL', 'node -e "fetch(\"http://127.0.0.1:3003/health\").then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"']
@@ -72,13 +49,15 @@ services:
     env_file:
       - ${ENV_FILE:-.env.prod}
     environment:
-      DATABASE_URL: postgresql://${POSTGRES_USER:-cac}:${POSTGRES_PASSWORD:-cac_secret}@postgres:5432/${POSTGRES_DB:-cac}
-      REDIS_URL: redis://redis:6379
+      DATABASE_URL: postgresql://cac:${CAC_DB_PASSWORD}@postgres:5432/cac
+      REDIS_URL: redis://redis:6379/5
       NODE_ENV: production
       OFFLINE_MODE: ${OFFLINE_MODE:-true}
     depends_on:
       api:
         condition: service_healthy
+    networks:
+      - netsys
     restart: unless-stopped
 
   www:
@@ -86,7 +65,6 @@ services:
       context: .
       dockerfile: apps/www/Dockerfile
       args:
-        # API same-origin no portal; cross-link absoluto para o gestor
         VITE_API_URL: ${PUBLIC_API_URL:-}
         VITE_WEB_URL: ${PUBLIC_WEB_URL:-https://gestorcac.netsys.company}
         VITE_WWW_URL: ${PUBLIC_WWW_URL:-https://portalcac.netsys.company}
@@ -96,6 +74,8 @@ services:
     depends_on:
       api:
         condition: service_healthy
+    networks:
+      - netsys
     restart: unless-stopped
 
   web:
@@ -113,6 +93,8 @@ services:
     depends_on:
       api:
         condition: service_healthy
+    networks:
+      - netsys
     restart: unless-stopped
 
   gateway:
@@ -126,8 +108,11 @@ services:
       - www
       - web
       - api
+    networks:
+      - netsys
     restart: unless-stopped
 
 volumes:
-  postgres_data:
   uploads_data:
+    external: true
+    name: cac_uploads_data
