@@ -81,14 +81,14 @@ export function CatalogDetailHero({
                 <BackToSearchLink />
               </div>
             ) : null}
-            <p className="text-[0.65rem] font-black tracking-[1.8px] text-[#90d6b6] uppercase">
+            <p className="text-mini font-bold tracking-[1.8px] text-[#90d6b6] uppercase">
               {eyebrow}
             </p>
-            <h1 className="mt-3 text-[1.85rem] leading-[1.15] font-black text-white md:text-[2.25rem]">
+            <h1 className="mt-3 text-extra-grande leading-[1.15] font-bold text-white">
               {title}
             </h1>
             {summary ? (
-              <p className="mt-4 text-[0.95rem] leading-relaxed text-[#dbe8ec]">{summary}</p>
+              <p className="mt-4 text-media leading-relaxed text-[#dbe8ec]">{summary}</p>
             ) : null}
             {chips ? <div className="mt-5 flex flex-wrap gap-1.5">{chips}</div> : null}
           </div>
@@ -137,13 +137,13 @@ export function DetailSection({
     <section className="border-b border-cac-line/80 py-7 last:border-b-0 last:pb-0">
       <div className="mb-3 flex items-baseline gap-3">
         {index ? (
-          <span className="text-[0.65rem] font-black tracking-[1.5px] text-cac-green uppercase">
+          <span className="text-mini font-bold tracking-[1.5px] text-cac-green uppercase">
             {index}
           </span>
         ) : null}
-        <h2 className="text-[1.05rem] font-black text-cac-navy">{title}</h2>
+        <h2 className="text-media font-bold text-cac-navy">{title}</h2>
       </div>
-      <div className="max-w-[42rem] text-[0.9rem] leading-relaxed text-cac-ink/85">{children}</div>
+      <div className="max-w-[42rem] text-media leading-relaxed text-cac-ink/85">{children}</div>
     </section>
   );
 }
@@ -169,21 +169,21 @@ export function DetailOrgCard({
       className="block rounded-[16px] border border-cac-line bg-white p-5 shadow-[0_10px_28px_rgba(10,36,64,.06)] transition hover:-translate-y-0.5 hover:border-cac-green/35"
     >
       <div className="flex items-start justify-between gap-3">
-        <p className="text-[0.65rem] font-black tracking-[1.4px] text-cac-green uppercase">{label}</p>
+        <p className="text-mini font-bold tracking-[1.4px] text-cac-green uppercase">{label}</p>
         {verified ? (
-          <span className="rounded-md bg-cac-green3 px-2 py-0.5 text-[0.6rem] font-black text-cac-green">
+          <span className="rounded-md bg-cac-green3 px-2 py-0.5 text-mini font-bold text-cac-green">
             {verifiedLabel}
           </span>
         ) : null}
       </div>
       <div className="mt-3 flex items-center gap-3">
-        <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-[linear-gradient(145deg,#0a2440,#1a4d4a)] text-[0.75rem] font-black text-[#90d6b6]">
+        <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-[linear-gradient(145deg,#0a2440,#1a4d4a)] text-pequena font-bold text-[#90d6b6]">
           {name.slice(0, 2).toUpperCase()}
         </span>
         <div className="min-w-0">
-          <h3 className="truncate text-[1rem] font-black text-cac-navy">{name}</h3>
+          <h3 className="truncate text-media font-bold text-cac-navy">{name}</h3>
           {summary ? (
-            <p className="mt-1 line-clamp-3 text-[0.75rem] leading-snug text-cac-muted">{summary}</p>
+            <p className="mt-1 line-clamp-3 text-pequena leading-snug text-cac-muted">{summary}</p>
           ) : null}
         </div>
       </div>
@@ -206,7 +206,7 @@ export function DetailPrimaryButton({
   return (
     <a
       href={href}
-      className="flex w-full items-center justify-center rounded-[12px] bg-cac-green2 px-4 py-3 text-[0.8rem] font-black text-white transition hover:brightness-105"
+      className="flex w-full items-center justify-center rounded-[12px] bg-cac-green2 px-4 py-3 text-pequena font-bold text-white transition hover:brightness-105"
     >
       {children}
     </a>
@@ -220,7 +220,7 @@ export function DetailSecondaryButton({
   return (
     <a
       href={href}
-      className="flex w-full items-center justify-center rounded-[12px] border border-cac-line bg-[#f7faf8] px-4 py-3 text-[0.8rem] font-black text-cac-navy transition hover:border-cac-green/40 hover:bg-white"
+      className="flex w-full items-center justify-center rounded-[12px] border border-cac-line bg-[#f7faf8] px-4 py-3 text-pequena font-bold text-cac-navy transition hover:border-cac-green/40 hover:bg-white"
     >
       {children}
     </a>
@@ -230,14 +230,14 @@ export function DetailSecondaryButton({
 export function DetailMetaChip({ children }: PropsWithChildren) {
   return (
     <Chip>
-      <span className="text-[0.65rem]">{children}</span>
+      <span className="text-mini">{children}</span>
     </Chip>
   );
 }
 
 export function DetailHeroChip({ children }: PropsWithChildren) {
   return (
-    <span className="rounded-lg border border-white/20 bg-white/10 px-2.5 py-1 text-[0.65rem] font-extrabold tracking-wide text-[#e8f6ee] backdrop-blur-sm">
+    <span className="rounded-lg border border-[#90d6b6]/45 bg-[rgba(10,36,64,.82)] px-2.5 py-1 text-mini font-extrabold tracking-wide text-[#e8f6ee] shadow-[0_2px_8px_rgba(0,0,0,.28)]">
       {children}
     </span>
   );

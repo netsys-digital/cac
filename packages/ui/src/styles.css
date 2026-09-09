@@ -1,8 +1,14 @@
 @import 'tailwindcss';
 
 @theme {
-  --font-sans: Inter, 'Segoe UI', Arial, sans-serif;
-  --font-display: Inter, 'Segoe UI', Arial, sans-serif;
+  --font-sans: Arial, Helvetica, sans-serif;
+  --font-display: Arial, Helvetica, sans-serif;
+  /* Tipografia — ajustáveis via VITE_FONT_* no .env */
+  --text-extra-grande: var(--cac-font-extra-grande);
+  --text-grande: var(--cac-font-grande);
+  --text-media: var(--cac-font-media);
+  --text-pequena: var(--cac-font-pequena);
+  --text-mini: var(--cac-font-mini);
   --color-cac-navy: #0a2440;
   --color-cac-navy2: #12364e;
   --color-cac-green: #13865a;
@@ -24,10 +30,16 @@
 }
 
 :root {
+  /* Defaults (sobrescritos por applyFontScale / VITE_FONT_*) */
+  --cac-font-extra-grande: 54px;
+  --cac-font-grande: 32px;
+  --cac-font-media: 18px;
+  --cac-font-pequena: 14px;
+  --cac-font-mini: 13px;
   color: var(--color-cac-ink);
   background: var(--color-cac-bg);
   font-family: var(--font-sans);
-  font-size: 13px;
+  font-size: 16px;
 }
 
 body {
@@ -35,8 +47,6 @@ body {
   min-height: 100vh;
   background: var(--color-cac-bg);
   font-family: var(--font-sans);
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
 }
 
 button,

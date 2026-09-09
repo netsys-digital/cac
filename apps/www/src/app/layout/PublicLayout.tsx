@@ -10,7 +10,7 @@ import { SiteFooter } from './SiteFooter';
 const shell = 'mx-auto w-full max-w-[1220px] px-[22px]';
 
 const btnBase =
-  'inline-flex items-center justify-center rounded-[10px] px-[14px] py-[11px] text-[11px] font-black whitespace-nowrap transition';
+  'inline-flex items-center justify-center rounded-[10px] px-[14px] py-[11px] text-pequena font-extrabold whitespace-nowrap transition';
 
 function displayName(name: string) {
   const parts = name.trim().split(/\s+/).filter(Boolean);
@@ -62,7 +62,7 @@ export function PublicLayout() {
                 key={link.to}
                 to={link.to}
                 className={({ isActive }) =>
-                  `rounded-lg px-2.5 py-[9px] text-[11px] whitespace-nowrap text-[#dbe8ec] hover:bg-white/[0.08] ${
+                  `rounded-lg px-2.5 py-[9px] text-pequena whitespace-nowrap text-[#dbe8ec] hover:bg-white/[0.08] ${
                     isActive ? 'bg-white/[0.08]' : ''
                   }`
                 }
@@ -82,8 +82,8 @@ export function PublicLayout() {
                   className="hidden min-w-0 max-w-[180px] flex-col items-end leading-tight text-right sm:flex"
                   title={user.name}
                 >
-                  <span className="truncate text-[12px] font-semibold text-white">{name}</span>
-                  <span className="text-[10px] font-medium tracking-wide text-[#90d6b6]">
+                  <span className="truncate text-pequena font-semibold text-white">{name}</span>
+                  <span className="text-mini font-medium tracking-wide text-[#90d6b6]">
                     {t(`roles.${user.role}`, { defaultValue: user.role })}
                   </span>
                 </a>
@@ -133,10 +133,10 @@ export function PublicLayout() {
             key={link.to}
             to={link.to}
             className={({ isActive }) =>
-              `px-2 py-1 text-center text-[10px] ${isActive ? 'text-cac-navy' : 'text-cac-muted'}`
+              `px-2 py-1 text-center text-mini ${isActive ? 'text-cac-navy' : 'text-cac-muted'}`
             }
           >
-            <b className="block text-base text-cac-navy">{link.icon}</b>
+            <b className="block text-media text-cac-navy">{link.icon}</b>
             {link.label}
           </NavLink>
         ))}

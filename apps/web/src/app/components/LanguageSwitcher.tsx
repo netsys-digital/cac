@@ -9,7 +9,7 @@ type Props = {
 
 export function LanguageSwitcher({
   className = '',
-  buttonClassName = 'px-2 py-1 text-[10px]',
+  buttonClassName = 'px-2 py-1 text-mini',
 }: Props) {
   const { t, i18n } = useTranslation();
   const current = normalizeLanguage(i18n.language);

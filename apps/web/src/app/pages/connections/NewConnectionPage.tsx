@@ -85,7 +85,7 @@ export function NewConnectionPage() {
   return (
     <div className="space-y-4">
       {justRegistered ? (
-        <p className="rounded-[12px] border border-cac-green/30 bg-cac-green3 px-4 py-3 text-[12px] font-medium text-cac-navy">
+        <p className="rounded-[12px] border border-cac-green/30 bg-cac-green3 px-4 py-3 text-pequena font-medium text-cac-navy">
           {t('auth.justRegisteredConnect')}
         </p>
       ) : null}
@@ -101,7 +101,7 @@ export function NewConnectionPage() {
       message={ok}
     >
       <FieldFull>
-        <p className="rounded-lg border border-cac-line bg-[#fbfcfb] px-3 py-2 text-[11px] text-cac-muted">
+        <p className="rounded-lg border border-cac-line bg-[#fbfcfb] px-3 py-2 text-pequena text-cac-muted">
           {t('conn.targetMeta', { type: targetType, id: targetId || '—' })}
         </p>
       </FieldFull>

@@ -43,18 +43,18 @@ export function MyConnectionsPage() {
 
   return (
     <div className="space-y-4">
-      <h1 className="text-[22px] font-black text-cac-navy">{t('conn.listTitle')}</h1>
-      {message ? <p className="text-[11px] text-cac-green">{message}</p> : null}
+      <h1 className="text-grande font-black text-cac-navy">{t('conn.listTitle')}</h1>
+      {message ? <p className="text-pequena text-cac-green">{message}</p> : null}
       <ul className="space-y-3">
         {items.map((item) => (
           <li key={item.id} className="rounded-xl border border-cac-line bg-white p-4">
-            <p className="text-[12px] font-black text-cac-navy">
+            <p className="text-pequena font-black text-cac-navy">
               {item.requesterOrg?.name} → {item.targetOrg?.name}
             </p>
-            <p className="mt-1 text-[10px] text-cac-muted">
+            <p className="mt-1 text-mini text-cac-muted">
               {item.targetType} · {item.objective} · <b>{item.status}</b>
             </p>
-            {item.message ? <p className="mt-2 text-[11px] text-cac-ink">{item.message}</p> : null}
+            {item.message ? <p className="mt-2 text-pequena text-cac-ink">{item.message}</p> : null}
             <div className="mt-3 flex flex-wrap gap-2">
               {item.status === 'PENDING' ? (
                 <>
@@ -72,7 +72,7 @@ export function MyConnectionsPage() {
             </div>
           </li>
         ))}
-        {!items.length ? <li className="text-[11px] text-cac-muted">{t('conn.empty')}</li> : null}
+        {!items.length ? <li className="text-pequena text-cac-muted">{t('conn.empty')}</li> : null}
       </ul>
     </div>
   );

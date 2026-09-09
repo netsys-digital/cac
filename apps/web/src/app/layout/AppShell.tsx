@@ -12,7 +12,7 @@ import { SideNav, sideIcons, type SideNavItem } from './SideNav';
 type NavItem = { to: string; label: string; end?: boolean; badge?: string };
 
 function primaryLinkClass(isActive: boolean) {
-  return `rounded-xl px-4 py-2.5 text-[14px] font-semibold whitespace-nowrap text-[#dbe8ec] hover:bg-white/[0.1] ${
+  return `rounded-xl px-4 py-2.5 text-media font-semibold whitespace-nowrap text-[#dbe8ec] hover:bg-white/[0.1] ${
     isActive ? 'bg-white/[0.12] text-white shadow-[inset_0_-2px_0_0_#8ed5b5]' : ''
   }`;
 }
@@ -189,7 +189,7 @@ export function AppShell() {
                 <span className="inline-flex items-center gap-2">
                   {link.label}
                   {link.badge ? (
-                    <span className="grid min-w-5 place-items-center rounded-full bg-amber-400 px-1.5 py-0.5 text-[10px] font-black text-cac-navy">
+                    <span className="grid min-w-5 place-items-center rounded-full bg-amber-400 px-1.5 py-0.5 text-mini font-black text-cac-navy">
                       {link.badge}
                     </span>
                   ) : null}
@@ -199,7 +199,7 @@ export function AppShell() {
           </nav>
 
           <div className="flex shrink-0 items-center gap-2.5">
-            <LanguageSwitcher buttonClassName="px-2.5 py-1.5 text-[12px]" />
+            <LanguageSwitcher buttonClassName="px-2.5 py-1.5 text-pequena" />
             <a href={urls.www} className="hidden sm:inline-flex">
               <Button variant="ghostDark">{t('shell.portal')}</Button>
             </a>
@@ -210,8 +210,8 @@ export function AppShell() {
                   className="hidden min-w-0 max-w-[200px] flex-col items-end leading-tight text-right sm:flex"
                   title={user?.name}
                 >
-                  <span className="truncate text-sm font-semibold text-white">{displayName}</span>
-                  <span className="text-xs font-medium tracking-wide text-[#90d6b6]">
+                  <span className="truncate text-media font-semibold text-white">{displayName}</span>
+                  <span className="text-pequena font-medium tracking-wide text-[#90d6b6]">
                     {user?.role ? t(`roles.${user.role}`) : t('shell.profile')}
                   </span>
                 </Link>
@@ -229,7 +229,7 @@ export function AppShell() {
       </header>
 
       <div className="sticky top-[92px] z-40 border-b border-cac-line bg-white">
-        <div className="flex h-12 items-center gap-2 px-5 text-[13px] md:px-7">
+        <div className="flex h-12 items-center gap-2 px-5 text-media md:px-7">
           <nav aria-label="Breadcrumb" className="flex min-w-0 flex-wrap items-center gap-1.5 font-mono text-[#76838a]">
             <span className="hidden text-cac-muted sm:inline">{t('shell.breadcrumbRoot')}</span>
             <span className="hidden text-cac-line sm:inline">·</span>
@@ -253,14 +253,14 @@ export function AppShell() {
                 to={link.to}
                 end={link.end}
                 className={({ isActive }) =>
-                  `inline-flex items-center gap-1 rounded-lg px-2.5 py-1.5 text-[12px] font-black ${
+                  `inline-flex items-center gap-1 rounded-lg px-2.5 py-1.5 text-pequena font-black ${
                     isActive ? 'bg-cac-green3 text-cac-navy' : 'text-cac-muted'
                   }`
                 }
               >
                 {link.label}
                 {link.badge ? (
-                  <span className="rounded-full bg-amber-400 px-1.5 text-[10px] text-cac-navy">
+                  <span className="rounded-full bg-amber-400 px-1.5 text-mini text-cac-navy">
                     {link.badge}
                   </span>
                 ) : null}

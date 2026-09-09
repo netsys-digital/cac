@@ -122,8 +122,8 @@ function IntentCard({
   ].join(' ');
 
   const ctaClass = locked
-    ? 'inline-flex w-full max-w-xs items-center justify-center rounded-[12px] bg-cac-green3 px-5 py-3.5 text-base font-black text-cac-navy transition hover:brightness-95 xl:py-4 xl:text-lg'
-    : 'inline-flex w-full max-w-xs items-center justify-center rounded-[12px] bg-cac-navy px-5 py-3.5 text-base font-black text-white transition group-hover:bg-cac-green2 xl:py-4 xl:text-lg';
+    ? 'inline-flex w-full max-w-xs items-center justify-center rounded-[12px] bg-cac-green3 px-5 py-3.5 text-media font-black text-cac-navy transition hover:brightness-95 xl:py-4 xl:text-grande'
+    : 'inline-flex w-full max-w-xs items-center justify-center rounded-[12px] bg-cac-navy px-5 py-3.5 text-media font-black text-white transition group-hover:bg-cac-green2 xl:py-4 xl:text-grande';
 
   const content = (
     <>
@@ -137,27 +137,27 @@ function IntentCard({
         </span>
         <div className="flex flex-wrap items-center justify-center gap-2">
           <span
-            className={`text-[0.7rem] font-black tracking-[0.08em] uppercase xl:text-xs ${
+            className={`text-pequena font-black tracking-[0.08em] uppercase ${
               locked ? 'text-cac-muted' : 'text-cac-green'
             }`}
           >
             {badge}
           </span>
           {recommended && recommendedLabel ? (
-            <span className="rounded-md bg-cac-green2 px-2 py-0.5 text-[0.65rem] font-black tracking-wide text-white uppercase xl:text-[0.7rem]">
+            <span className="rounded-md bg-cac-green2 px-2 py-0.5 text-mini font-black tracking-wide text-white uppercase xl:text-pequena">
               {recommendedLabel}
             </span>
           ) : null}
           {status ? (
-            <span className="rounded-md bg-amber-50 px-2 py-0.5 text-[0.65rem] font-black uppercase tracking-wide text-amber-800 xl:text-[0.7rem]">
+            <span className="rounded-md bg-amber-50 px-2 py-0.5 text-mini font-black uppercase tracking-wide text-amber-800 xl:text-pequena">
               {status}
             </span>
           ) : null}
         </div>
-        <h2 className="text-lg leading-snug font-black text-cac-navy xl:text-xl">{title}</h2>
+        <h2 className="text-grande leading-snug font-black text-cac-navy">{title}</h2>
       </div>
 
-      <p className="mt-3 flex-1 text-sm leading-relaxed text-cac-muted xl:text-base">{body}</p>
+      <p className="mt-3 flex-1 text-media leading-relaxed text-cac-muted">{body}</p>
 
       <div className="mt-5 flex w-full justify-center">
         {locked ? (
@@ -239,7 +239,7 @@ export function OnboardingIntentPage() {
 
   if (loading) {
     return (
-      <div className="rounded-2xl border border-cac-line bg-white p-5 text-sm text-cac-muted shadow-cac">
+      <div className="rounded-2xl border border-cac-line bg-white p-5 text-media text-cac-muted shadow-cac">
         {t('dash.loading')}
       </div>
     );
@@ -251,26 +251,26 @@ export function OnboardingIntentPage() {
       <header className="shrink-0 overflow-hidden rounded-2xl border border-cac-line bg-white shadow-cac">
         <div className="grid gap-0 lg:grid-cols-[minmax(0,1.5fr)_minmax(280px,1fr)_minmax(220px,0.75fr)]">
           <div className="p-5 xl:p-6">
-            <p className="text-xs font-black tracking-[0.14em] text-cac-green uppercase">
+            <p className="text-pequena font-black tracking-[0.14em] text-cac-green uppercase">
               {t('onboarding.badge')}
             </p>
-            <h1 className="mt-2 text-2xl leading-tight font-black text-cac-navy xl:text-3xl">
+            <h1 className="mt-2 text-grande leading-tight font-black text-cac-navy">
               {t('onboarding.title', { name: user?.name?.split(' ')[0] ?? '' })}
             </h1>
-            <p className="mt-2 max-w-3xl text-sm leading-relaxed text-cac-muted xl:text-base">
+            <p className="mt-2 max-w-3xl text-media leading-relaxed text-cac-muted">
               {gate === 'pending' ? t('onboarding.subtitlePending') : t('onboarding.subtitle')}
             </p>
           </div>
 
           <div className="border-t border-cac-line bg-[#fbfcfb] p-5 lg:border-t-0 lg:border-l xl:p-6">
-            <p className="text-xs font-black tracking-[0.12em] text-cac-green uppercase">
+            <p className="text-pequena font-black tracking-[0.12em] text-cac-green uppercase">
               {t('onboarding.profileTitle')}
             </p>
             <ul className="mt-3 space-y-2.5">
               {profileSteps.map((step) => (
                 <li key={step.key} className="flex items-start gap-2.5">
                   <span
-                    className={`mt-0.5 grid size-5 shrink-0 place-items-center rounded-full text-[0.65rem] font-black xl:size-6 xl:text-xs ${
+                    className={`mt-0.5 grid size-5 shrink-0 place-items-center rounded-full text-mini font-black xl:size-6 xl:text-pequena ${
                       step.done
                         ? 'bg-cac-green2 text-white'
                         : step.current
@@ -281,10 +281,10 @@ export function OnboardingIntentPage() {
                     {step.done ? '✓' : step.current ? '…' : '○'}
                   </span>
                   <span className="min-w-0">
-                    <span className="block text-sm font-black leading-snug text-cac-navy">
+                    <span className="block text-media font-black leading-snug text-cac-navy">
                       {step.label}
                     </span>
-                    <span className="mt-0.5 block text-xs leading-snug text-cac-muted xl:text-sm">
+                    <span className="mt-0.5 block text-pequena leading-snug text-cac-muted xl:text-media">
                       {step.detail}
                     </span>
                   </span>
@@ -294,25 +294,25 @@ export function OnboardingIntentPage() {
           </div>
 
           <div className="flex flex-col justify-center gap-3 border-t border-cac-line p-5 lg:border-t-0 lg:border-l xl:p-6">
-            <p className="text-xs font-black tracking-[0.12em] text-cac-green uppercase">
+            <p className="text-pequena font-black tracking-[0.12em] text-cac-green uppercase">
               {t('onboarding.laterTitle')}
             </p>
             <div className="flex flex-col gap-2 sm:flex-row lg:flex-col">
               <Link
                 to="/my/connections"
-                className="inline-flex justify-center rounded-[10px] bg-cac-navy px-3.5 py-2.5 text-sm font-black text-white transition hover:bg-cac-green2"
+                className="inline-flex justify-center rounded-[10px] bg-cac-navy px-3.5 py-2.5 text-media font-black text-white transition hover:bg-cac-green2"
               >
                 {t('nav.connections')}
               </Link>
               <a
                 href={urls.www}
-                className="inline-flex justify-center rounded-[10px] border border-cac-green bg-white px-3.5 py-2.5 text-sm font-black text-cac-green transition hover:bg-cac-green3"
+                className="inline-flex justify-center rounded-[10px] border border-cac-green bg-white px-3.5 py-2.5 text-media font-black text-cac-green transition hover:bg-cac-green3"
               >
                 {t('shell.portal')}
               </a>
               <Link
                 to="/org/representation"
-                className="inline-flex justify-center rounded-[10px] border border-cac-line bg-white px-3.5 py-2.5 text-sm font-black text-cac-navy transition hover:bg-cac-bg"
+                className="inline-flex justify-center rounded-[10px] border border-cac-line bg-white px-3.5 py-2.5 text-media font-black text-cac-navy transition hover:bg-cac-bg"
               >
                 {t('nav.representation')}
               </Link>
@@ -324,8 +324,8 @@ export function OnboardingIntentPage() {
       {/* Ações — crescem no desktop para ocupar a altura */}
       <section className="flex min-h-0 flex-1 flex-col">
         <div className="mb-3 flex flex-wrap items-end justify-between gap-2">
-          <h2 className="text-lg font-black text-cac-navy xl:text-xl">{t('onboarding.chooseTitle')}</h2>
-          <p className="text-sm text-cac-muted">{t('onboarding.chooseSubtitle')}</p>
+          <h2 className="text-grande font-black text-cac-navy">{t('onboarding.chooseTitle')}</h2>
+          <p className="text-media text-cac-muted">{t('onboarding.chooseSubtitle')}</p>
         </div>
         <div className="flex flex-1 flex-col gap-3 xl:flex-row xl:items-stretch xl:gap-0">
           <div className="min-w-0 flex-1">
@@ -374,10 +374,10 @@ export function OnboardingIntentPage() {
       {/* Timeline */}
       <section className="shrink-0 rounded-2xl border border-cac-line bg-white px-4 py-4 shadow-cac xl:px-5 xl:py-5">
         <div className="flex flex-wrap items-baseline justify-between gap-2">
-          <p className="text-xs font-black tracking-[0.12em] text-cac-green uppercase">
+          <p className="text-pequena font-black tracking-[0.12em] text-cac-green uppercase">
             {t('onboarding.timelineTitle')}
           </p>
-          <p className="text-sm text-cac-muted">{t('onboarding.timelineHintShort')}</p>
+          <p className="text-media text-cac-muted">{t('onboarding.timelineHintShort')}</p>
         </div>
         <ol className="mt-3 flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-1.5">
           {timeline.map((label, index) => {
@@ -399,13 +399,13 @@ export function OnboardingIntentPage() {
                   }`}
                 >
                   <span
-                    className={`grid size-6 shrink-0 place-items-center rounded-full text-xs font-black text-white xl:size-7 ${
+                    className={`grid size-6 shrink-0 place-items-center rounded-full text-pequena font-black text-white xl:size-7 ${
                       done ? 'bg-cac-green2' : waiting ? 'bg-amber-500' : 'bg-[#9aadb6]'
                     }`}
                   >
                     {done ? '✓' : waiting ? '…' : index + 1}
                   </span>
-                  <span className="truncate text-sm font-black text-cac-navy">{label}</span>
+                  <span className="truncate text-media font-black text-cac-navy">{label}</span>
                 </div>
                 {index < timeline.length - 1 ? (
                   <span className="hidden text-cac-muted sm:inline" aria-hidden>

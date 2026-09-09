@@ -50,8 +50,8 @@ function MetricCard({ label, value, hint }: { label: string; value: string | num
       className="min-w-[72px] rounded-xl border border-cac-line bg-[#f7faf8] px-2.5 py-2 text-center"
       title={hint}
     >
-      <p className="text-[15px] font-black leading-none text-cac-navy">{value}</p>
-      <p className="mt-1 text-[10px] font-bold uppercase tracking-wide text-cac-muted">{label}</p>
+      <p className="text-media font-black leading-none text-cac-navy">{value}</p>
+      <p className="mt-1 text-mini font-bold uppercase tracking-wide text-cac-muted">{label}</p>
     </div>
   );
 }
@@ -172,11 +172,11 @@ export function MyContentsPage() {
     <div className="space-y-6">
       <header className="flex flex-wrap items-end justify-between gap-4">
         <div className="max-w-3xl">
-          <p className="text-[11px] font-black tracking-[1.7px] text-cac-green uppercase">{t('mine.badge')}</p>
-          <h1 className="mt-2 text-[30px] font-black text-cac-navy md:text-[34px]">{t('mine.title')}</h1>
-          <p className="mt-2 max-w-[780px] text-[14px] leading-relaxed text-cac-muted">{t('mine.desc')}</p>
+          <p className="text-pequena font-black tracking-[1.7px] text-cac-green uppercase">{t('mine.badge')}</p>
+          <h1 className="mt-2 text-grande font-black text-cac-navy">{t('mine.title')}</h1>
+          <p className="mt-2 max-w-[780px] text-media leading-relaxed text-cac-muted">{t('mine.desc')}</p>
         </div>
-        <div className="flex flex-wrap gap-2 text-[12px] font-black">
+        <div className="flex flex-wrap gap-2 text-pequena font-black">
           {(['DRAFT', 'IN_REVIEW', 'PUBLISHED', 'ARCHIVED'] as const).map((s) => (
             <button
               key={s}
@@ -195,24 +195,24 @@ export function MyContentsPage() {
       <section className="space-y-3 rounded-[18px] border border-cac-line bg-white p-4 shadow-cac md:p-5">
         <div className="flex flex-wrap items-end gap-3">
           <label className="min-w-[220px] flex-1">
-            <span className="mb-1 block text-[11px] font-black uppercase tracking-wide text-cac-muted">
+            <span className="mb-1 block text-pequena font-black uppercase tracking-wide text-cac-muted">
               {t('mine.filters.search')}
             </span>
             <input
               value={q}
               onChange={(e) => setQ(e.target.value)}
               placeholder={t('mine.filters.searchPlaceholder')}
-              className="w-full rounded-xl border border-cac-line bg-cac-bg px-3.5 py-2.5 text-[14px] text-cac-navy outline-none focus:border-cac-green"
+              className="w-full rounded-xl border border-cac-line bg-cac-bg px-3.5 py-2.5 text-media text-cac-navy outline-none focus:border-cac-green"
             />
           </label>
           <label className="min-w-[180px]">
-            <span className="mb-1 block text-[11px] font-black uppercase tracking-wide text-cac-muted">
+            <span className="mb-1 block text-pequena font-black uppercase tracking-wide text-cac-muted">
               {t('mine.filters.organization')}
             </span>
             <select
               value={organizationId}
               onChange={(e) => setOrganizationId(e.target.value)}
-              className="w-full rounded-xl border border-cac-line bg-cac-bg px-3.5 py-2.5 text-[14px] text-cac-navy outline-none focus:border-cac-green"
+              className="w-full rounded-xl border border-cac-line bg-cac-bg px-3.5 py-2.5 text-media text-cac-navy outline-none focus:border-cac-green"
             >
               <option value="ALL">{t('mine.filters.allOrgs')}</option>
               {organizations.map((org) => (
@@ -223,13 +223,13 @@ export function MyContentsPage() {
             </select>
           </label>
           <label className="min-w-[140px]">
-            <span className="mb-1 block text-[11px] font-black uppercase tracking-wide text-cac-muted">
+            <span className="mb-1 block text-pequena font-black uppercase tracking-wide text-cac-muted">
               {t('mine.filters.country')}
             </span>
             <select
               value={country}
               onChange={(e) => setCountry(e.target.value)}
-              className="w-full rounded-xl border border-cac-line bg-cac-bg px-3.5 py-2.5 text-[14px] text-cac-navy outline-none focus:border-cac-green"
+              className="w-full rounded-xl border border-cac-line bg-cac-bg px-3.5 py-2.5 text-media text-cac-navy outline-none focus:border-cac-green"
             >
               <option value="ALL">{t('mine.filters.allCountries')}</option>
               {countries.map((c) => (
@@ -240,13 +240,13 @@ export function MyContentsPage() {
             </select>
           </label>
           <label className="min-w-[150px]">
-            <span className="mb-1 block text-[11px] font-black uppercase tracking-wide text-cac-muted">
+            <span className="mb-1 block text-pequena font-black uppercase tracking-wide text-cac-muted">
               {t('mine.filters.sort')}
             </span>
             <select
               value={sort}
               onChange={(e) => setSort(e.target.value as SortKey)}
-              className="w-full rounded-xl border border-cac-line bg-cac-bg px-3.5 py-2.5 text-[14px] text-cac-navy outline-none focus:border-cac-green"
+              className="w-full rounded-xl border border-cac-line bg-cac-bg px-3.5 py-2.5 text-media text-cac-navy outline-none focus:border-cac-green"
             >
               <option value="recent">{t('mine.filters.sortRecent')}</option>
               <option value="title">{t('mine.filters.sortTitle')}</option>
@@ -258,7 +258,7 @@ export function MyContentsPage() {
             <button
               type="button"
               onClick={clearFilters}
-              className="rounded-xl border border-cac-line px-3.5 py-2.5 text-[13px] font-black text-cac-muted hover:bg-cac-bg"
+              className="rounded-xl border border-cac-line px-3.5 py-2.5 text-media font-black text-cac-muted hover:bg-cac-bg"
             >
               {t('mine.filters.clear')}
             </button>
@@ -266,7 +266,7 @@ export function MyContentsPage() {
         </div>
 
         <div className="flex flex-wrap items-center gap-x-2 gap-y-3">
-          <span className="mr-1 text-[11px] font-black uppercase tracking-wide text-cac-muted">
+          <span className="mr-1 text-pequena font-black uppercase tracking-wide text-cac-muted">
             {t('mine.filters.kind')}
           </span>
           {KINDS.map((k) => (
@@ -274,7 +274,7 @@ export function MyContentsPage() {
               key={k}
               type="button"
               onClick={() => setKind(k)}
-              className={`rounded-xl px-3.5 py-2 text-[13px] font-black ${
+              className={`rounded-xl px-3.5 py-2 text-media font-black ${
                 kind === k ? 'bg-cac-navy text-white' : 'border border-cac-line bg-white text-cac-muted'
               }`}
             >
@@ -282,7 +282,7 @@ export function MyContentsPage() {
             </button>
           ))}
           <span className="mx-4 hidden h-7 w-px bg-cac-line sm:block" aria-hidden />
-          <span className="mr-1 text-[11px] font-black uppercase tracking-wide text-cac-muted sm:ml-1">
+          <span className="mr-1 text-pequena font-black uppercase tracking-wide text-cac-muted sm:ml-1">
             {t('mine.filters.status')}
           </span>
           {STATUSES.map((s) => (
@@ -290,7 +290,7 @@ export function MyContentsPage() {
               key={s}
               type="button"
               onClick={() => setStatus(s)}
-              className={`rounded-xl px-3.5 py-2 text-[13px] font-black ${
+              className={`rounded-xl px-3.5 py-2 text-media font-black ${
                 status === s ? 'bg-cac-green3 text-cac-navy' : 'border border-cac-line bg-white text-cac-muted'
               }`}
             >
@@ -301,20 +301,20 @@ export function MyContentsPage() {
       </section>
 
       {error ? (
-        <p className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-[13px] text-red-800">{error}</p>
+        <p className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-media text-red-800">{error}</p>
       ) : null}
       {message ? (
-        <p className="rounded-lg border border-cac-green/30 bg-cac-green3 px-3 py-2 text-[13px] text-cac-navy">
+        <p className="rounded-lg border border-cac-green/30 bg-cac-green3 px-3 py-2 text-media text-cac-navy">
           {message}
         </p>
       ) : null}
 
       <div className="overflow-hidden rounded-[18px] border border-cac-line bg-white shadow-cac">
         {loading ? (
-          <p className="p-6 text-[14px] text-cac-muted">{t('mine.loading')}</p>
+          <p className="p-6 text-media text-cac-muted">{t('mine.loading')}</p>
         ) : sortedItems.length === 0 ? (
           <div className="space-y-3 p-7">
-            <p className="text-[14px] text-cac-muted">{t('mine.empty')}</p>
+            <p className="text-media text-cac-muted">{t('mine.empty')}</p>
             <div className="flex flex-wrap gap-2">
               <Link to="/catalog/technologies/new">
                 <Button>{t('nav.newTech')}</Button>
@@ -335,19 +335,19 @@ export function MyContentsPage() {
                 >
                   <div className="min-w-0">
                     <div className="flex flex-wrap items-center gap-2">
-                      <span className="rounded bg-[#edf1f3] px-2 py-0.5 text-[11px] font-black tracking-wide text-cac-muted">
+                      <span className="rounded bg-[#edf1f3] px-2 py-0.5 text-pequena font-black tracking-wide text-cac-muted">
                         {t(`mine.kind.${item.kind}`)}
                       </span>
-                      <span className={`rounded px-2 py-0.5 text-[11px] font-black ${statusClass(item.status)}`}>
+                      <span className={`rounded px-2 py-0.5 text-pequena font-black ${statusClass(item.status)}`}>
                         {item.status}
                       </span>
                     </div>
-                    <p className="mt-1.5 truncate text-[16px] font-black text-cac-navy">{item.title}</p>
-                    <p className="mt-0.5 text-[12px] text-cac-muted">
+                    <p className="mt-1.5 truncate text-media font-black text-cac-navy">{item.title}</p>
+                    <p className="mt-0.5 text-pequena text-cac-muted">
                       {item.organizationName} · {item.country} · {new Date(item.updatedAt).toLocaleString()}
                     </p>
                     {item.curationNote ? (
-                      <p className="mt-2 rounded-lg border border-cac-line bg-[#fbfcfb] px-2.5 py-2 text-[12px] leading-snug text-cac-navy">
+                      <p className="mt-2 rounded-lg border border-cac-line bg-[#fbfcfb] px-2.5 py-2 text-pequena leading-snug text-cac-navy">
                         <span className="font-black">{curationNoteLabel(item.status, t)}: </span>
                         {item.curationNote}
                       </p>

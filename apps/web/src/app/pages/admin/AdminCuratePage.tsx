@@ -113,12 +113,12 @@ export function AdminCuratePage() {
   return (
     <div className="space-y-5">
       <header className="rounded-2xl border border-cac-line bg-white p-5 shadow-cac">
-        <p className="text-xs font-black tracking-[0.12em] text-cac-green uppercase">
+        <p className="text-pequena font-black tracking-[0.12em] text-cac-green uppercase">
           {t('curator.queueContent')}
         </p>
-        <h1 className="mt-1 text-2xl font-black text-cac-navy">{t('admin.curateTitle')}</h1>
-        <p className="mt-2 max-w-3xl text-sm text-cac-muted">{t('admin.curateSupport')}</p>
-        <ul className="mt-3 grid gap-2 text-sm text-cac-navy sm:grid-cols-3">
+        <h1 className="mt-1 text-grande font-black text-cac-navy">{t('admin.curateTitle')}</h1>
+        <p className="mt-2 max-w-3xl text-media text-cac-muted">{t('admin.curateSupport')}</p>
+        <ul className="mt-3 grid gap-2 text-media text-cac-navy sm:grid-cols-3">
           <li className="rounded-xl border border-cac-line bg-[#fbfcfb] px-3 py-2">
             <span className="font-black text-cac-green">{t('admin.decisionApprove')}: </span>
             {t('admin.decisionApproveHint')}
@@ -133,13 +133,13 @@ export function AdminCuratePage() {
           </li>
         </ul>
         <div className="mt-4 flex flex-wrap gap-2">
-          <span className="rounded-full border border-cac-line bg-[#fbfcfb] px-3 py-1.5 text-xs font-black text-cac-navy">
+          <span className="rounded-full border border-cac-line bg-[#fbfcfb] px-3 py-1.5 text-pequena font-black text-cac-navy">
             {t('admin.pendingTotal', { count: items.length })}
           </span>
           {Object.entries(byKind).map(([kind, count]) => (
             <span
               key={kind}
-              className="rounded-full border border-cac-line bg-white px-3 py-1.5 text-xs font-semibold text-cac-muted"
+              className="rounded-full border border-cac-line bg-white px-3 py-1.5 text-pequena font-semibold text-cac-muted"
             >
               {kindLabel(kind, t)} · {count}
             </span>
@@ -148,18 +148,18 @@ export function AdminCuratePage() {
       </header>
 
       {message ? (
-        <p className="rounded-xl border border-cac-line bg-cac-green3/40 px-4 py-3 text-sm font-semibold text-cac-navy">
+        <p className="rounded-xl border border-cac-line bg-cac-green3/40 px-4 py-3 text-media font-semibold text-cac-navy">
           {message}
         </p>
       ) : null}
       {error ? (
-        <p className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-semibold text-red-900">
+        <p className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-media font-semibold text-red-900">
           {error}
         </p>
       ) : null}
 
       {loading ? (
-        <p className="text-sm text-cac-muted">{t('dash.loading')}</p>
+        <p className="text-media text-cac-muted">{t('dash.loading')}</p>
       ) : (
         <ul className="space-y-3">
           {items.map((item) => {
@@ -174,28 +174,28 @@ export function AdminCuratePage() {
                   onClick={() => setExpanded(isOpen ? null : key)}
                 >
                   <div className="min-w-0">
-                    <p className="text-xs font-black uppercase tracking-wide text-cac-green">
+                    <p className="text-pequena font-black uppercase tracking-wide text-cac-green">
                       {kindLabel(item.kind, t)} · {t('admin.submittedForReview')}
                     </p>
-                    <p className="mt-1 text-base font-black text-cac-navy">{item.title}</p>
-                    <p className="text-sm text-cac-muted">
+                    <p className="mt-1 text-media font-black text-cac-navy">{item.title}</p>
+                    <p className="text-media text-cac-muted">
                       {item.organization?.name ?? '—'}
                       {item.country ? ` · ${item.country}` : ''}
                       {item.region ? ` · ${item.region}` : ''} ·{' '}
                       {formatDate(item.updatedAt, i18n.language)}
                     </p>
                   </div>
-                  <span className="shrink-0 rounded-full bg-amber-100 px-2.5 py-1 text-[10px] font-black uppercase tracking-wide text-amber-900">
+                  <span className="shrink-0 rounded-full bg-amber-100 px-2.5 py-1 text-mini font-black uppercase tracking-wide text-amber-900">
                     IN_REVIEW
                   </span>
                 </button>
 
                 {item.summary ? (
-                  <p className="mt-3 text-sm leading-relaxed text-cac-navy/90">{item.summary}</p>
+                  <p className="mt-3 text-media leading-relaxed text-cac-navy/90">{item.summary}</p>
                 ) : null}
 
                 {item.curationNote ? (
-                  <p className="mt-3 rounded-xl border border-cac-line bg-[#fbfcfb] px-3 py-2 text-xs text-cac-muted">
+                  <p className="mt-3 rounded-xl border border-cac-line bg-[#fbfcfb] px-3 py-2 text-pequena text-cac-muted">
                     <span className="font-black text-cac-navy">{t('admin.previousNote')}: </span>
                     {item.curationNote}
                   </p>
@@ -204,18 +204,18 @@ export function AdminCuratePage() {
                 {isOpen ? (
                   <div className="mt-4 space-y-3 border-t border-cac-line pt-4">
                     <label className="block">
-                      <span className="text-xs font-black tracking-wide text-cac-navy uppercase">
+                      <span className="text-pequena font-black tracking-wide text-cac-navy uppercase">
                         {t('admin.noteLabel')}
                       </span>
                       <textarea
-                        className="mt-1.5 min-h-[96px] w-full rounded-xl border border-cac-line bg-[#fbfcfb] px-3 py-2 text-sm text-cac-navy outline-none ring-cac-green focus:ring-2"
+                        className="mt-1.5 min-h-[96px] w-full rounded-xl border border-cac-line bg-[#fbfcfb] px-3 py-2 text-media text-cac-navy outline-none ring-cac-green focus:ring-2"
                         placeholder={t('admin.notePlaceholder')}
                         value={noteValue}
                         onChange={(e) =>
                           setNotes((prev) => ({ ...prev, [key]: e.target.value }))
                         }
                       />
-                      <span className="mt-1 block text-xs text-cac-muted">{t('admin.noteHint')}</span>
+                      <span className="mt-1 block text-pequena text-cac-muted">{t('admin.noteHint')}</span>
                     </label>
 
                     <div className="flex flex-wrap gap-2">
@@ -244,7 +244,7 @@ export function AdminCuratePage() {
                 ) : (
                   <button
                     type="button"
-                    className="mt-3 text-sm font-black text-cac-green hover:underline"
+                    className="mt-3 text-media font-black text-cac-green hover:underline"
                     onClick={() => setExpanded(key)}
                   >
                     {t('admin.openDecision')}
@@ -254,7 +254,7 @@ export function AdminCuratePage() {
             );
           })}
           {!items.length ? (
-            <li className="rounded-2xl border border-dashed border-cac-line bg-white px-4 py-8 text-center text-sm text-cac-muted">
+            <li className="rounded-2xl border border-dashed border-cac-line bg-white px-4 py-8 text-center text-media text-cac-muted">
               {t('admin.curateEmpty')}
             </li>
           ) : null}

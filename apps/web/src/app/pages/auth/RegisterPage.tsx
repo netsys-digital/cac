@@ -67,7 +67,7 @@ export function RegisterPage() {
       title={t('auth.signUpTitle')}
       subtitle={returnUrl ? t('auth.registerContextual') : t('auth.signUpSubtitle')}
       footer={
-        <p className="text-center text-[11px] text-cac-muted">
+        <p className="text-center text-pequena text-cac-muted">
           {t('auth.haveAccount')}{' '}
           <Link
             to={returnUrl ? `/login?returnUrl=${encodeURIComponent(returnUrl)}` : '/login'}
@@ -80,20 +80,20 @@ export function RegisterPage() {
     >
       {returnUrl ? (
         <div className="flex items-start gap-3 rounded-[12px] border border-cac-green/30 bg-cac-green3 px-3 py-3">
-          <span className="mt-0.5 grid size-7 shrink-0 place-items-center rounded-full bg-cac-green2 text-[12px] font-black text-white">
+          <span className="mt-0.5 grid size-7 shrink-0 place-items-center rounded-full bg-cac-green2 text-pequena font-black text-white">
             →
           </span>
           <div>
-            <p className="text-[11px] font-black text-cac-navy">{t('auth.contextualTitle')}</p>
-            <p className="mt-1 text-[11px] leading-snug text-cac-muted">{t('auth.contextualBody')}</p>
+            <p className="text-pequena font-black text-cac-navy">{t('auth.contextualTitle')}</p>
+            <p className="mt-1 text-pequena leading-snug text-cac-muted">{t('auth.contextualBody')}</p>
           </div>
         </div>
       ) : (
         <div className="rounded-[12px] border border-cac-line bg-[#fbfcfb] px-3 py-3">
-          <p className="text-[10px] font-black tracking-[1px] text-cac-green uppercase">
+          <p className="text-mini font-black tracking-[1px] text-cac-green uppercase">
             {t('auth.nextStepLabel')}
           </p>
-          <p className="mt-1 text-[11px] leading-snug text-cac-muted">{t('auth.nextStepBody')}</p>
+          <p className="mt-1 text-pequena leading-snug text-cac-muted">{t('auth.nextStepBody')}</p>
         </div>
       )}
 
@@ -122,7 +122,7 @@ export function RegisterPage() {
           />
           <button
             type="button"
-            className="absolute right-2 bottom-[7px] rounded-md px-2 py-1 text-[10px] font-black text-cac-green hover:bg-cac-green3"
+            className="absolute right-2 bottom-[7px] rounded-md px-2 py-1 text-mini font-black text-cac-green hover:bg-cac-green3"
             onClick={() => setShowPassword((v) => !v)}
             aria-pressed={showPassword}
           >
@@ -131,7 +131,7 @@ export function RegisterPage() {
         </div>
 
         {error ? (
-          <p className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-[11px] text-red-800" role="alert">
+          <p className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-pequena text-red-800" role="alert">
             {t('auth.error')}
           </p>
         ) : null}

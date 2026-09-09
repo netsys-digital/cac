@@ -42,8 +42,8 @@ export function AdminDomainsPage() {
 
   return (
     <div className="space-y-6">
-      <h1 className="font-display text-2xl text-cac-ink">{t('admin.domainsTitle')}</h1>
-      <label className="flex max-w-xs flex-col gap-1 text-sm">
+      <h1 className="font-display text-grande text-cac-ink">{t('admin.domainsTitle')}</h1>
+      <label className="flex max-w-xs flex-col gap-1 text-media">
         <span className="font-medium">{t('admin.grouping')}</span>
         <select
           className="rounded-md border border-cac-line bg-white px-3 py-2"
@@ -68,7 +68,7 @@ export function AdminDomainsPage() {
         {items.map((item) => (
           <li
             key={item.id}
-            className="flex items-center justify-between rounded-md border border-cac-line bg-white/70 px-3 py-2 text-sm"
+            className="flex items-center justify-between rounded-md border border-cac-line bg-white/70 px-3 py-2 text-media"
           >
             <span>
               <strong>{item.key}</strong> — {item.labelPt} / {item.labelEn}

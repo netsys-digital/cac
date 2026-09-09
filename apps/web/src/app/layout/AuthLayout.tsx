@@ -20,13 +20,13 @@ function JourneyHint() {
   return (
     <aside className="hidden h-full flex-col justify-between rounded-[19px] border border-white/10 bg-[rgba(10,36,64,.92)] p-6 text-white lg:flex">
       <div>
-        <p className="text-[10px] font-black tracking-[1.7px] text-[#90d6b6] uppercase">
+        <p className="text-mini font-black tracking-[1.7px] text-[#90d6b6] uppercase">
           {t('auth.journeyBadge')}
         </p>
-        <h2 className="mt-3 text-[22px] leading-tight font-black">
+        <h2 className="mt-3 text-grande leading-tight font-black">
           {isRegister ? t('auth.journeyRegisterTitle') : t('auth.journeyLoginTitle')}
         </h2>
-        <p className="mt-3 text-[12px] leading-relaxed text-[#c5d5dc]">
+        <p className="mt-3 text-pequena leading-relaxed text-[#c5d5dc]">
           {hasReturn ? t('auth.journeyContextualBody') : t('auth.journeyBody')}
         </p>
 
@@ -41,23 +41,23 @@ function JourneyHint() {
               }`}
             >
               <span
-                className={`grid size-7 shrink-0 place-items-center rounded-full text-[11px] font-black ${
+                className={`grid size-7 shrink-0 place-items-center rounded-full text-pequena font-black ${
                   step.active ? 'bg-cac-green2 text-white' : 'bg-white/10 text-[#c5d5dc]'
                 }`}
               >
                 {step.n}
               </span>
-              <span className="text-[11px] leading-snug text-[#dbe8ec]">{step.label}</span>
+              <span className="text-pequena leading-snug text-[#dbe8ec]">{step.label}</span>
             </li>
           ))}
         </ol>
       </div>
 
       <div className="mt-8 rounded-[12px] border border-dashed border-[#8ed5b5]/40 bg-[#8ed5b5]/10 p-4">
-        <p className="text-[10px] font-black tracking-[1px] text-[#90d6b6] uppercase">
+        <p className="text-mini font-black tracking-[1px] text-[#90d6b6] uppercase">
           {t('auth.principleLabel')}
         </p>
-        <p className="mt-2 text-[11px] leading-snug text-[#dbe8ec]">{t('auth.principle')}</p>
+        <p className="mt-2 text-pequena leading-snug text-[#dbe8ec]">{t('auth.principle')}</p>
       </div>
     </aside>
   );
@@ -117,14 +117,14 @@ export function AuthCard({
 }) {
   return (
     <div className="overflow-hidden rounded-[19px] border border-cac-line bg-white shadow-cac">
-      <div className="border-b border-cac-line bg-[#edf1f3] px-5 py-2 font-mono text-[10px] text-[#76838a]">
+      <div className="border-b border-cac-line bg-[#edf1f3] px-5 py-2 font-mono text-mini text-[#76838a]">
         climateactionconnect · {badge ?? 'auth'}
       </div>
       <div className="space-y-5 p-5 md:p-6">
         <header>
-          <h1 className="text-[22px] leading-tight font-black text-cac-navy md:text-[24px]">{title}</h1>
+          <h1 className="text-grande leading-tight font-black text-cac-navy">{title}</h1>
           {subtitle ? (
-            <p className="mt-2 text-[12px] leading-relaxed text-cac-muted">{subtitle}</p>
+            <p className="mt-2 text-pequena leading-relaxed text-cac-muted">{subtitle}</p>
           ) : null}
         </header>
         {children}

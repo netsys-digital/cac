@@ -15,9 +15,9 @@ export function PageShell({
       <div className="mb-6 flex flex-wrap items-end justify-between gap-4">
         <div>
           {eyebrow ? (
-            <p className="text-[0.65rem] font-black tracking-[1.7px] text-cac-green uppercase">{eyebrow}</p>
+            <p className="text-mini font-bold tracking-[1.7px] text-cac-green uppercase">{eyebrow}</p>
           ) : null}
-          <h1 className="mt-2 text-[2rem] leading-tight font-black text-cac-navy md:text-[2.15rem]">{title}</h1>
+          <h1 className="mt-2 text-grande leading-[1.08] font-bold tracking-[-0.7px] text-cac-navy">{title}</h1>
         </div>
         {actions}
       </div>
@@ -28,7 +28,7 @@ export function PageShell({
 
 export function Chip({ children }: PropsWithChildren) {
   return (
-    <span className="rounded-lg bg-cac-green3 px-2 py-1 text-[10px] font-extrabold text-cac-green">
+    <span className="rounded-lg bg-cac-green3 px-2 py-1 text-mini font-extrabold text-cac-green">
       {children}
     </span>
   );
@@ -67,12 +67,12 @@ export function ResultCard({
     >
       <span className="hidden h-[4.25rem] rounded-[9px] bg-gradient-to-br from-[#d5ebde] to-[#91b58b] sm:block" />
       <span className="min-w-0">
-        <span className="block text-[0.8rem] font-black leading-snug text-cac-navy sm:text-[0.85rem]">
+        <span className="block text-media font-bold leading-snug text-cac-navy">
           {title}
         </span>
-        <span className="mt-1 block text-[0.7rem] leading-snug text-cac-muted">{meta}</span>
+        <span className="mt-1 block text-pequena leading-snug text-cac-muted">{meta}</span>
         {summary ? (
-          <span className="mt-1.5 line-clamp-2 block text-[0.7rem] leading-relaxed text-cac-navy/80">
+          <span className="mt-1.5 line-clamp-2 block text-pequena leading-relaxed text-cac-navy/80">
             {summary}
           </span>
         ) : null}
@@ -84,7 +84,7 @@ export function ResultCard({
           </span>
         ) : null}
         {topFactors.length ? (
-          <span className="mt-2 flex flex-wrap gap-x-3 gap-y-1 text-[0.65rem] text-cac-muted">
+          <span className="mt-2 flex flex-wrap gap-x-3 gap-y-1 text-mini text-cac-muted">
             {topFactors.map((factor) => (
               <span key={factor.label}>
                 {factor.label}: <b className="text-cac-navy">{Math.round(factor.value)}%</b>
@@ -94,13 +94,13 @@ export function ResultCard({
         ) : null}
       </span>
       <span className="shrink-0 text-right">
-        {score ? <b className="block text-[1.35rem] leading-none text-cac-green">{score}</b> : null}
+        {score ? <b className="block text-media leading-none text-cac-green">{score}</b> : null}
         {score ? (
-          <span className="mt-0.5 block text-[0.6rem] font-bold tracking-wide text-cac-muted uppercase">
+          <span className="mt-0.5 block text-mini font-bold tracking-wide text-cac-muted uppercase">
             {t('search.matchLabel')}
           </span>
         ) : null}
-        <span className="mt-2 inline-flex rounded-[10px] border border-cac-green bg-white px-3 py-2 text-[0.7rem] font-black text-cac-green">
+        <span className="mt-2 inline-flex rounded-[10px] border border-cac-green bg-white px-3 py-2 text-pequena font-extrabold text-cac-green">
           {t('detail.open')}
         </span>
       </span>

@@ -23,18 +23,18 @@ export function BrandMark({
       {logoSrc ? (
         <img src={logoSrc} alt="" className="h-11 w-11 rounded-[12px] object-contain" />
       ) : (
-        <span className="grid h-11 w-11 place-items-center rounded-[12px] bg-gradient-to-br from-cac-green2 to-[#92dcc0] text-[11px] font-black text-cac-navy">
+        <span className="grid h-11 w-11 place-items-center rounded-[12px] bg-gradient-to-br from-cac-green2 to-[#92dcc0] text-pequena font-bold text-cac-navy">
           {short.slice(0, 3)}
         </span>
       )}
-      <span className={`leading-tight whitespace-nowrap font-black text-[15px] ${onDark ? 'uppercase' : ''}`}>
+      <span className={`leading-tight whitespace-nowrap font-bold text-media ${onDark ? 'uppercase' : ''}`}>
         <span className={onDark ? 'text-white' : 'text-cac-navy'}>
           {first}{' '}
           <b className={onDark ? 'text-[#8ed5b5]' : 'text-cac-green'}>{last}</b>
         </span>
         {tagline ? (
           <small
-            className={`mt-0.5 block text-[11px] tracking-[1.2px] ${
+            className={`mt-0.5 block text-pequena tracking-[1.2px] ${
               onDark ? 'text-[#90d6b6]' : 'text-cac-muted'
             }`}
           >

@@ -1,8 +1,8 @@
 import type { InputHTMLAttributes, TextareaHTMLAttributes } from 'react';
 
-const labelClass = 'block text-[10px] font-extrabold uppercase tracking-[0.4px] text-cac-muted';
+const labelClass = 'block text-mini font-extrabold uppercase tracking-[0.4px] text-cac-muted';
 const controlClass =
-  'w-full rounded-lg border border-cac-line bg-white px-2.5 py-2 text-[11px] text-cac-navy outline-none ring-cac-green2/40 placeholder:text-cac-muted/70 focus:ring-2';
+  'w-full rounded-lg border border-cac-line bg-white px-2.5 py-2 text-pequena text-cac-navy outline-none ring-cac-green2/40 placeholder:text-cac-muted/70 focus:ring-2';
 
 type FieldMeta = {
   label: string;
@@ -16,7 +16,7 @@ export function Input({ label, hint, id, className = '', ...props }: InputProps)
   return (
     <label className="flex w-full flex-col gap-1 text-cac-ink">
       <span className={labelClass}>{label}</span>
-      {hint ? <span className="text-[10px] leading-snug text-cac-muted normal-case font-normal tracking-normal">{hint}</span> : null}
+      {hint ? <span className="text-mini leading-snug text-cac-muted normal-case font-normal tracking-normal">{hint}</span> : null}
       <input id={inputId} className={`${controlClass} ${className}`} {...props} />
     </label>
   );
@@ -29,7 +29,7 @@ export function TextArea({ label, hint, id, className = '', rows = 4, ...props }
   return (
     <label className="flex w-full flex-col gap-1 text-cac-ink">
       <span className={labelClass}>{label}</span>
-      {hint ? <span className="text-[10px] leading-snug text-cac-muted normal-case font-normal tracking-normal">{hint}</span> : null}
+      {hint ? <span className="text-mini leading-snug text-cac-muted normal-case font-normal tracking-normal">{hint}</span> : null}
       <textarea
         id={inputId}
         rows={rows}

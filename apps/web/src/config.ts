@@ -14,3 +14,11 @@ export const urls = {
   web: import.meta.env.VITE_WEB_URL ?? 'http://localhost:5178',
   www: import.meta.env.VITE_WWW_URL ?? 'http://localhost:5179',
 };
+
+export const fontEnv = {
+  VITE_FONT_EXTRA_GRANDE: import.meta.env.VITE_FONT_EXTRA_GRANDE,
+  VITE_FONT_GRANDE: import.meta.env.VITE_FONT_GRANDE,
+  VITE_FONT_MEDIA: import.meta.env.VITE_FONT_MEDIA,
+  VITE_FONT_PEQUENA: import.meta.env.VITE_FONT_PEQUENA,
+  VITE_FONT_MINI: import.meta.env.VITE_FONT_MINI,
+};

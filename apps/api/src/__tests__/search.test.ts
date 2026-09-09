@@ -49,10 +49,11 @@ describe('POST /api/search', () => {
   });
 
   it('respects MATCH_MIN_SCORE threshold', async () => {
+    const min = Number(process.env.MATCH_MIN_SCORE ?? 5);
     const res = await request(app).post('/api/search').send({ query: 'zzzz-not-a-real-match-xyz' });
     expect(res.status).toBe(200);
     for (const item of res.body.results) {
-      expect(item.score).toBeGreaterThanOrEqual(60);
+      expect(item.score).toBeGreaterThanOrEqual(min);
     }
   });
 });

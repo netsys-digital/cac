@@ -83,10 +83,10 @@ export function RepresentationWizardPage() {
   if (done) {
     return (
       <div className="mx-auto max-w-2xl rounded-[19px] border border-cac-line bg-white p-6 shadow-cac">
-        <p className="text-[10px] font-black tracking-[1.7px] text-cac-green uppercase">{t('rep.pageBadge')}</p>
-        <h1 className="mt-2 text-[28px] font-black text-cac-navy">{t('rep.doneTitle')}</h1>
-        <p className="mt-2 text-[12px] text-cac-muted">{t('rep.doneBody')}</p>
-        <p className="mt-4 inline-block rounded-lg bg-amber-50 px-2 py-1 text-[10px] font-black uppercase tracking-wide text-amber-800">
+        <p className="text-mini font-black tracking-[1.7px] text-cac-green uppercase">{t('rep.pageBadge')}</p>
+        <h1 className="mt-2 text-grande font-black text-cac-navy">{t('rep.doneTitle')}</h1>
+        <p className="mt-2 text-pequena text-cac-muted">{t('rep.doneBody')}</p>
+        <p className="mt-4 inline-block rounded-lg bg-amber-50 px-2 py-1 text-mini font-black uppercase tracking-wide text-amber-800">
           {t('onboarding.pendingBadge')}
         </p>
       </div>
@@ -96,14 +96,14 @@ export function RepresentationWizardPage() {
   return (
     <div className="space-y-5">
       <header>
-        <p className="text-[10px] font-black tracking-[1.7px] text-cac-green uppercase">{t('rep.pageBadge')}</p>
-        <h1 className="mt-2 text-[28px] font-black text-cac-navy md:text-[32px]">{t('rep.pageTitle')}</h1>
-        <p className="mt-2 max-w-[760px] text-[12px] leading-relaxed text-cac-muted">{t('rep.pageDesc')}</p>
+        <p className="text-mini font-black tracking-[1.7px] text-cac-green uppercase">{t('rep.pageBadge')}</p>
+        <h1 className="mt-2 text-grande font-black text-cac-navy">{t('rep.pageTitle')}</h1>
+        <p className="mt-2 max-w-[760px] text-pequena leading-relaxed text-cac-muted">{t('rep.pageDesc')}</p>
       </header>
 
       <div className="grid gap-4 lg:grid-cols-[minmax(0,1.2fr)_minmax(260px,0.8fr)]">
         <div className="overflow-hidden rounded-[19px] border border-cac-line bg-white shadow-cac">
-          <div className="border-b border-cac-line bg-[#edf1f3] px-4 py-2 font-mono text-[10px] text-[#76838a]">
+          <div className="border-b border-cac-line bg-[#edf1f3] px-4 py-2 font-mono text-mini text-[#76838a]">
             {t('form.appbar')} · {t('rep.stepLabel', { current: step + 1, total: steps.length })}
           </div>
 
@@ -112,7 +112,7 @@ export function RepresentationWizardPage() {
               {steps.map((s, i) => (
                 <span
                   key={s}
-                  className={`rounded-full px-2.5 py-1 text-[10px] font-black ${
+                  className={`rounded-full px-2.5 py-1 text-mini font-black ${
                     i === step
                       ? 'bg-cac-green3 text-cac-navy'
                       : i < step
@@ -125,12 +125,12 @@ export function RepresentationWizardPage() {
               ))}
             </div>
 
-            <h2 className="text-[18px] font-black text-cac-navy">{t(`rep.steps.${current}.title`)}</h2>
-            <p className="mt-1 text-[11px] text-cac-muted">{t(`rep.steps.${current}.body`)}</p>
+            <h2 className="text-grande font-black text-cac-navy">{t(`rep.steps.${current}.title`)}</h2>
+            <p className="mt-1 text-pequena text-cac-muted">{t(`rep.steps.${current}.body`)}</p>
 
             <div className="mt-5 space-y-4">
               {current === 'account' && (
-                <div className="rounded-[12px] border border-cac-line bg-[#fbfcfb] p-4 text-[11px]">
+                <div className="rounded-[12px] border border-cac-line bg-[#fbfcfb] p-4 text-pequena">
                   <p className="font-black text-cac-navy">{user?.name}</p>
                   <p className="mt-1 text-cac-muted">{user?.email}</p>
                 </div>
@@ -204,7 +204,7 @@ export function RepresentationWizardPage() {
               )}
 
               {current === 'confirm' && (
-                <ul className="space-y-2 rounded-[12px] border border-cac-line bg-[#fbfcfb] p-4 text-[11px] text-cac-navy">
+                <ul className="space-y-2 rounded-[12px] border border-cac-line bg-[#fbfcfb] p-4 text-pequena text-cac-navy">
                   <li>
                     <strong>{t('rep.organization')}:</strong>{' '}
                     {mode === 'create' ? newOrgName : selectedOrg?.name}
@@ -223,7 +223,7 @@ export function RepresentationWizardPage() {
             </div>
 
             {error ? (
-              <p className="mt-4 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-[11px] text-red-800">
+              <p className="mt-4 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-pequena text-red-800">
                 {error}
               </p>
             ) : null}
@@ -255,14 +255,14 @@ export function RepresentationWizardPage() {
 
         <aside className="space-y-3">
           <div className="rounded-[16px] border border-cac-line bg-white p-4 shadow-cac">
-            <p className="text-[10px] font-black tracking-[1px] text-cac-green uppercase">
+            <p className="text-mini font-black tracking-[1px] text-cac-green uppercase">
               {t('form.tipsTitle')}
             </p>
             <ul className="mt-3 space-y-3">
               {tips.map((tip) => (
                 <li key={tip.title} className="rounded-[12px] border border-cac-line bg-[#fbfcfb] p-3">
-                  <strong className="block text-[11px] text-cac-navy">{tip.title}</strong>
-                  <span className="mt-1 block text-[10px] leading-snug text-cac-muted">{tip.body}</span>
+                  <strong className="block text-pequena text-cac-navy">{tip.title}</strong>
+                  <span className="mt-1 block text-mini leading-snug text-cac-muted">{tip.body}</span>
                 </li>
               ))}
             </ul>

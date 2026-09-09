@@ -100,5 +100,5 @@ export const ConnectionStatus = {
 } as const;
 export type ConnectionStatus = (typeof ConnectionStatus)[keyof typeof ConnectionStatus];
 
-export const MATCH_MIN_SCORE_DEFAULT = 60;
+export const MATCH_MIN_SCORE_DEFAULT = 5;
 export const CONNECTION_EXPIRY_DAYS_DEFAULT = 15;

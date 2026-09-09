@@ -13,8 +13,8 @@ uploads
 .vite
 apps/api/prisma/migrations/**/migration_lock.toml.bak
 .cursorrules
-_MATERIAIS
-_REQUISITOS
+_MATERIAIS/
+_REQUISITOS/
 backups
 temp/
 .diag-*.html

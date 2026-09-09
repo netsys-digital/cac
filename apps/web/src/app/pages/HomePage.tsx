@@ -20,7 +20,7 @@ export function HomePage() {
 
   if (loading) {
     return (
-      <div className="rounded-2xl border border-cac-line bg-white p-5 text-sm text-cac-muted shadow-cac">
+      <div className="rounded-2xl border border-cac-line bg-white p-5 text-media text-cac-muted shadow-cac">
         {t('dash.loading')}
       </div>
     );

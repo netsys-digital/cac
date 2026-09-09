@@ -48,9 +48,9 @@ export function TechnologyDetailPage() {
   if (error) {
     return (
       <div className={`${shell} py-12`}>
-        <h1 className="text-[1.5rem] font-black text-cac-navy">{t('detail.notFound')}</h1>
+        <h1 className="text-grande font-bold text-cac-navy">{t('detail.notFound')}</h1>
         <div className="mt-4">
-          <BackToSearchLink className="inline-flex items-center gap-2 rounded-[10px] border border-cac-line bg-white px-3.5 py-2.5 text-[11px] font-black text-cac-navy" />
+          <BackToSearchLink className="inline-flex items-center gap-2 rounded-[10px] border border-cac-line bg-white px-3.5 py-2.5 text-pequena font-bold text-cac-navy" />
         </div>
       </div>
     );
@@ -116,7 +116,7 @@ export function TechnologyDetailPage() {
 
             <DetailSection title={t('detail.nextSteps')} index="04">
               <p className="text-cac-muted">{t('detail.nextStepsBody')}</p>
-              <ul className="mt-4 space-y-2.5 text-[0.85rem] text-cac-navy">
+              <ul className="mt-4 space-y-2.5 text-pequena text-cac-navy">
                 <li className="flex gap-2">
                   <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-cac-green" />
                   {t('detail.pathImpl')}
@@ -146,7 +146,7 @@ export function TechnologyDetailPage() {
             ) : null}
 
             <DetailActionStack>
-              <p className="text-[0.65rem] font-black tracking-[1.4px] text-cac-muted uppercase">
+              <p className="text-mini font-bold tracking-[1.4px] text-cac-muted uppercase">
                 {t('detail.actions')}
               </p>
               <DetailPrimaryButton href={connectUrl}>{t('detail.interest')}</DetailPrimaryButton>
@@ -155,19 +155,19 @@ export function TechnologyDetailPage() {
               <DetailSecondaryButton href={`${urls.web}/catalog/challenges/new`}>
                 {t('home.path03')}
               </DetailSecondaryButton>
-              <p className="pt-1 text-[0.7rem] leading-snug text-cac-muted">{t('detail.actionsHint')}</p>
+              <p className="pt-1 text-pequena leading-snug text-cac-muted">{t('detail.actionsHint')}</p>
             </DetailActionStack>
 
             <div className="rounded-[16px] border border-dashed border-cac-line bg-[#eff7f3] p-5">
-              <p className="text-[0.65rem] font-black tracking-[1.4px] text-cac-navy uppercase">
+              <p className="text-mini font-bold tracking-[1.4px] text-cac-navy uppercase">
                 {t('detail.complementary')}
               </p>
-              <p className="mt-2 text-[0.75rem] leading-relaxed text-cac-muted">
+              <p className="mt-2 text-pequena leading-relaxed text-cac-muted">
                 {t('detail.complementaryHint')}
               </p>
               <Link
                 to="/funding"
-                className="mt-3 inline-flex text-[0.75rem] font-black text-cac-green hover:underline"
+                className="mt-3 inline-flex text-pequena font-bold text-cac-green hover:underline"
               >
                 {t('detail.pathFunding')} →
               </Link>

@@ -86,37 +86,37 @@ export function DashboardPage() {
   return (
     <div className="space-y-6">
       <header>
-        <p className="text-[10px] font-black tracking-[1.7px] text-cac-green uppercase">
+        <p className="text-mini font-black tracking-[1.7px] text-cac-green uppercase">
           {t('shell.signedIn')}
         </p>
-        <h1 className="mt-2 text-[28px] leading-tight font-black text-cac-navy md:text-[32px]">
+        <h1 className="mt-2 text-grande leading-tight font-black text-cac-navy">
           {t('shell.welcome', { name: user?.name ?? '' })}
         </h1>
-        <p className="mt-2 max-w-2xl text-[12px] leading-relaxed text-cac-muted">
+        <p className="mt-2 max-w-2xl text-pequena leading-relaxed text-cac-muted">
           {t('dash.subtitle')}
         </p>
-        <p className="mt-1 text-[11px] text-cac-muted">
+        <p className="mt-1 text-pequena text-cac-muted">
           {user?.email} · <span className="font-black uppercase text-cac-green">{user?.role}</span>
         </p>
       </header>
 
       {error ? (
-        <p className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-[11px] text-red-800">{error}</p>
+        <p className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-pequena text-red-800">{error}</p>
       ) : null}
 
       <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
         {cards.map((card) => {
           const body = (
             <>
-              <p className="text-[10px] font-black tracking-[1.2px] text-cac-muted uppercase">{card.label}</p>
+              <p className="text-mini font-black tracking-[1.2px] text-cac-muted uppercase">{card.label}</p>
               <p
-                className={`mt-2 text-[28px] font-black leading-none ${
+                className={`mt-2 text-grande font-black leading-none ${
                   card.muted ? 'text-cac-muted' : 'text-cac-navy'
                 }`}
               >
                 {card.value}
               </p>
-              <p className="mt-3 text-[11px] leading-relaxed text-cac-muted">{card.hint}</p>
+              <p className="mt-3 text-pequena leading-relaxed text-cac-muted">{card.hint}</p>
             </>
           );
           const className = `block rounded-[16px] border border-cac-line bg-white p-4 shadow-cac transition hover:border-cac-green/40 ${
@@ -137,36 +137,36 @@ export function DashboardPage() {
       <div className="flex flex-wrap gap-2">
         <a
           href={urls.www}
-          className="rounded-[10px] bg-cac-navy px-3 py-2 text-[11px] font-black text-white"
+          className="rounded-[10px] bg-cac-navy px-3 py-2 text-pequena font-black text-white"
         >
           {t('dash.goPortal')}
         </a>
         <Link
           to="/my/connections"
-          className="rounded-[10px] bg-cac-green3 px-3 py-2 text-[11px] font-black text-cac-navy"
+          className="rounded-[10px] bg-cac-green3 px-3 py-2 text-pequena font-black text-cac-navy"
         >
           {t('nav.connections')}
         </Link>
         <Link
           to="/my/contents"
-          className="rounded-[10px] border border-cac-line bg-white px-3 py-2 text-[11px] font-black text-cac-navy"
+          className="rounded-[10px] border border-cac-line bg-white px-3 py-2 text-pequena font-black text-cac-navy"
         >
           {t('nav.myContents')}
         </Link>
         <Link
           to="/catalog/technologies/new"
-          className="rounded-[10px] border border-cac-line bg-white px-3 py-2 text-[11px] font-black text-cac-navy"
+          className="rounded-[10px] border border-cac-line bg-white px-3 py-2 text-pequena font-black text-cac-navy"
         >
           {t('nav.newTech')}
         </Link>
         <Link
           to="/catalog/challenges/new"
-          className="rounded-[10px] border border-cac-line bg-white px-3 py-2 text-[11px] font-black text-cac-navy"
+          className="rounded-[10px] border border-cac-line bg-white px-3 py-2 text-pequena font-black text-cac-navy"
         >
           {t('nav.newChallenge')}
         </Link>
         {stats?.drafts || stats?.inReview ? (
-          <span className="rounded-[10px] border border-cac-line bg-white px-3 py-2 text-[11px] text-cac-muted">
+          <span className="rounded-[10px] border border-cac-line bg-white px-3 py-2 text-pequena text-cac-muted">
             {t('dash.pipeline', { drafts: stats?.drafts ?? 0, review: stats?.inReview ?? 0 })}
           </span>
         ) : null}

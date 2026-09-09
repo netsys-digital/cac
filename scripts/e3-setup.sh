@@ -27,7 +27,7 @@ echo "== E3 setup $(date -Iseconds) =="
 if [[ -f .env ]]; then
   grep -q '^OFFLINE_MODE=' .env && sed -i 's/^OFFLINE_MODE=.*/OFFLINE_MODE=true/' .env || echo 'OFFLINE_MODE=true' >> .env
   grep -q '^SCORE_WEIGHTS=' .env || echo 'SCORE_WEIGHTS=semantic:40,tags:25,region:15,maturity:10,need:10' >> .env
-  grep -q '^MATCH_MIN_SCORE=' .env || echo 'MATCH_MIN_SCORE=60' >> .env
+  grep -q '^MATCH_MIN_SCORE=' .env || echo 'MATCH_MIN_SCORE=5' >> .env
   echo "OK env"
   set -a
   # shellcheck disable=SC1091

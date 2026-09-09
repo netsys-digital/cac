@@ -11,6 +11,7 @@ export const SEARCH_FILTER_KEYS: Array<keyof SearchFilters> = [
   'maturity',
   'scale',
   'financing',
+  'contentType',
 ];
 
 export type SearchReturnState = {

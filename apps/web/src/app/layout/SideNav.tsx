@@ -145,14 +145,14 @@ export function SideNav({ items }: SideNavProps) {
             <div
               key={item.to}
               title={item.lockTitle ?? item.label}
-              className="mx-2 flex cursor-not-allowed items-center gap-3 rounded-[10px] border-t-2 border-transparent px-2.5 py-2.5 text-[11px] font-black text-[#7a8f9a] opacity-70"
+              className="mx-2 flex cursor-not-allowed items-center gap-3 rounded-[10px] border-t-2 border-transparent px-2.5 py-2.5 text-pequena font-black text-[#7a8f9a] opacity-70"
               aria-disabled
             >
               <span className="flex size-8 shrink-0 items-center justify-center">{item.icon}</span>
               <span className="flex max-w-0 flex-col overflow-hidden opacity-0 transition-all duration-200 group-hover/side:max-w-[140px] group-hover/side:opacity-100">
                 <span className="whitespace-nowrap">{item.label}</span>
                 {item.badge ? (
-                  <span className="mt-0.5 whitespace-nowrap text-[9px] font-bold tracking-wide text-amber-300/90">
+                  <span className="mt-0.5 whitespace-nowrap text-mini font-bold tracking-wide text-amber-300/90">
                     {item.badge}
                   </span>
                 ) : null}
@@ -168,7 +168,7 @@ export function SideNav({ items }: SideNavProps) {
               key={item.to}
               href={item.to}
               title={item.label}
-              className="mx-2 flex items-center gap-3 rounded-[10px] border-t-2 border-transparent px-2.5 py-2.5 text-[11px] font-black text-[#c5d5dc] transition hover:bg-white/10 hover:text-white"
+              className="mx-2 flex items-center gap-3 rounded-[10px] border-t-2 border-transparent px-2.5 py-2.5 text-pequena font-black text-[#c5d5dc] transition hover:bg-white/10 hover:text-white"
             >
               <span className="flex size-8 shrink-0 items-center justify-center">{item.icon}</span>
               <span className="max-w-0 overflow-hidden whitespace-nowrap opacity-0 transition-all duration-200 group-hover/side:max-w-[140px] group-hover/side:opacity-100">
@@ -185,7 +185,7 @@ export function SideNav({ items }: SideNavProps) {
             title={item.lockTitle ?? item.label}
             className={({ isActive }) =>
               [
-                'mx-2 flex items-center gap-3 rounded-[10px] px-2.5 py-2.5 text-[11px] font-black transition',
+                'mx-2 flex items-center gap-3 rounded-[10px] px-2.5 py-2.5 text-pequena font-black transition',
                 isActive
                   ? 'border-t-2 border-cac-green2 bg-white text-cac-navy shadow-[0_6px_16px_rgba(0,0,0,.12)]'
                   : 'border-t-2 border-transparent text-[#c5d5dc] hover:bg-white/10 hover:text-white',
@@ -197,7 +197,7 @@ export function SideNav({ items }: SideNavProps) {
                 <span className="relative flex size-8 shrink-0 items-center justify-center">
                   {item.icon}
                   {item.count && item.count > 0 ? (
-                    <span className="absolute -right-0.5 -top-0.5 grid min-w-[1.1rem] place-items-center rounded-full bg-amber-400 px-1 text-[9px] font-black leading-none text-cac-navy">
+                    <span className="absolute -right-0.5 -top-0.5 grid min-w-[1.1rem] place-items-center rounded-full bg-amber-400 px-1 text-mini font-black leading-none text-cac-navy">
                       {item.count > 99 ? '99+' : item.count}
                     </span>
                   ) : null}
@@ -206,7 +206,7 @@ export function SideNav({ items }: SideNavProps) {
                   <span className="whitespace-nowrap">{item.label}</span>
                   {item.badge ? (
                     <span
-                      className={`mt-0.5 whitespace-nowrap text-[9px] font-bold tracking-wide ${
+                      className={`mt-0.5 whitespace-nowrap text-mini font-bold tracking-wide ${
                         isActive ? 'text-amber-700' : 'text-amber-300/90'
                       }`}
                     >

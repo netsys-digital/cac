@@ -18,7 +18,7 @@ export function HeroLandscape() {
       />
       <div className="absolute right-[19%] bottom-[33%] h-[182px] w-1 bg-[#eff5f3] before:absolute before:top-0 before:left-[-55px] before:h-1 before:w-[111px] before:bg-[#eff5f3] before:content-['']" />
       <div className="absolute bottom-[19%] left-[11%] h-[20%] w-[24%] -skew-x-[8deg] border-2 border-white/70 bg-[rgba(241,252,249,.3)]" />
-      <div className="absolute bottom-[17px] left-[18px] rounded-[11px] bg-[rgba(10,36,64,.85)] px-[13px] py-[11px] text-[10px] font-black text-white">
+      <div className="absolute bottom-[17px] left-[18px] rounded-[11px] bg-[rgba(10,36,64,.85)] px-[13px] py-[11px] text-mini font-bold text-white">
         Tecnologia • Agricultura • Clima • Ação
       </div>
     </div>

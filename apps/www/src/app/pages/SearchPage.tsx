@@ -97,13 +97,26 @@ export function SearchPage() {
   const [data, setData] = useState<SearchResponse | null>(null);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [facetSnapshot, setFacetSnapshot] = useState<{
+    total: number;
+    facets: SearchResponse['facets'];
+  } | null>(null);
   const restoredScroll = useRef(false);
 
   const lang = normalizeLanguage(i18n.language);
 
+  const facetBaseKey = useMemo(() => {
+    const { contentType: _ignored, ...rest } = filters;
+    return JSON.stringify({ q: qParam, lang, ...rest });
+  }, [qParam, filters, lang]);
+
   useEffect(() => {
     setQuery(qParam);
   }, [qParam]);
+
+  useEffect(() => {
+    setFacetSnapshot(null);
+  }, [facetBaseKey]);
 
   useEffect(() => {
     let cancelled = false;
@@ -113,6 +126,9 @@ export function SearchPage() {
       .then((res) => {
         if (cancelled) return;
         setData(res);
+        if (!filters.contentType) {
+          setFacetSnapshot({ total: res.total, facets: res.facets });
+        }
       })
       .catch(() => {
         if (!cancelled) setError(t('detail.loadError'));
@@ -124,6 +140,23 @@ export function SearchPage() {
       cancelled = true;
     };
   }, [qParam, filters, lang, t]);
+
+  useEffect(() => {
+    if (!filters.contentType || facetSnapshot) return;
+    let cancelled = false;
+    const { contentType: _ignored, ...baseFilters } = filters;
+    void postSearch({ query: qParam, filters: baseFilters, lang })
+      .then((res) => {
+        if (cancelled) return;
+        setFacetSnapshot({ total: res.total, facets: res.facets });
+      })
+      .catch(() => {
+        /* facetas são auxiliares — silencioso */
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [filters, facetSnapshot, qParam, lang]);
 
   useEffect(() => {
     if (loading || !data || restoredScroll.current) return;
@@ -167,20 +200,30 @@ export function SearchPage() {
     commitSearch(qParam, next);
   }
 
+  function onFacetSelect(contentType: string | undefined) {
+    const next: SearchFilters = { ...filters };
+    if (!contentType) delete next.contentType;
+    else next.contentType = contentType;
+    if (filtersEqual(next, filters)) return;
+    commitSearch(qParam, next);
+  }
+
+  const facetTotals = facetSnapshot ?? (data ? { total: data.total, facets: data.facets } : null);
+
   return (
     <PageShell eyebrow={t('search.badge')} title={t('search.title')}>
-      <p className="mb-4 max-w-[760px] text-[12px] leading-relaxed text-cac-muted">{t('search.support')}</p>
+      <p className="mb-4 max-w-[760px] text-pequena leading-relaxed text-cac-muted">{t('search.support')}</p>
 
       <form onSubmit={onSubmit} className="mb-3 flex flex-col gap-2 sm:flex-row">
         <input
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           placeholder={t('home.searchPlaceholder')}
-          className="flex-1 rounded-[10px] border border-cac-line bg-white px-3 py-3 text-[11px] text-cac-ink"
+          className="flex-1 rounded-[10px] border border-cac-line bg-white px-3 py-3 text-pequena text-cac-ink"
         />
         <button
           type="submit"
-          className="rounded-[10px] bg-cac-green2 px-4 py-3 text-[11px] font-black text-white"
+          className="rounded-[10px] bg-cac-green2 px-4 py-3 text-pequena font-bold text-white"
         >
           {t('home.searchCta')}
         </button>
@@ -203,40 +246,43 @@ export function SearchPage() {
       />
 
       {data ? (
-        <div className="mt-4 rounded-[12px] border border-cac-line bg-[#eff7f3] px-3 py-2.5 text-[11px] text-cac-navy">
+        <div className="mt-4 rounded-[12px] border border-cac-line bg-[#eff7f3] px-3 py-2.5 text-pequena text-cac-navy">
           <b>{t('search.interpretationBadge')}</b> {interpretation}
         </div>
       ) : null}
 
-      {error ? <p className="mt-3 text-[11px] text-red-700">{error}</p> : null}
-      {loading ? <p className="mt-3 text-[11px] text-cac-muted">{t('detail.loading')}</p> : null}
+      {error ? <p className="mt-3 text-pequena text-red-700">{error}</p> : null}
+      {loading ? <p className="mt-3 text-pequena text-cac-muted">{t('detail.loading')}</p> : null}
 
       {data ? (
         <>
-          <ResultFacets
-            total={data.total}
-            facets={data.facets}
-            labels={{
-              results: t('search.facets.results'),
-              solutions: t('search.facets.solutions'),
-              projects: t('search.facets.projects'),
-              organizations: t('search.facets.organizations'),
-              funders: t('search.facets.funders'),
-              cases: t('search.facets.cases'),
-              challenges: t('search.facets.challenges'),
-            }}
-          />
-
+          {facetTotals ? (
+            <ResultFacets
+              total={facetTotals.total}
+              facets={facetTotals.facets}
+              activeContentType={filters.contentType}
+              onSelect={onFacetSelect}
+              labels={{
+                results: t('search.facets.results'),
+                solutions: t('search.facets.solutions'),
+                projects: t('search.facets.projects'),
+                organizations: t('search.facets.organizations'),
+                funders: t('search.facets.funders'),
+                cases: t('search.facets.cases'),
+                challenges: t('search.facets.challenges'),
+              }}
+            />
+          ) : null}
           <div className="mt-5">
             <div className="mb-3 flex flex-wrap items-end justify-between gap-2">
               <div>
-                <h2 className="text-[0.95rem] font-black text-cac-navy">{t('search.resultsTitle')}</h2>
-                <p className="mt-0.5 text-[0.7rem] text-cac-muted">
+                <h2 className="text-media font-bold text-cac-navy">{t('search.resultsTitle')}</h2>
+                <p className="mt-0.5 text-pequena text-cac-muted">
                   {t('search.resultsHint', { count: data.results.length, total: data.total })}
                 </p>
               </div>
               {data.meta?.minScore != null ? (
-                <p className="text-[0.65rem] text-cac-muted">
+                <p className="text-mini text-cac-muted">
                   {t('search.minScoreHint', { score: data.meta.minScore })}
                 </p>
               ) : null}
@@ -266,7 +312,7 @@ export function SearchPage() {
                 />
               ))}
               {!data.results.length ? (
-                <p className="rounded-[12px] border border-dashed border-cac-line bg-white px-4 py-6 text-[0.75rem] text-cac-muted">
+                <p className="rounded-[12px] border border-dashed border-cac-line bg-white px-4 py-6 text-pequena text-cac-muted">
                   {t('detail.emptyList')}
                 </p>
               ) : null}

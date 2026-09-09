@@ -75,10 +75,10 @@ export function EditCasePage() {
     }
   }
 
-  if (loading) return <p className="text-[11px] text-cac-muted">{t('mine.loading')}</p>;
+  if (loading) return <p className="text-pequena text-cac-muted">{t('mine.loading')}</p>;
   if (!item) {
     return (
-      <p className="text-[11px] text-red-700">
+      <p className="text-pequena text-red-700">
         {error || t('mine.notFound')} — <Link to="/my/contents">{t('mine.backList')}</Link>
       </p>
     );
@@ -96,7 +96,7 @@ export function EditCasePage() {
       message={message}
     >
       <FieldFull>
-        <p className="rounded-lg border border-cac-line bg-[#fbfcfb] px-3 py-2 text-[11px] text-cac-muted">
+        <p className="rounded-lg border border-cac-line bg-[#fbfcfb] px-3 py-2 text-pequena text-cac-muted">
           {(item.organization as { name?: string } | undefined)?.name ?? '—'} ·{' '}
           <button type="button" className="font-black text-cac-green" onClick={() => navigate('/my/contents')}>
             {t('mine.backList')}

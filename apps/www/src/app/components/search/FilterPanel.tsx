@@ -41,10 +41,10 @@ function Select({
   onChange: (v: string) => void;
 }) {
   return (
-    <label className="block text-[10px] font-black tracking-wide text-cac-navy uppercase">
+    <label className="block text-mini font-bold tracking-wide text-cac-navy uppercase">
       {label}
       <select
-        className="mt-1 w-full rounded-lg border border-cac-line bg-white px-2.5 py-2 text-[10px] text-cac-ink"
+        className="mt-1 w-full rounded-lg border border-cac-line bg-white px-2.5 py-2 text-mini text-cac-ink"
         value={value ?? ''}
         onChange={(e) => onChange(e.target.value)}
       >
