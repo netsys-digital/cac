@@ -31,6 +31,26 @@ wait_http() {
   return 1
 }
 
+wait_api_healthy() {
+  local i
+  echo "Aguardando API healthy…"
+  for i in $(seq 1 60); do
+    if "${COMPOSE[@]}" ps api 2>/dev/null | grep -qE 'healthy'; then
+      echo "  api → healthy"
+      return 0
+    fi
+    # fallback HTTP (healthcheck pode demorar a marcar)
+    if curl -sf "http://127.0.0.1:8084/health" >/dev/null 2>&1; then
+      echo "  api → HTTP /health OK"
+      return 0
+    fi
+    sleep 3
+  done
+  echo "  api NÃO ficou healthy a tempo"
+  "${COMPOSE[@]}" logs --tail 40 api || true
+  return 1
+}
+
 smoke_test() {
   echo
   echo "Checagem:"
@@ -64,7 +84,7 @@ smoke_test() {
   return "$fail"
 }
 
-build_up() {
+build_image() {
   local svc="$1"
   local no_cache="${2:-0}"
   echo
@@ -74,6 +94,11 @@ build_up() {
   else
     "${COMPOSE[@]}" build "$svc"
   fi
+}
+
+recreate_svc() {
+  local svc="$1"
+  echo "Recreate ${svc}…"
   "${COMPOSE[@]}" up -d --no-deps --force-recreate --remove-orphans "$svc"
 }
 
@@ -101,6 +126,13 @@ ensure_netsys_infra() {
   done
   echo "Timeout aguardando netsys-postgres / netsys-redis"
   exit 1
+}
+
+prepare_database() {
+  echo
+  echo "Prepara schema Postgres (DDL netsys + OWNER cac)…"
+  chmod +x scripts/prod-db-prepare.sh
+  bash scripts/prod-db-prepare.sh
 }
 
 if [[ ! -f .env.prod ]]; then
@@ -146,8 +178,8 @@ else
         echo "  (stack)  $f"
         mark_all
         ;;
-      apps/api/prisma/*)
-        echo "  (api)    $f — migrate no start da api"
+      apps/api/prisma/*|scripts/prod-db-prepare.sh|apps/api/docker-entrypoint.sh)
+        echo "  (api)    $f — migrate / schema"
         need_api=1
         need_worker=1
         ;;
@@ -194,6 +226,14 @@ else
   fi
 fi
 
+# Qualquer deploy que toque a API (ou --full) prepara o schema ANTES do recreate.
+# Migrações novas sem ownership correto derrubavam o /api em loop.
+if [[ "$need_api" == "1" || "$FORCE_ALL" == "1" ]]; then
+  need_prepare_db=1
+else
+  need_prepare_db=0
+fi
+
 services=()
 [[ "$need_api" == "1" ]] && services+=(api)
 [[ "$need_worker" == "1" ]] && services+=(api-worker)
@@ -201,32 +241,62 @@ services=()
 [[ "$need_www" == "1" ]] && services+=(www)
 
 echo
-echo "Serviços: ${services[*]:-nenhum}  gateway=${need_gateway}"
+echo "Serviços: ${services[*]:-nenhum}  gateway=${need_gateway}  db_prepare=${need_prepare_db}"
 
 ensure_netsys_infra
 
-if [[ "$need_api" != "1" && ( ${#services[@]} -gt 0 || "$need_gateway" == "1" ) ]]; then
-  "${COMPOSE[@]}" up -d api api-worker
+# 1) Schema primeiro (enquanto containers antigos ainda atendem o máximo possível)
+if [[ "$need_prepare_db" == "1" ]]; then
+  prepare_database
 fi
 
+# 2) Build de TODAS as imagens antes de derrubar/recriar qualquer serviço
+#    (site antigo continua no ar durante o build longo do --full)
 if [[ ${#services[@]} -gt 0 ]]; then
   build_fail=0
   for svc in "${services[@]}"; do
-    # web/www: sempre --no-cache (Vite embute UI/URLs no build)
     no_cache=0
     if [[ "$svc" == "web" || "$svc" == "www" || "$FORCE_ALL" == "1" ]]; then
       no_cache=1
     fi
-    if ! build_up "$svc" "$no_cache"; then
+    if ! build_image "$svc" "$no_cache"; then
       echo "Falha no build: ${svc}"
       build_fail=1
     fi
   done
   if [[ "$build_fail" == "1" ]]; then
     echo
-    echo "Deploy interrompido: um ou mais builds falharam."
+    echo "Deploy interrompido: um ou mais builds falharam (containers antigos preservados)."
     exit 1
   fi
+fi
+
+# 3) Recreate: API primeiro → espera healthy → demais → gateway por último
+if [[ "$need_api" == "1" ]]; then
+  recreate_svc api
+  if ! wait_api_healthy; then
+    echo
+    echo "API não saudável após recreate. Tentando prod-db-prepare + recreate de novo…"
+    prepare_database
+    recreate_svc api
+    wait_api_healthy || {
+      echo "Deploy abortado: API unhealthy. Gateway/front antigos podem ainda estar no ar."
+      exit 1
+    }
+  fi
+elif [[ ${#services[@]} -gt 0 || "$need_gateway" == "1" ]]; then
+  "${COMPOSE[@]}" up -d api api-worker
+  wait_api_healthy || true
+fi
+
+if [[ "$need_worker" == "1" ]]; then
+  recreate_svc api-worker
+fi
+if [[ "$need_www" == "1" ]]; then
+  recreate_svc www
+fi
+if [[ "$need_web" == "1" ]]; then
+  recreate_svc web
 fi
 
 # Always recreate gateway after builds: nginx caches upstream IPs;

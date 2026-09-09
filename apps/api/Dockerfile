@@ -19,5 +19,6 @@ RUN apt-get update -y && apt-get install -y openssl ca-certificates && rm -rf /v
 ENV NODE_ENV=production
 COPY --from=build /app /app
 WORKDIR /app/apps/api
+RUN chmod +x /app/apps/api/docker-entrypoint.sh
 EXPOSE 3003
-CMD ["node", "dist/index.js"]
+ENTRYPOINT ["/app/apps/api/docker-entrypoint.sh"]

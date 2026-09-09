@@ -16,9 +16,9 @@ services:
     build:
       context: .
       dockerfile: apps/api/Dockerfile
-    # Seed is idempotent but must not block API boot if it fails (e.g. partial data).
-    command: sh -c "npx prisma migrate deploy && (npx prisma db seed || echo '[cac-api] seed failed — continuing') && node dist/index.js"
-    working_dir: /app/apps/api
+    # Entrypoint: migrate deploy + seed non-blocking + node.
+    # Antes do recreate da api, deploy.sh roda scripts/prod-db-prepare.sh
+    # (DDL como netsys + OWNER → cac) para evitar P3009/42501.
     env_file:
       - ${ENV_FILE:-.env.prod}
     environment:
@@ -41,7 +41,7 @@ services:
       interval: 15s
       timeout: 5s
       retries: 10
-      start_period: 40s
+      start_period: 60s
 
   api-worker:
     build:
