@@ -16,7 +16,8 @@ services:
     build:
       context: .
       dockerfile: apps/api/Dockerfile
-    command: sh -c "npx prisma migrate deploy && npx prisma db seed && node dist/index.js"
+    # Seed is idempotent but must not block API boot if it fails (e.g. partial data).
+    command: sh -c "npx prisma migrate deploy && (npx prisma db seed || echo '[cac-api] seed failed — continuing') && node dist/index.js"
     working_dir: /app/apps/api
     env_file:
       - ${ENV_FILE:-.env.prod}

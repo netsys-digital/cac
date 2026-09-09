@@ -29,7 +29,7 @@ services:
     build:
       context: .
       dockerfile: apps/api/Dockerfile
-    command: sh -c "npx prisma migrate deploy && npx prisma db seed && node dist/index.js"
+    command: sh -c "npx prisma migrate deploy && (npx prisma db seed || echo '[cac-api] seed failed — continuing') && node dist/index.js"
     working_dir: /app/apps/api
     env_file:
       - .env
