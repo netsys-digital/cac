@@ -3,6 +3,8 @@ import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { urls } from '../../config';
 import { useAuth } from '../auth/AuthContext';
+import { useRepresentation } from '../auth/RepresentationContext';
+import { useStaffTasks } from '../auth/StaffTasksContext';
 import { myContentsApi, type DashboardResponse } from '../api/myContentsApi';
 
 type CardDef = {
@@ -14,9 +16,11 @@ type CardDef = {
   muted?: boolean;
 };
 
-/** Dashboard operacional — só para quem já tem representação aprovada (ou staff). */
+/** Dashboard operacional — ADMIN (plataforma) ou ORG com representação aprovada. */
 export function DashboardPage() {
   const { user, accessToken } = useAuth();
+  const { isAdmin } = useRepresentation();
+  const { contentCount, repCount } = useStaffTasks();
   const { t } = useTranslation();
   const [data, setData] = useState<DashboardResponse | null>(null);
   const [error, setError] = useState('');
@@ -87,21 +91,59 @@ export function DashboardPage() {
     <div className="space-y-6">
       <header>
         <p className="text-mini font-extrabold tracking-[1.7px] text-cac-green uppercase">
-          {t('shell.signedIn')}
+          {isAdmin ? t('dash.adminBadge') : t('shell.signedIn')}
         </p>
         <h1 className="mt-2 text-grande leading-tight font-bold text-cac-navy">
           {t('shell.welcome', { name: user?.name ?? '' })}
         </h1>
         <p className="mt-2 max-w-2xl text-pequena leading-relaxed text-cac-muted">
-          {t('dash.subtitle')}
+          {isAdmin ? t('dash.subtitleAdmin') : t('dash.subtitle')}
         </p>
         <p className="mt-1 text-pequena text-cac-muted">
-          {user?.email} · <span className="font-bold uppercase text-cac-green">{user?.role}</span>
+          {user?.email} ·{' '}
+          <span className="font-bold uppercase text-cac-green">
+            {user?.role ? t(`roles.${user.role}`) : user?.role}
+          </span>
         </p>
       </header>
 
       {error ? (
         <p className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-pequena text-red-800">{error}</p>
+      ) : null}
+
+      {isAdmin ? (
+        <section className="grid gap-3 md:grid-cols-3">
+          <Link
+            to="/admin/curate"
+            className="rounded-[16px] border border-cac-line bg-white p-4 shadow-cac transition hover:border-cac-green/40"
+          >
+            <p className="text-mini font-extrabold tracking-[1.2px] text-cac-green uppercase">
+              {t('nav.adminCurate')}
+            </p>
+            <p className="mt-2 text-grande font-bold leading-none text-cac-navy">{contentCount}</p>
+            <p className="mt-3 text-pequena text-cac-muted">{t('dash.adminCurateHint')}</p>
+          </Link>
+          <Link
+            to="/admin/representation"
+            className="rounded-[16px] border border-cac-line bg-white p-4 shadow-cac transition hover:border-cac-green/40"
+          >
+            <p className="text-mini font-extrabold tracking-[1.2px] text-cac-green uppercase">
+              {t('nav.adminRep')}
+            </p>
+            <p className="mt-2 text-grande font-bold leading-none text-cac-navy">{repCount}</p>
+            <p className="mt-3 text-pequena text-cac-muted">{t('dash.adminRepHint')}</p>
+          </Link>
+          <Link
+            to="/admin/domains"
+            className="rounded-[16px] border border-cac-line bg-white p-4 shadow-cac transition hover:border-cac-green/40"
+          >
+            <p className="text-mini font-extrabold tracking-[1.2px] text-cac-green uppercase">
+              {t('nav.adminDomains')}
+            </p>
+            <p className="mt-2 text-media font-bold text-cac-navy">{t('dash.adminDomainsTitle')}</p>
+            <p className="mt-3 text-pequena text-cac-muted">{t('dash.adminDomainsHint')}</p>
+          </Link>
+        </section>
       ) : null}
 
       <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
@@ -165,6 +207,22 @@ export function DashboardPage() {
         >
           {t('nav.newChallenge')}
         </Link>
+        {isAdmin ? (
+          <>
+            <Link
+              to="/admin/curate"
+              className="rounded-[10px] border border-cac-green bg-white px-3 py-2 text-pequena font-extrabold text-cac-green"
+            >
+              {t('nav.adminCurate')}
+            </Link>
+            <Link
+              to="/admin/domains"
+              className="rounded-[10px] border border-cac-line bg-white px-3 py-2 text-pequena font-extrabold text-cac-navy"
+            >
+              {t('nav.adminDomains')}
+            </Link>
+          </>
+        ) : null}
         {stats?.drafts || stats?.inReview ? (
           <span className="rounded-[10px] border border-cac-line bg-white px-3 py-2 text-pequena text-cac-muted">
             {t('dash.pipeline', { drafts: stats?.drafts ?? 0, review: stats?.inReview ?? 0 })}

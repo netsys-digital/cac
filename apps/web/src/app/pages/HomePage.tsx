@@ -7,16 +7,16 @@ import { DashboardPage } from './DashboardPage';
 import { OnboardingIntentPage } from './auth/OnboardingIntentPage';
 
 /**
- * Painel inicial:
- * - ADMIN/CURADOR → dashboard de governança (filas + KPIs)
- * - sem representação aprovada → primeiros passos
- * - com vínculo aprovado → dashboard de publicações da org
+ * Painel inicial por perfil:
+ * - CURADOR → filas de governança (CuratorDashboard)
+ * - ADMIN → dashboard operacional + atalhos de plataforma
+ * - ORG com representação aprovada → dashboard de publicações
+ * - demais → primeiros passos / onboarding
  */
 export function HomePage() {
   const { t } = useTranslation();
   const { user } = useAuth();
-  const { loading, canPublish, isStaff } = useRepresentation();
-  const staffRole = user?.role === UserRole.ADMIN || user?.role === UserRole.CURADOR;
+  const { loading, canPublish, isCurator } = useRepresentation();
 
   if (loading) {
     return (
@@ -26,7 +26,7 @@ export function HomePage() {
     );
   }
 
-  if (staffRole || isStaff) {
+  if (isCurator || user?.role === UserRole.CURADOR) {
     return <CuratorDashboardPage />;
   }
 

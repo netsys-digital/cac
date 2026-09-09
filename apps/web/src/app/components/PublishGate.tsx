@@ -10,7 +10,7 @@ type PublishGateProps = {
 
 export function PublishGate({ children }: PublishGateProps) {
   const { t } = useTranslation();
-  const { loading, canPublish, gate, isStaff } = useRepresentation();
+  const { loading, canPublish, gate, isCurator } = useRepresentation();
 
   if (loading) {
     return (
@@ -20,7 +20,8 @@ export function PublishGate({ children }: PublishGateProps) {
     );
   }
 
-  if (isStaff) {
+  /* Curador governa filas — não publica catálogo institucional. Admin passa via canPublish. */
+  if (isCurator) {
     return (
       <div className="mx-auto max-w-2xl overflow-hidden rounded-[19px] border border-cac-line bg-white shadow-cac">
         <div className="border-b border-cac-line bg-[#edf1f3] px-5 py-2 font-mono text-mini text-[#76838a]">

@@ -422,6 +422,13 @@ export const en = {
   },
   dash: {
     subtitle: 'Overview of what you published and engagement across organizations you represent.',
+    subtitleAdmin:
+      'Platform view: track publications and engagement, manage curation, representations and domains, and publish when needed.',
+    adminBadge: 'Administration',
+    adminCurateHint: 'IN_REVIEW items awaiting a decision.',
+    adminRepHint: 'Account → organization link requests.',
+    adminDomainsTitle: 'Catalogs',
+    adminDomainsHint: 'Countries, regions and taxonomies for the platform.',
     subtitleVisitor:
       'Start on the portal: search, learn and connect. Publishing unlocks after approved representation.',
     loading: 'Loading indicators…',

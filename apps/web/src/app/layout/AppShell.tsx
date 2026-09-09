@@ -54,7 +54,7 @@ function useBreadcrumbs() {
 export function AppShell() {
   const { t } = useTranslation();
   const { user, logout } = useAuth();
-  const { canPublish, gate, isStaff } = useRepresentation();
+  const { canPublish, gate, isStaff, isAdmin, isCurator } = useRepresentation();
   const { contentCount, repCount } = useStaffTasks();
   const crumbs = useBreadcrumbs();
 
@@ -65,27 +65,35 @@ export function AppShell() {
     return `${parts[0]} ${parts[parts.length - 1]}`;
   })();
 
-  const primary: NavItem[] = isStaff
-    ? [
-        { to: '/', label: t('nav.dashboard'), end: true },
-        {
-          to: '/admin/curate',
-          label: t('nav.adminCurate'),
-          badge: contentCount > 0 ? String(contentCount) : undefined,
-        },
-        {
-          to: '/admin/representation',
-          label: t('nav.adminRep'),
-          badge: repCount > 0 ? String(repCount) : undefined,
-        },
-        { to: '/admin/domains', label: t('nav.adminDomains') },
-        { to: '/my/connections', label: t('nav.connections') },
-      ]
-    : [
-        { to: '/', label: t('nav.dashboard'), end: true },
-        { to: '/my/connections', label: t('nav.connections') },
-        { to: '/org/representation', label: t('nav.representation') },
-      ];
+  const staffPrimary: NavItem[] = [
+    { to: '/', label: t('nav.dashboard'), end: true },
+    {
+      to: '/admin/curate',
+      label: t('nav.adminCurate'),
+      badge: contentCount > 0 ? String(contentCount) : undefined,
+    },
+    {
+      to: '/admin/representation',
+      label: t('nav.adminRep'),
+      badge: repCount > 0 ? String(repCount) : undefined,
+    },
+    { to: '/admin/domains', label: t('nav.adminDomains') },
+    { to: '/my/connections', label: t('nav.connections') },
+  ];
+
+  /** Admin: governança + publicação (capacidades restauradas pré-7342ef2). */
+  const adminPrimary: NavItem[] = [
+    ...staffPrimary,
+    { to: '/my/contents', label: t('nav.myContents') },
+  ];
+
+  const orgPrimary: NavItem[] = [
+    { to: '/', label: t('nav.dashboard'), end: true },
+    { to: '/my/connections', label: t('nav.connections') },
+    { to: '/org/representation', label: t('nav.representation') },
+  ];
+
+  const primary: NavItem[] = isCurator ? staffPrimary : isAdmin ? adminPrimary : orgPrimary;
 
   const pendingBadge = gate === 'pending' ? t('onboarding.pendingBadge') : undefined;
   const lockedHint = !canPublish ? t('nav.publishLocked') : undefined;
@@ -148,22 +156,30 @@ export function AppShell() {
       ]
     : [];
 
-  const sideItems: SideNavItem[] = [
-    { to: urls.www, label: t('nav.backPortal'), icon: sideIcons.portal },
-    ...staffItems,
-    { to: '/my/connections', label: t('nav.connections'), icon: sideIcons.connections },
-    ...(isStaff
-      ? []
+  const sideItems: SideNavItem[] = isCurator
+    ? [
+        { to: urls.www, label: t('nav.backPortal'), icon: sideIcons.portal },
+        ...staffItems,
+        { to: '/my/connections', label: t('nav.connections'), icon: sideIcons.connections },
+      ]
+    : isAdmin
+      ? [
+          { to: urls.www, label: t('nav.backPortal'), icon: sideIcons.portal },
+          ...staffItems,
+          { to: '/my/connections', label: t('nav.connections'), icon: sideIcons.connections },
+          ...publishItems,
+        ]
       : [
+          { to: urls.www, label: t('nav.backPortal'), icon: sideIcons.portal },
+          { to: '/my/connections', label: t('nav.connections'), icon: sideIcons.connections },
           {
             to: '/org/representation',
             label: t('nav.representation'),
             icon: sideIcons.representation,
             badge: pendingBadge,
-          } satisfies SideNavItem,
+          },
           ...publishItems,
-        ]),
-  ];
+        ];
 
   return (
     <div className="min-h-screen bg-cac-bg font-sans">

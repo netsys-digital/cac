@@ -422,6 +422,13 @@ export const pt = {
   },
   dash: {
     subtitle: 'Resumo do que você publicou e do engajamento nas organizações que representa.',
+    subtitleAdmin:
+      'Visão de plataforma: acompanhe publicações e engajamento, gerencie curadoria, representações e domínios, e publique quando necessário.',
+    adminBadge: 'Administração',
+    adminCurateHint: 'Itens IN_REVIEW aguardando decisão.',
+    adminRepHint: 'Pedidos de vínculo conta → organização.',
+    adminDomainsTitle: 'Catálogos',
+    adminDomainsHint: 'Países, regiões e taxonomias da plataforma.',
     subtitleVisitor:
       'Comece pelo portal: buscar, conhecer e conectar. Publicar fica disponível após representação aprovada.',
     loading: 'Carregando indicadores…',

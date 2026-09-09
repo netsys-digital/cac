@@ -17,7 +17,10 @@ type RepresentationContextValue = {
   loading: boolean;
   gate: RepresentationGate;
   canPublish: boolean;
+  /** ADMIN ou CURADOR — acesso às rotas /admin/* */
   isStaff: boolean;
+  isAdmin: boolean;
+  isCurator: boolean;
   requests: RepresentationRequest[];
   approvedOrgIds: string[];
   refresh: () => Promise<void>;
@@ -44,14 +47,16 @@ export function RepresentationProvider({ children }: PropsWithChildren) {
   const [requests, setRequests] = useState<RepresentationRequest[]>([]);
   const [loading, setLoading] = useState(false);
 
-  const isStaff = user?.role === UserRole.ADMIN || user?.role === UserRole.CURADOR;
+  const isAdmin = user?.role === UserRole.ADMIN;
+  const isCurator = user?.role === UserRole.CURADOR;
+  const isStaff = isAdmin || isCurator;
 
   const refresh = useCallback(async () => {
     if (!accessToken || !user) {
       setRequests([]);
       return;
     }
-    // Staff (ADMIN/CURADOR) curates; they do not publish as an organization.
+    // Staff não publica via vínculo institucional — não precisa da fila de representation própria.
     if (isStaff) {
       setRequests([]);
       return;
@@ -71,9 +76,19 @@ export function RepresentationProvider({ children }: PropsWithChildren) {
     void refresh();
   }, [refresh]);
 
-  const gate = useMemo(() => (isStaff ? 'none' : deriveGate(requests)), [requests, isStaff]);
-  /** Institutional publish: org members with approved representation only — never staff. */
-  const canPublish = !isStaff && gate === 'approved';
+  /**
+   * ADMIN: bypass de publicação (plataforma) — como antes de 7342ef2.
+   * CURADOR: não publica; só governa filas.
+   * ORG_*: precisa de representação aprovada.
+   */
+  const gate = useMemo((): RepresentationGate => {
+    if (isAdmin) return 'approved';
+    if (isCurator) return 'none';
+    return deriveGate(requests);
+  }, [isAdmin, isCurator, requests]);
+
+  const canPublish = isAdmin || (!isStaff && gate === 'approved');
+
   const approvedOrgIds = useMemo(
     () =>
       requests
@@ -88,11 +103,13 @@ export function RepresentationProvider({ children }: PropsWithChildren) {
       gate,
       canPublish,
       isStaff: Boolean(isStaff),
+      isAdmin: Boolean(isAdmin),
+      isCurator: Boolean(isCurator),
       requests,
       approvedOrgIds,
       refresh,
     }),
-    [loading, gate, canPublish, isStaff, requests, approvedOrgIds, refresh],
+    [loading, gate, canPublish, isStaff, isAdmin, isCurator, requests, approvedOrgIds, refresh],
   );
 
   return (

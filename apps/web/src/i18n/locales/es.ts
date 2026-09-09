@@ -422,6 +422,13 @@ export const es = {
   },
   dash: {
     subtitle: 'Resumen de lo que publicaste y del engagement en las organizaciones que representas.',
+    subtitleAdmin:
+      'Vista de plataforma: sigue publicaciones y engagement, gestiona curaduría, representaciones y dominios, y publica cuando haga falta.',
+    adminBadge: 'Administración',
+    adminCurateHint: 'Ítems IN_REVIEW esperando decisión.',
+    adminRepHint: 'Pedidos de vínculo cuenta → organización.',
+    adminDomainsTitle: 'Catálogos',
+    adminDomainsHint: 'Países, regiones y taxonomías de la plataforma.',
     subtitleVisitor:
       'Empieza por el portal: buscar, conocer y conectar. Publicar queda disponible tras representación aprobada.',
     loading: 'Cargando indicadores…',
