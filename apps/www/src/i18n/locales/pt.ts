@@ -49,6 +49,10 @@ export const pt = {
       'A busca é a principal porta de entrada. Ela consulta conteúdos da plataforma, aplica filtros e devolve score explicável com os 3 caminhos do match.',
     queryLabel: 'Consulta',
     featuredFallback: 'Selecione um resultado para ver a explicação do score.',
+    resultsTitle: 'Resultados ranqueados',
+    resultsHint: 'Exibindo {{count}} de {{total}} com score acima do mínimo',
+    minScoreHint: 'Score mínimo: {{score}}%',
+    matchLabel: 'aderência',
     interpretationBadge: 'Interpretação:',
     interpretationLine:
       'desafio = {{challenge}} • contexto = {{context}} • setor = {{sector}} • intenção = {{intent}}.',

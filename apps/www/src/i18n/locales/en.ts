@@ -43,6 +43,10 @@ export const en = {
       'Search is the main entry door. It queries platform content, applies filters and returns an explainable score with the 3 match paths.',
     queryLabel: 'Query',
     featuredFallback: 'Select a result to see the score explanation.',
+    resultsTitle: 'Ranked results',
+    resultsHint: 'Showing {{count}} of {{total}} above the minimum score',
+    minScoreHint: 'Minimum score: {{score}}%',
+    matchLabel: 'match',
     interpretationBadge: 'Interpretation:',
     interpretationLine:
       'challenge = {{challenge}} • context = {{context}} • sector = {{sector}} • intent = {{intent}}.',

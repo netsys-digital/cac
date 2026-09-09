@@ -1,12 +1,11 @@
 import { type FormEvent, useEffect, useMemo, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { postSearch, type SearchFilters, type SearchResponse, type SearchResult } from '../api/searchApi';
+import { postSearch, type SearchFilters, type SearchResponse } from '../api/searchApi';
 import { PageShell, ResultCard } from '../components/PageChrome';
 import { FilterPanel } from '../components/search/FilterPanel';
 import { MatchPaths } from '../components/search/MatchPaths';
 import { ResultFacets } from '../components/search/ResultFacets';
-import { ScoreExplanation } from '../components/search/ScoreExplanation';
 import { normalizeLanguage } from '../../i18n';
 
 const STATIC_OPTIONS = {
@@ -83,7 +82,6 @@ export function SearchPage() {
   const [data, setData] = useState<SearchResponse | null>(null);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  const [selected, setSelected] = useState<SearchResult | null>(null);
 
   const lang = normalizeLanguage(i18n.language);
 
@@ -99,7 +97,6 @@ export function SearchPage() {
       .then((res) => {
         if (cancelled) return;
         setData(res);
-        setSelected(res.results[0] ?? null);
       })
       .catch(() => {
         if (!cancelled) setError(t('detail.loadError'));
@@ -189,43 +186,47 @@ export function SearchPage() {
             }}
           />
 
-          <div className="mt-4 grid gap-4 lg:grid-cols-[1fr_.95fr]">
-            <div className="space-y-2">
-              {data.results.map((item) => (
-                <div key={item.id} onClick={() => setSelected(item)} onKeyDown={() => setSelected(item)}>
-                  <ResultCard
-                    to={item.href}
-                    title={item.title}
-                    meta={`${contentLabel(item.contentType, t)} • ${item.organizationName ?? ''} • ${item.country ?? ''}`}
-                    tags={item.tags}
-                    score={`${item.score}%`}
-                  />
-                </div>
-              ))}
-              {!data.results.length ? (
-                <p className="text-[11px] text-cac-muted">{t('detail.emptyList')}</p>
+          <div className="mt-5">
+            <div className="mb-3 flex flex-wrap items-end justify-between gap-2">
+              <div>
+                <h2 className="text-[0.95rem] font-black text-cac-navy">{t('search.resultsTitle')}</h2>
+                <p className="mt-0.5 text-[0.7rem] text-cac-muted">
+                  {t('search.resultsHint', { count: data.results.length, total: data.total })}
+                </p>
+              </div>
+              {data.meta?.minScore != null ? (
+                <p className="text-[0.65rem] text-cac-muted">
+                  {t('search.minScoreHint', { score: data.meta.minScore })}
+                </p>
               ) : null}
             </div>
 
-            <aside className="space-y-3 rounded-[15px] border border-cac-line bg-[#fbfcfb] p-4">
-              <div className="h-[145px] rounded-[12px] bg-gradient-to-br from-[#b8d7bf] to-[#dce9d3]" />
-              {selected ? (
-                <>
-                  <p className="text-[10px] font-black tracking-wide text-cac-green uppercase">
-                    {contentLabel(selected.contentType, t)}
-                  </p>
-                  <h3 className="text-[17px] font-black text-cac-navy">{selected.title}</h3>
-                  <p className="text-[10px] leading-relaxed text-cac-muted">{selected.summary}</p>
-                  <ScoreExplanation
-                    score={selected.score}
-                    factors={selected.factors}
-                    title={t('search.whyScore')}
-                  />
-                </>
-              ) : (
-                <p className="text-[11px] text-cac-muted">{t('search.featuredFallback')}</p>
-              )}
-            </aside>
+            <div className="space-y-2.5">
+              {data.results.map((item) => (
+                <ResultCard
+                  key={item.id}
+                  to={item.href}
+                  title={item.title}
+                  summary={item.summary}
+                  meta={[
+                    contentLabel(item.contentType, t),
+                    item.organizationName,
+                    item.country,
+                    item.region,
+                  ]
+                    .filter(Boolean)
+                    .join(' · ')}
+                  tags={item.tags}
+                  score={`${item.score}%`}
+                  factors={item.factors}
+                />
+              ))}
+              {!data.results.length ? (
+                <p className="rounded-[12px] border border-dashed border-cac-line bg-white px-4 py-6 text-[0.75rem] text-cac-muted">
+                  {t('detail.emptyList')}
+                </p>
+              ) : null}
+            </div>
           </div>
 
           <MatchPaths

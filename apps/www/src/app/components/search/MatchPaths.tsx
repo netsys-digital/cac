@@ -38,14 +38,29 @@ export function MatchPaths({ paths, labels }: Props) {
         </PathColumn>
         <PathColumn title={labels.fund}>
           {paths.whoCanFund.length ? (
-            paths.whoCanFund.map((item) => (
-              <div key={item.id} className="rounded-[10px] border border-cac-line bg-white px-3 py-2">
-                <span className="block text-[11px] font-black text-cac-navy">{item.name}</span>
-                <span className="text-[10px] text-cac-muted">
-                  {item.kind === 'ACTIVE_OFFER' ? labels.active : labels.directory} · {item.score}%
-                </span>
-              </div>
-            ))
+            paths.whoCanFund.map((item) => {
+              const body = (
+                <>
+                  <span className="block text-[11px] font-black text-cac-navy">{item.name}</span>
+                  <span className="text-[10px] text-cac-muted">
+                    {item.kind === 'ACTIVE_OFFER' ? labels.active : labels.directory} · {item.score}%
+                  </span>
+                </>
+              );
+              return item.slug ? (
+                <Link
+                  key={item.id}
+                  to={`/funding?q=${encodeURIComponent(item.name)}`}
+                  className="block rounded-[10px] border border-cac-line bg-white px-3 py-2 transition hover:border-cac-green/40"
+                >
+                  {body}
+                </Link>
+              ) : (
+                <div key={item.id} className="rounded-[10px] border border-cac-line bg-white px-3 py-2">
+                  {body}
+                </div>
+              );
+            })
           ) : (
             <p className="text-[10px] text-cac-muted">{labels.empty}</p>
           )}
