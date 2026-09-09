@@ -185,6 +185,7 @@ export function SearchPage() {
               organizations: t('search.facets.organizations'),
               funders: t('search.facets.funders'),
               cases: t('search.facets.cases'),
+              challenges: t('search.facets.challenges'),
             }}
           />
 

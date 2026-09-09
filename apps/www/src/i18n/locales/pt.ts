@@ -74,8 +74,9 @@ export const pt = {
       solutions: 'soluções',
       projects: 'projetos',
       organizations: 'organizações',
-      funders: 'ofertas',
+      funders: 'financiadores',
       cases: 'casos',
+      challenges: 'desafios',
     },
     paths: {
       solve: 'Quem pode resolver?',
@@ -139,5 +140,25 @@ export const pt = {
   lang: {
     pt: 'PT',
     en: 'EN',
+  },
+  footer: {
+    tagline: 'Global · Local · Action',
+    blurb:
+      'Plataforma para conectar desafios climáticos a soluções, projetos, financiamento e casos de sucesso — com governança e curadoria.',
+    trust:
+      'Conteúdo institucional passa por representação verificada e revisão da curadoria antes de entrar no portal.',
+    explore: 'Explorar',
+    participate: 'Participar',
+    links: {
+      search: 'Busca e correspondências',
+      funding: 'Financiamento',
+      cases: 'Casos de sucesso',
+      challenge: 'Publicar um desafio',
+      offer: 'Publicar uma solução',
+      register: 'Criar conta',
+      panel: 'Abrir o painel',
+    },
+    copyright: '© {{year}} {{brand}}',
+    meta: 'Descoberta pública · publicação com curadoria · conexão sobre o item',
   },
 };

@@ -32,7 +32,7 @@ export type SearchResult = {
 export type SearchResponse = {
   interpretation: { challenge: string; context: string; sector: string; intent: string };
   total: number;
-  facets: { solutions: number; projects: number; organizations: number; funders: number; cases?: number };
+  facets: { solutions: number; projects: number; organizations: number; funders: number; cases?: number; challenges?: number };
   results: SearchResult[];
   paths: {
     whoCanSolve: Array<{ organizationId: string; name: string; score: number; slug?: string }>;

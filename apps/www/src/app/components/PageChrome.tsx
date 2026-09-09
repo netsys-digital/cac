@@ -11,13 +11,13 @@ export function PageShell({
   actions,
 }: PropsWithChildren<{ eyebrow?: string; title: string; actions?: ReactNode }>) {
   return (
-    <div className={`${shell} py-10 pb-16`}>
+    <div className={`${shell} py-[2.5rem] pb-[4rem]`}>
       <div className="mb-6 flex flex-wrap items-end justify-between gap-4">
         <div>
           {eyebrow ? (
-            <p className="text-[10px] font-black tracking-[1.7px] text-cac-green uppercase">{eyebrow}</p>
+            <p className="text-[0.65rem] font-black tracking-[1.7px] text-cac-green uppercase">{eyebrow}</p>
           ) : null}
-          <h1 className="mt-2 text-[32px] leading-tight font-black text-cac-navy">{title}</h1>
+          <h1 className="mt-2 text-[2rem] leading-tight font-black text-cac-navy md:text-[2.15rem]">{title}</h1>
         </div>
         {actions}
       </div>

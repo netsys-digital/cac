@@ -44,6 +44,7 @@ export type SearchResponse = {
     organizations: number;
     funders: number;
     cases: number;
+    challenges: number;
   };
   results: SearchResultItem[];
   paths: {
@@ -378,18 +379,21 @@ export async function runSearch(body: SearchBody): Promise<SearchResponse> {
   applyAnchorCalibration(query, scored);
   scored.sort((a, b) => b.score - a.score || a.title.localeCompare(b.title));
 
-  const visible = scored.filter((r) => r.score >= minScore).slice(0, limit);
+  const qualified = scored.filter((r) => r.score >= minScore);
+  const visible = qualified.slice(0, limit);
 
+  // Facets mirror the same pool as `total` (above minScore), so cards stay truthful.
   const facets = {
-    solutions: scored.filter((r) => r.contentType === 'SOLUTION').length,
-    projects: scored.filter((r) => r.contentType === 'PROJECT').length,
-    organizations: scored.filter((r) => r.contentType === 'ORGANIZATION').length,
-    funders: scored.filter((r) => r.contentType === 'FUNDER' && r.tags.includes('active')).length,
-    cases: scored.filter((r) => r.contentType === 'CASE').length,
+    solutions: qualified.filter((r) => r.contentType === 'SOLUTION').length,
+    projects: qualified.filter((r) => r.contentType === 'PROJECT').length,
+    organizations: qualified.filter((r) => r.contentType === 'ORGANIZATION').length,
+    funders: qualified.filter((r) => r.contentType === 'FUNDER').length,
+    cases: qualified.filter((r) => r.contentType === 'CASE').length,
+    challenges: qualified.filter((r) => r.contentType === 'CHALLENGE').length,
   };
 
   // Paths from full scored set (above threshold)
-  const pathPool = scored.filter((r) => r.score >= minScore);
+  const pathPool = qualified;
   const whoCanSolveMap = new Map<string, { organizationId: string; name: string; score: number; slug?: string }>();
   for (const c of candidates) {
     if (c.contentType !== 'SOLUTION' || !c.organizationId || !c.organizationName) continue;
@@ -436,7 +440,7 @@ export async function runSearch(body: SearchBody): Promise<SearchResponse> {
 
   return {
     interpretation: interpretQuery(query, lang),
-    total: scored.length,
+    total: qualified.length,
     facets,
     results: visible,
     paths: {

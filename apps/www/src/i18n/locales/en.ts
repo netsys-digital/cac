@@ -68,8 +68,9 @@ export const en = {
       solutions: 'solutions',
       projects: 'projects',
       organizations: 'organizations',
-      funders: 'offers',
+      funders: 'funders',
       cases: 'cases',
+      challenges: 'challenges',
     },
     paths: {
       solve: 'Who can solve?',
@@ -133,5 +134,25 @@ export const en = {
   lang: {
     pt: 'PT',
     en: 'EN',
+  },
+  footer: {
+    tagline: 'Global · Local · Action',
+    blurb:
+      'A platform to connect climate challenges with solutions, projects, funding and success cases — with governance and curation.',
+    trust:
+      'Institutional content goes through verified representation and curation review before entering the portal.',
+    explore: 'Explore',
+    participate: 'Take part',
+    links: {
+      search: 'Search and matches',
+      funding: 'Funding',
+      cases: 'Success cases',
+      challenge: 'Publish a challenge',
+      offer: 'Publish a solution',
+      register: 'Create an account',
+      panel: 'Open the panel',
+    },
+    copyright: '© {{year}} {{brand}}',
+    meta: 'Public discovery · curated publishing · item-based connections',
   },
 };

@@ -4,6 +4,7 @@ import { BrandMark } from '@cac/ui';
 import { brand, urls } from '../../config';
 import { normalizeLanguage } from '../../i18n';
 import { usePortalAuth } from '../auth/PortalAuthContext';
+import { SiteFooter } from './SiteFooter';
 
 /** Conteúdo centralizado — classes no app para o Tailwind escanear. */
 const shell = 'mx-auto w-full max-w-[1220px] px-[22px]';
@@ -40,7 +41,7 @@ export function PublicLayout() {
   const name = user ? displayName(user.name) : '';
 
   return (
-    <div className="min-h-screen bg-cac-bg pb-14 font-sans md:pb-0">
+    <div className="flex min-h-screen flex-col bg-cac-bg pb-14 font-sans md:pb-0">
       <header className="sticky top-0 z-50 h-[74px] w-full bg-[rgba(10,36,64,.98)] text-white">
         <div className={`${shell} flex h-full items-center gap-5`}>
           <NavLink to="/" className="shrink-0">
@@ -126,9 +127,11 @@ export function PublicLayout() {
         </div>
       </header>
 
-      <main>
+      <main className="flex-1">
         <Outlet />
       </main>
+
+      <SiteFooter />
 
       <nav
         className="fixed inset-x-0 bottom-0 z-[60] flex justify-around border-t border-cac-line bg-white px-1 py-1.5 shadow-[0_-8px_24px_rgba(10,36,64,.10)] md:hidden"
