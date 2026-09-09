@@ -37,8 +37,8 @@ export function FormPage({
     <div className="space-y-5">
       <header className="flex flex-wrap items-end justify-between gap-4">
         <div className="max-w-3xl">
-          <p className="text-mini font-black tracking-[1.7px] text-cac-green uppercase">{badge}</p>
-          <h1 className="mt-2 text-grande leading-tight font-black text-cac-navy">{title}</h1>
+          <p className="text-mini font-extrabold tracking-[1.7px] text-cac-green uppercase">{badge}</p>
+          <h1 className="mt-2 text-grande leading-tight font-bold text-cac-navy">{title}</h1>
           <p className="mt-2 max-w-[760px] text-pequena leading-relaxed text-cac-muted">{description}</p>
         </div>
       </header>
@@ -71,7 +71,7 @@ export function FormPage({
 
         <aside className="space-y-3">
           <div className="rounded-[16px] border border-cac-line bg-white p-4 shadow-cac">
-            <p className="text-mini font-black tracking-[1px] text-cac-green uppercase">
+            <p className="text-mini font-extrabold tracking-[1px] text-cac-green uppercase">
               {t('form.tipsTitle')}
             </p>
             <ul className="mt-3 space-y-3">
@@ -84,7 +84,7 @@ export function FormPage({
             </ul>
           </div>
           <div className="rounded-[16px] border border-dashed border-cac-green/40 bg-cac-green3/40 p-4">
-            <p className="text-pequena font-black text-cac-navy">{t('form.flowTitle')}</p>
+            <p className="text-pequena font-bold text-cac-navy">{t('form.flowTitle')}</p>
             <ol className="mt-2 list-decimal space-y-1 pl-4 text-mini leading-snug text-cac-muted">
               <li>{t('form.flow1')}</li>
               <li>{t('form.flow2')}</li>

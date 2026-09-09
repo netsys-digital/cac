@@ -86,17 +86,17 @@ export function DashboardPage() {
   return (
     <div className="space-y-6">
       <header>
-        <p className="text-mini font-black tracking-[1.7px] text-cac-green uppercase">
+        <p className="text-mini font-extrabold tracking-[1.7px] text-cac-green uppercase">
           {t('shell.signedIn')}
         </p>
-        <h1 className="mt-2 text-grande leading-tight font-black text-cac-navy">
+        <h1 className="mt-2 text-grande leading-tight font-bold text-cac-navy">
           {t('shell.welcome', { name: user?.name ?? '' })}
         </h1>
         <p className="mt-2 max-w-2xl text-pequena leading-relaxed text-cac-muted">
           {t('dash.subtitle')}
         </p>
         <p className="mt-1 text-pequena text-cac-muted">
-          {user?.email} · <span className="font-black uppercase text-cac-green">{user?.role}</span>
+          {user?.email} · <span className="font-bold uppercase text-cac-green">{user?.role}</span>
         </p>
       </header>
 
@@ -108,9 +108,9 @@ export function DashboardPage() {
         {cards.map((card) => {
           const body = (
             <>
-              <p className="text-mini font-black tracking-[1.2px] text-cac-muted uppercase">{card.label}</p>
+              <p className="text-mini font-bold tracking-[1.2px] text-cac-muted uppercase">{card.label}</p>
               <p
-                className={`mt-2 text-grande font-black leading-none ${
+                className={`mt-2 text-grande font-bold leading-none ${
                   card.muted ? 'text-cac-muted' : 'text-cac-navy'
                 }`}
               >
@@ -137,31 +137,31 @@ export function DashboardPage() {
       <div className="flex flex-wrap gap-2">
         <a
           href={urls.www}
-          className="rounded-[10px] bg-cac-navy px-3 py-2 text-pequena font-black text-white"
+          className="rounded-[10px] bg-cac-navy px-3 py-2 text-pequena font-extrabold text-white"
         >
           {t('dash.goPortal')}
         </a>
         <Link
           to="/my/connections"
-          className="rounded-[10px] bg-cac-green3 px-3 py-2 text-pequena font-black text-cac-navy"
+          className="rounded-[10px] bg-cac-green3 px-3 py-2 text-pequena font-extrabold text-cac-navy"
         >
           {t('nav.connections')}
         </Link>
         <Link
           to="/my/contents"
-          className="rounded-[10px] border border-cac-line bg-white px-3 py-2 text-pequena font-black text-cac-navy"
+          className="rounded-[10px] border border-cac-line bg-white px-3 py-2 text-pequena font-extrabold text-cac-navy"
         >
           {t('nav.myContents')}
         </Link>
         <Link
           to="/catalog/technologies/new"
-          className="rounded-[10px] border border-cac-line bg-white px-3 py-2 text-pequena font-black text-cac-navy"
+          className="rounded-[10px] border border-cac-line bg-white px-3 py-2 text-pequena font-extrabold text-cac-navy"
         >
           {t('nav.newTech')}
         </Link>
         <Link
           to="/catalog/challenges/new"
-          className="rounded-[10px] border border-cac-line bg-white px-3 py-2 text-pequena font-black text-cac-navy"
+          className="rounded-[10px] border border-cac-line bg-white px-3 py-2 text-pequena font-extrabold text-cac-navy"
         >
           {t('nav.newChallenge')}
         </Link>

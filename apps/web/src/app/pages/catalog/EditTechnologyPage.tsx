@@ -97,7 +97,7 @@ export function EditTechnologyPage() {
       <FieldFull>
         <p className="rounded-lg border border-cac-line bg-[#fbfcfb] px-3 py-2 text-pequena text-cac-muted">
           {(item.organization as { name?: string } | undefined)?.name ?? '—'} · {String(item.slug)} ·{' '}
-          <button type="button" className="font-black text-cac-green" onClick={() => navigate('/my/contents')}>
+          <button type="button" className="font-bold text-cac-green" onClick={() => navigate('/my/contents')}>
             {t('mine.backList')}
           </button>
         </p>

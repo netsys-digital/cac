@@ -113,27 +113,27 @@ export function AdminCuratePage() {
   return (
     <div className="space-y-5">
       <header className="rounded-2xl border border-cac-line bg-white p-5 shadow-cac">
-        <p className="text-pequena font-black tracking-[0.12em] text-cac-green uppercase">
+        <p className="text-pequena font-extrabold tracking-[0.12em] text-cac-green uppercase">
           {t('curator.queueContent')}
         </p>
-        <h1 className="mt-1 text-grande font-black text-cac-navy">{t('admin.curateTitle')}</h1>
+        <h1 className="mt-1 text-grande font-bold text-cac-navy">{t('admin.curateTitle')}</h1>
         <p className="mt-2 max-w-3xl text-media text-cac-muted">{t('admin.curateSupport')}</p>
         <ul className="mt-3 grid gap-2 text-media text-cac-navy sm:grid-cols-3">
           <li className="rounded-xl border border-cac-line bg-[#fbfcfb] px-3 py-2">
-            <span className="font-black text-cac-green">{t('admin.decisionApprove')}: </span>
+            <span className="font-bold text-cac-green">{t('admin.decisionApprove')}: </span>
             {t('admin.decisionApproveHint')}
           </li>
           <li className="rounded-xl border border-cac-line bg-[#fbfcfb] px-3 py-2">
-            <span className="font-black text-amber-800">{t('admin.decisionReturn')}: </span>
+            <span className="font-bold text-amber-800">{t('admin.decisionReturn')}: </span>
             {t('admin.decisionReturnHint')}
           </li>
           <li className="rounded-xl border border-cac-line bg-[#fbfcfb] px-3 py-2">
-            <span className="font-black text-red-800">{t('admin.decisionReject')}: </span>
+            <span className="font-bold text-red-800">{t('admin.decisionReject')}: </span>
             {t('admin.decisionRejectHint')}
           </li>
         </ul>
         <div className="mt-4 flex flex-wrap gap-2">
-          <span className="rounded-full border border-cac-line bg-[#fbfcfb] px-3 py-1.5 text-pequena font-black text-cac-navy">
+          <span className="rounded-full border border-cac-line bg-[#fbfcfb] px-3 py-1.5 text-pequena font-bold text-cac-navy">
             {t('admin.pendingTotal', { count: items.length })}
           </span>
           {Object.entries(byKind).map(([kind, count]) => (
@@ -174,10 +174,10 @@ export function AdminCuratePage() {
                   onClick={() => setExpanded(isOpen ? null : key)}
                 >
                   <div className="min-w-0">
-                    <p className="text-pequena font-black uppercase tracking-wide text-cac-green">
+                    <p className="text-pequena font-bold uppercase tracking-wide text-cac-green">
                       {kindLabel(item.kind, t)} · {t('admin.submittedForReview')}
                     </p>
-                    <p className="mt-1 text-media font-black text-cac-navy">{item.title}</p>
+                    <p className="mt-1 text-media font-bold text-cac-navy">{item.title}</p>
                     <p className="text-media text-cac-muted">
                       {item.organization?.name ?? '—'}
                       {item.country ? ` · ${item.country}` : ''}
@@ -185,7 +185,7 @@ export function AdminCuratePage() {
                       {formatDate(item.updatedAt, i18n.language)}
                     </p>
                   </div>
-                  <span className="shrink-0 rounded-full bg-amber-100 px-2.5 py-1 text-mini font-black uppercase tracking-wide text-amber-900">
+                  <span className="shrink-0 rounded-full bg-amber-100 px-2.5 py-1 text-mini font-bold uppercase tracking-wide text-amber-900">
                     IN_REVIEW
                   </span>
                 </button>
@@ -196,7 +196,7 @@ export function AdminCuratePage() {
 
                 {item.curationNote ? (
                   <p className="mt-3 rounded-xl border border-cac-line bg-[#fbfcfb] px-3 py-2 text-pequena text-cac-muted">
-                    <span className="font-black text-cac-navy">{t('admin.previousNote')}: </span>
+                    <span className="font-bold text-cac-navy">{t('admin.previousNote')}: </span>
                     {item.curationNote}
                   </p>
                 ) : null}
@@ -204,7 +204,7 @@ export function AdminCuratePage() {
                 {isOpen ? (
                   <div className="mt-4 space-y-3 border-t border-cac-line pt-4">
                     <label className="block">
-                      <span className="text-pequena font-black tracking-wide text-cac-navy uppercase">
+                      <span className="text-pequena font-bold tracking-wide text-cac-navy uppercase">
                         {t('admin.noteLabel')}
                       </span>
                       <textarea
@@ -244,7 +244,7 @@ export function AdminCuratePage() {
                 ) : (
                   <button
                     type="button"
-                    className="mt-3 text-media font-black text-cac-green hover:underline"
+                    className="mt-3 text-media font-bold text-cac-green hover:underline"
                     onClick={() => setExpanded(key)}
                   >
                     {t('admin.openDecision')}

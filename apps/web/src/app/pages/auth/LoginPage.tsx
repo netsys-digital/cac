@@ -57,7 +57,7 @@ export function LoginPage({ forcedFrom }: { forcedFrom?: string | null }) {
       footer={
         <p className="text-center text-pequena text-cac-muted">
           {t('auth.noAccount')}{' '}
-          <Link to={registerTo} className="font-black text-cac-green hover:underline">
+          <Link to={registerTo} className="font-bold text-cac-green hover:underline">
             {t('auth.submitSignUp')}
           </Link>
         </p>
@@ -65,11 +65,11 @@ export function LoginPage({ forcedFrom }: { forcedFrom?: string | null }) {
     >
       {isContextual ? (
         <div className="flex items-start gap-3 rounded-[12px] border border-cac-green/30 bg-cac-green3 px-3 py-3">
-          <span className="mt-0.5 grid size-7 shrink-0 place-items-center rounded-full bg-cac-green2 text-pequena font-black text-white">
+          <span className="mt-0.5 grid size-7 shrink-0 place-items-center rounded-full bg-cac-green2 text-pequena font-bold text-white">
             →
           </span>
           <div>
-            <p className="text-pequena font-black text-cac-navy">{t('auth.contextualTitle')}</p>
+            <p className="text-pequena font-bold text-cac-navy">{t('auth.contextualTitle')}</p>
             <p className="mt-1 text-pequena leading-snug text-cac-muted">{t('auth.loginContextualBody')}</p>
           </div>
         </div>
@@ -88,7 +88,7 @@ export function LoginPage({ forcedFrom }: { forcedFrom?: string | null }) {
           />
           <button
             type="button"
-            className="absolute right-2 bottom-[7px] rounded-md px-2 py-1 text-mini font-black text-cac-green hover:bg-cac-green3"
+            className="absolute right-2 bottom-[7px] rounded-md px-2 py-1 text-mini font-bold text-cac-green hover:bg-cac-green3"
             onClick={() => setShowPassword((v) => !v)}
             aria-pressed={showPassword}
           >

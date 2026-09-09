@@ -43,12 +43,12 @@ export function MyConnectionsPage() {
 
   return (
     <div className="space-y-4">
-      <h1 className="text-grande font-black text-cac-navy">{t('conn.listTitle')}</h1>
+      <h1 className="text-grande font-bold text-cac-navy">{t('conn.listTitle')}</h1>
       {message ? <p className="text-pequena text-cac-green">{message}</p> : null}
       <ul className="space-y-3">
         {items.map((item) => (
           <li key={item.id} className="rounded-xl border border-cac-line bg-white p-4">
-            <p className="text-pequena font-black text-cac-navy">
+            <p className="text-pequena font-bold text-cac-navy">
               {item.requesterOrg?.name} → {item.targetOrg?.name}
             </p>
             <p className="mt-1 text-mini text-cac-muted">

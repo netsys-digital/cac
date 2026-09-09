@@ -1,26 +1,9 @@
 @import '@cac/ui/styles.css';
 
+/* Classes usadas em @cac/ui — fora do scan padrão do Vite */
 @source '../../../packages/ui/src';
 
-/* Escala tipográfica por viewport — 13px base do UI fica pequena em 1080p+ */
+/* Base 16px como o www / protótipo — tokens VITE_FONT_* ficam em px absolutos */
 :root {
-  font-size: 14px;
-}
-
-@media (min-width: 1280px) {
-  :root {
-    font-size: 15px;
-  }
-}
-
-@media (min-width: 1536px) {
-  :root {
-    font-size: 16px;
-  }
-}
-
-@media (max-width: 640px) {
-  :root {
-    font-size: 14px;
-  }
+  font-size: 16px;
 }

@@ -20,10 +20,10 @@ function JourneyHint() {
   return (
     <aside className="hidden h-full flex-col justify-between rounded-[19px] border border-white/10 bg-[rgba(10,36,64,.92)] p-6 text-white lg:flex">
       <div>
-        <p className="text-mini font-black tracking-[1.7px] text-[#90d6b6] uppercase">
+        <p className="text-mini font-extrabold tracking-[1.7px] text-[#90d6b6] uppercase">
           {t('auth.journeyBadge')}
         </p>
-        <h2 className="mt-3 text-grande leading-tight font-black">
+        <h2 className="mt-3 text-grande leading-tight font-bold">
           {isRegister ? t('auth.journeyRegisterTitle') : t('auth.journeyLoginTitle')}
         </h2>
         <p className="mt-3 text-pequena leading-relaxed text-[#c5d5dc]">
@@ -41,7 +41,7 @@ function JourneyHint() {
               }`}
             >
               <span
-                className={`grid size-7 shrink-0 place-items-center rounded-full text-pequena font-black ${
+                className={`grid size-7 shrink-0 place-items-center rounded-full text-pequena font-bold ${
                   step.active ? 'bg-cac-green2 text-white' : 'bg-white/10 text-[#c5d5dc]'
                 }`}
               >
@@ -54,7 +54,7 @@ function JourneyHint() {
       </div>
 
       <div className="mt-8 rounded-[12px] border border-dashed border-[#8ed5b5]/40 bg-[#8ed5b5]/10 p-4">
-        <p className="text-mini font-black tracking-[1px] text-[#90d6b6] uppercase">
+        <p className="text-mini font-extrabold tracking-[1px] text-[#90d6b6] uppercase">
           {t('auth.principleLabel')}
         </p>
         <p className="mt-2 text-pequena leading-snug text-[#dbe8ec]">{t('auth.principle')}</p>
@@ -122,7 +122,7 @@ export function AuthCard({
       </div>
       <div className="space-y-5 p-5 md:p-6">
         <header>
-          <h1 className="text-grande leading-tight font-black text-cac-navy">{title}</h1>
+          <h1 className="text-grande leading-tight font-bold text-cac-navy">{title}</h1>
           {subtitle ? (
             <p className="mt-2 text-pequena leading-relaxed text-cac-muted">{subtitle}</p>
           ) : null}

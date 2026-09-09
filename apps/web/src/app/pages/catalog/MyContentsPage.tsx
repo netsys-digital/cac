@@ -50,7 +50,7 @@ function MetricCard({ label, value, hint }: { label: string; value: string | num
       className="min-w-[72px] rounded-xl border border-cac-line bg-[#f7faf8] px-2.5 py-2 text-center"
       title={hint}
     >
-      <p className="text-media font-black leading-none text-cac-navy">{value}</p>
+      <p className="text-media font-bold leading-none text-cac-navy">{value}</p>
       <p className="mt-1 text-mini font-bold uppercase tracking-wide text-cac-muted">{label}</p>
     </div>
   );
@@ -172,11 +172,11 @@ export function MyContentsPage() {
     <div className="space-y-6">
       <header className="flex flex-wrap items-end justify-between gap-4">
         <div className="max-w-3xl">
-          <p className="text-pequena font-black tracking-[1.7px] text-cac-green uppercase">{t('mine.badge')}</p>
-          <h1 className="mt-2 text-grande font-black text-cac-navy">{t('mine.title')}</h1>
+          <p className="text-pequena font-extrabold tracking-[1.7px] text-cac-green uppercase">{t('mine.badge')}</p>
+          <h1 className="mt-2 text-grande font-bold text-cac-navy">{t('mine.title')}</h1>
           <p className="mt-2 max-w-[780px] text-media leading-relaxed text-cac-muted">{t('mine.desc')}</p>
         </div>
-        <div className="flex flex-wrap gap-2 text-pequena font-black">
+        <div className="flex flex-wrap gap-2 text-pequena font-bold">
           {(['DRAFT', 'IN_REVIEW', 'PUBLISHED', 'ARCHIVED'] as const).map((s) => (
             <button
               key={s}
@@ -195,7 +195,7 @@ export function MyContentsPage() {
       <section className="space-y-3 rounded-[18px] border border-cac-line bg-white p-4 shadow-cac md:p-5">
         <div className="flex flex-wrap items-end gap-3">
           <label className="min-w-[220px] flex-1">
-            <span className="mb-1 block text-pequena font-black uppercase tracking-wide text-cac-muted">
+            <span className="mb-1 block text-pequena font-bold uppercase tracking-wide text-cac-muted">
               {t('mine.filters.search')}
             </span>
             <input
@@ -206,7 +206,7 @@ export function MyContentsPage() {
             />
           </label>
           <label className="min-w-[180px]">
-            <span className="mb-1 block text-pequena font-black uppercase tracking-wide text-cac-muted">
+            <span className="mb-1 block text-pequena font-bold uppercase tracking-wide text-cac-muted">
               {t('mine.filters.organization')}
             </span>
             <select
@@ -223,7 +223,7 @@ export function MyContentsPage() {
             </select>
           </label>
           <label className="min-w-[140px]">
-            <span className="mb-1 block text-pequena font-black uppercase tracking-wide text-cac-muted">
+            <span className="mb-1 block text-pequena font-bold uppercase tracking-wide text-cac-muted">
               {t('mine.filters.country')}
             </span>
             <select
@@ -240,7 +240,7 @@ export function MyContentsPage() {
             </select>
           </label>
           <label className="min-w-[150px]">
-            <span className="mb-1 block text-pequena font-black uppercase tracking-wide text-cac-muted">
+            <span className="mb-1 block text-pequena font-bold uppercase tracking-wide text-cac-muted">
               {t('mine.filters.sort')}
             </span>
             <select
@@ -258,7 +258,7 @@ export function MyContentsPage() {
             <button
               type="button"
               onClick={clearFilters}
-              className="rounded-xl border border-cac-line px-3.5 py-2.5 text-media font-black text-cac-muted hover:bg-cac-bg"
+              className="rounded-xl border border-cac-line px-3.5 py-2.5 text-media font-extrabold text-cac-muted hover:bg-cac-bg"
             >
               {t('mine.filters.clear')}
             </button>
@@ -266,7 +266,7 @@ export function MyContentsPage() {
         </div>
 
         <div className="flex flex-wrap items-center gap-x-2 gap-y-3">
-          <span className="mr-1 text-pequena font-black uppercase tracking-wide text-cac-muted">
+          <span className="mr-1 text-pequena font-bold uppercase tracking-wide text-cac-muted">
             {t('mine.filters.kind')}
           </span>
           {KINDS.map((k) => (
@@ -274,7 +274,7 @@ export function MyContentsPage() {
               key={k}
               type="button"
               onClick={() => setKind(k)}
-              className={`rounded-xl px-3.5 py-2 text-media font-black ${
+              className={`rounded-xl px-3.5 py-2 text-media font-extrabold ${
                 kind === k ? 'bg-cac-navy text-white' : 'border border-cac-line bg-white text-cac-muted'
               }`}
             >
@@ -282,7 +282,7 @@ export function MyContentsPage() {
             </button>
           ))}
           <span className="mx-4 hidden h-7 w-px bg-cac-line sm:block" aria-hidden />
-          <span className="mr-1 text-pequena font-black uppercase tracking-wide text-cac-muted sm:ml-1">
+          <span className="mr-1 text-pequena font-bold uppercase tracking-wide text-cac-muted sm:ml-1">
             {t('mine.filters.status')}
           </span>
           {STATUSES.map((s) => (
@@ -290,7 +290,7 @@ export function MyContentsPage() {
               key={s}
               type="button"
               onClick={() => setStatus(s)}
-              className={`rounded-xl px-3.5 py-2 text-media font-black ${
+              className={`rounded-xl px-3.5 py-2 text-media font-extrabold ${
                 status === s ? 'bg-cac-green3 text-cac-navy' : 'border border-cac-line bg-white text-cac-muted'
               }`}
             >
@@ -335,20 +335,20 @@ export function MyContentsPage() {
                 >
                   <div className="min-w-0">
                     <div className="flex flex-wrap items-center gap-2">
-                      <span className="rounded bg-[#edf1f3] px-2 py-0.5 text-pequena font-black tracking-wide text-cac-muted">
+                      <span className="rounded bg-[#edf1f3] px-2 py-0.5 text-pequena font-bold tracking-wide text-cac-muted">
                         {t(`mine.kind.${item.kind}`)}
                       </span>
-                      <span className={`rounded px-2 py-0.5 text-pequena font-black ${statusClass(item.status)}`}>
+                      <span className={`rounded px-2 py-0.5 text-pequena font-bold ${statusClass(item.status)}`}>
                         {item.status}
                       </span>
                     </div>
-                    <p className="mt-1.5 truncate text-media font-black text-cac-navy">{item.title}</p>
+                    <p className="mt-1.5 truncate text-media font-bold text-cac-navy">{item.title}</p>
                     <p className="mt-0.5 text-pequena text-cac-muted">
                       {item.organizationName} · {item.country} · {new Date(item.updatedAt).toLocaleString()}
                     </p>
                     {item.curationNote ? (
                       <p className="mt-2 rounded-lg border border-cac-line bg-[#fbfcfb] px-2.5 py-2 text-pequena leading-snug text-cac-navy">
-                        <span className="font-black">{curationNoteLabel(item.status, t)}: </span>
+                        <span className="font-bold">{curationNoteLabel(item.status, t)}: </span>
                         {item.curationNote}
                       </p>
                     ) : null}

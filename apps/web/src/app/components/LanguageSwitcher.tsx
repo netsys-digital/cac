@@ -27,7 +27,7 @@ export function LanguageSwitcher({
             key={lng}
             type="button"
             aria-pressed={active}
-            className={`${buttonClassName} rounded-md font-black tracking-[1px] transition ${
+            className={`${buttonClassName} rounded-md font-bold tracking-[1px] transition ${
               active
                 ? 'bg-white/15 text-[#90d6b6]'
                 : 'text-[#dbe8ec]/70 hover:bg-white/10 hover:text-[#90d6b6]'

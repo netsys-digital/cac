@@ -65,12 +65,12 @@ export function AdminRepresentationPage() {
   return (
     <div className="space-y-5">
       <header className="rounded-2xl border border-cac-line bg-white p-5 shadow-cac">
-        <p className="text-pequena font-black tracking-[0.12em] text-cac-green uppercase">
+        <p className="text-pequena font-extrabold tracking-[0.12em] text-cac-green uppercase">
           {t('curator.queueRep')}
         </p>
-        <h1 className="mt-1 text-grande font-black text-cac-navy">{t('admin.repTitle')}</h1>
+        <h1 className="mt-1 text-grande font-bold text-cac-navy">{t('admin.repTitle')}</h1>
         <p className="mt-2 max-w-3xl text-media text-cac-muted">{t('admin.repSupport')}</p>
-        <p className="mt-4 inline-flex rounded-full border border-cac-line bg-[#fbfcfb] px-3 py-1.5 text-pequena font-black text-cac-navy">
+        <p className="mt-4 inline-flex rounded-full border border-cac-line bg-[#fbfcfb] px-3 py-1.5 text-pequena font-bold text-cac-navy">
           {t('admin.pendingTotal', { count: items.length })}
         </p>
       </header>
@@ -89,7 +89,7 @@ export function AdminRepresentationPage() {
             <li key={item.id} className="rounded-2xl border border-cac-line bg-white p-4 shadow-cac">
               <div className="flex flex-col gap-1 sm:flex-row sm:items-start sm:justify-between">
                 <div>
-                  <p className="text-media font-black text-cac-navy">
+                  <p className="text-media font-bold text-cac-navy">
                     {item.user?.name ?? '—'} · {item.organization?.name ?? '—'}
                   </p>
                   <p className="text-media text-cac-muted">
@@ -97,7 +97,7 @@ export function AdminRepresentationPage() {
                     {item.user?.email ? ` · ${item.user.email}` : ''}
                   </p>
                 </div>
-                <span className="mt-2 inline-flex w-fit rounded-full bg-amber-100 px-2.5 py-1 text-mini font-black uppercase tracking-wide text-amber-900 sm:mt-0">
+                <span className="mt-2 inline-flex w-fit rounded-full bg-amber-100 px-2.5 py-1 text-mini font-bold uppercase tracking-wide text-amber-900 sm:mt-0">
                   {t('admin.repStatusRequested')}
                 </span>
               </div>

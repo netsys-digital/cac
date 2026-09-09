@@ -27,23 +27,23 @@ export function PublishGate({ children }: PublishGateProps) {
           climateactionconnect · {t('gate.staffBadge')}
         </div>
         <div className="space-y-4 p-5 md:p-6">
-          <p className="text-mini font-black tracking-[1.7px] text-cac-green uppercase">
+          <p className="text-mini font-extrabold tracking-[1.7px] text-cac-green uppercase">
             {t('gate.staffBadge')}
           </p>
-          <h1 className="text-grande font-black leading-tight text-cac-navy">
+          <h1 className="text-grande font-bold leading-tight text-cac-navy">
             {t('gate.staffTitle')}
           </h1>
           <p className="text-pequena leading-relaxed text-cac-muted">{t('gate.staffBody')}</p>
           <div className="flex flex-wrap gap-2 pt-1">
             <Link
               to="/admin/curate"
-              className="rounded-[10px] bg-cac-navy px-3 py-2 text-pequena font-black text-white transition hover:bg-cac-green2"
+              className="rounded-[10px] bg-cac-navy px-3 py-2 text-pequena font-extrabold text-white transition hover:bg-cac-green2"
             >
               {t('gate.staffCta')}
             </Link>
             <Link
               to="/"
-              className="rounded-[10px] border border-cac-line bg-white px-3 py-2 text-pequena font-black text-cac-navy transition hover:bg-cac-bg"
+              className="rounded-[10px] border border-cac-line bg-white px-3 py-2 text-pequena font-extrabold text-cac-navy transition hover:bg-cac-bg"
             >
               {t('gate.back')}
             </Link>
@@ -61,8 +61,8 @@ export function PublishGate({ children }: PublishGateProps) {
         climateactionconnect · {t('gate.badge')}
       </div>
       <div className="space-y-4 p-5 md:p-6">
-        <p className="text-mini font-black tracking-[1.7px] text-cac-green uppercase">{t('gate.badge')}</p>
-        <h1 className="text-grande font-black leading-tight text-cac-navy">
+        <p className="text-mini font-extrabold tracking-[1.7px] text-cac-green uppercase">{t('gate.badge')}</p>
+        <h1 className="text-grande font-bold leading-tight text-cac-navy">
           {t('gate.title')}
         </h1>
         <p className="text-pequena leading-relaxed text-cac-muted">{t('gate.body')}</p>
@@ -70,26 +70,26 @@ export function PublishGate({ children }: PublishGateProps) {
           {t('gate.rule')}
         </p>
         {gate === 'pending' ? (
-          <p className="text-pequena font-black uppercase tracking-wide text-amber-800">
+          <p className="text-pequena font-bold uppercase tracking-wide text-amber-800">
             {t('gate.pending')}
           </p>
         ) : null}
         <div className="flex flex-wrap gap-2 pt-1">
           <Link
             to="/org/representation"
-            className="rounded-[10px] bg-cac-navy px-3 py-2 text-pequena font-black text-white transition hover:bg-cac-green2"
+            className="rounded-[10px] bg-cac-navy px-3 py-2 text-pequena font-extrabold text-white transition hover:bg-cac-green2"
           >
             {t('gate.cta')}
           </Link>
           <a
             href={urls.www}
-            className="rounded-[10px] border border-cac-green bg-white px-3 py-2 text-pequena font-black text-cac-green transition hover:bg-cac-green3"
+            className="rounded-[10px] border border-cac-green bg-white px-3 py-2 text-pequena font-extrabold text-cac-green transition hover:bg-cac-green3"
           >
             {t('shell.portal')}
           </a>
           <Link
             to="/"
-            className="rounded-[10px] border border-cac-line bg-white px-3 py-2 text-pequena font-black text-cac-navy transition hover:bg-cac-bg"
+            className="rounded-[10px] border border-cac-line bg-white px-3 py-2 text-pequena font-extrabold text-cac-navy transition hover:bg-cac-bg"
           >
             {t('gate.back')}
           </Link>

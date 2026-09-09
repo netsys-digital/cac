@@ -71,7 +71,7 @@ export function RegisterPage() {
           {t('auth.haveAccount')}{' '}
           <Link
             to={returnUrl ? `/login?returnUrl=${encodeURIComponent(returnUrl)}` : '/login'}
-            className="font-black text-cac-green hover:underline"
+            className="font-bold text-cac-green hover:underline"
           >
             {t('auth.submitSignIn')}
           </Link>
@@ -80,17 +80,17 @@ export function RegisterPage() {
     >
       {returnUrl ? (
         <div className="flex items-start gap-3 rounded-[12px] border border-cac-green/30 bg-cac-green3 px-3 py-3">
-          <span className="mt-0.5 grid size-7 shrink-0 place-items-center rounded-full bg-cac-green2 text-pequena font-black text-white">
+          <span className="mt-0.5 grid size-7 shrink-0 place-items-center rounded-full bg-cac-green2 text-pequena font-bold text-white">
             →
           </span>
           <div>
-            <p className="text-pequena font-black text-cac-navy">{t('auth.contextualTitle')}</p>
+            <p className="text-pequena font-bold text-cac-navy">{t('auth.contextualTitle')}</p>
             <p className="mt-1 text-pequena leading-snug text-cac-muted">{t('auth.contextualBody')}</p>
           </div>
         </div>
       ) : (
         <div className="rounded-[12px] border border-cac-line bg-[#fbfcfb] px-3 py-3">
-          <p className="text-mini font-black tracking-[1px] text-cac-green uppercase">
+          <p className="text-mini font-extrabold tracking-[1px] text-cac-green uppercase">
             {t('auth.nextStepLabel')}
           </p>
           <p className="mt-1 text-pequena leading-snug text-cac-muted">{t('auth.nextStepBody')}</p>
@@ -122,7 +122,7 @@ export function RegisterPage() {
           />
           <button
             type="button"
-            className="absolute right-2 bottom-[7px] rounded-md px-2 py-1 text-mini font-black text-cac-green hover:bg-cac-green3"
+            className="absolute right-2 bottom-[7px] rounded-md px-2 py-1 text-mini font-bold text-cac-green hover:bg-cac-green3"
             onClick={() => setShowPassword((v) => !v)}
             aria-pressed={showPassword}
           >

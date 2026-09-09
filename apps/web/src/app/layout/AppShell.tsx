@@ -189,7 +189,7 @@ export function AppShell() {
                 <span className="inline-flex items-center gap-2">
                   {link.label}
                   {link.badge ? (
-                    <span className="grid min-w-5 place-items-center rounded-full bg-amber-400 px-1.5 py-0.5 text-mini font-black text-cac-navy">
+                    <span className="grid min-w-5 place-items-center rounded-full bg-amber-400 px-1.5 py-0.5 text-mini font-bold text-cac-navy">
                       {link.badge}
                     </span>
                   ) : null}
@@ -241,7 +241,7 @@ export function AppShell() {
                     {c.label}
                   </Link>
                 ) : (
-                  <span className="truncate font-black text-cac-navy">{c.label}</span>
+                  <span className="truncate font-bold text-cac-navy">{c.label}</span>
                 )}
               </span>
             ))}
@@ -253,7 +253,7 @@ export function AppShell() {
                 to={link.to}
                 end={link.end}
                 className={({ isActive }) =>
-                  `inline-flex items-center gap-1 rounded-lg px-2.5 py-1.5 text-pequena font-black ${
+                  `inline-flex items-center gap-1 rounded-lg px-2.5 py-1.5 text-pequena font-bold ${
                     isActive ? 'bg-cac-green3 text-cac-navy' : 'text-cac-muted'
                   }`
                 }
