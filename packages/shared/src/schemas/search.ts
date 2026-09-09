@@ -33,7 +33,7 @@ export const searchFiltersSchema = z.object({
 export const searchBodySchema = z.object({
   query: z.string().default(''),
   filters: searchFiltersSchema.default({}),
-  lang: z.enum(['pt', 'en']).optional(),
+  lang: z.enum(['pt', 'en', 'es']).optional(),
   limit: z.number().int().min(1).max(50).optional(),
 });
 

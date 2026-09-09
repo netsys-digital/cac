@@ -50,6 +50,7 @@ export function EditTechnologyPage() {
         summary: String(form.get('summary')),
         problemStatement: String(form.get('problemStatement')),
         howItWorks: String(form.get('howItWorks')),
+        videoUrl: String(form.get('videoUrl') || '').trim() || null,
         country: String(form.get('country') || 'BR'),
         tags: String(form.get('tags') || '')
           .split(',')
@@ -112,6 +113,16 @@ export function EditTechnologyPage() {
       </FieldFull>
       <FieldFull>
         <TextArea label={t('catalog.how')} hint={t('catalog.howHint')} name="howItWorks" required rows={4} defaultValue={String(item.howItWorks)} />
+      </FieldFull>
+      <FieldFull>
+        <Input
+          label={t('catalog.videoUrl')}
+          hint={t('catalog.videoUrlHint')}
+          name="videoUrl"
+          type="url"
+          placeholder="https://www.youtube.com/watch?v=…"
+          defaultValue={item.videoUrl ? String(item.videoUrl) : ''}
+        />
       </FieldFull>
       <Input label={t('catalog.country')} hint={t('catalog.countryHint')} name="country" defaultValue={String(item.country || 'BR')} />
       <Input label={t('catalog.tags')} hint={t('catalog.tagsHint')} name="tags" defaultValue={tags} />

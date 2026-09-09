@@ -2,7 +2,17 @@ import { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { catalogApi, type Challenge } from '../api/catalogApi';
-import { Chip, PageShell, shell } from '../components/PageChrome';
+import {
+  CatalogDetailBody,
+  CatalogDetailHero,
+  DetailHeroChip,
+  DetailMetaChip,
+  DetailOrgCard,
+  DetailPrimaryButton,
+  DetailSection,
+} from '../components/CatalogDetail';
+import { BackToSearchLink } from '../components/BackToSearchLink';
+import { shell } from '../components/PageChrome';
 import { urls } from '../../config';
 
 export function ChallengeDetailPage() {
@@ -26,41 +36,75 @@ export function ChallengeDetailPage() {
     };
   }, [slug, t]);
 
-  if (error) return <PageShell title={t('detail.notFound')} />;
+  if (error) {
+    return (
+      <div className={`${shell} py-12`}>
+        <h1 className="text-[1.5rem] font-black text-cac-navy">{t('detail.notFound')}</h1>
+        <div className="mt-4">
+          <BackToSearchLink className="inline-flex items-center gap-2 rounded-[10px] border border-cac-line bg-white px-3.5 py-2.5 text-[11px] font-black text-cac-navy" />
+        </div>
+      </div>
+    );
+  }
   if (!item) return <div className={`${shell} py-10 text-cac-muted`}>{t('detail.loading')}</div>;
 
   return (
-    <PageShell eyebrow={t('detail.challengeBadge')} title={item.title}>
-      <article className="rounded-[16px] border border-cac-line bg-white p-4 shadow-[0_14px_38px_rgba(10,36,64,.10)]">
-        <p className="text-[11px] leading-relaxed text-cac-muted">{item.summary}</p>
-        {item.context ? (
+    <div className="bg-cac-bg">
+      <CatalogDetailHero
+        eyebrow={t('detail.challengeBadge')}
+        title={item.title}
+        summary={item.summary}
+        chips={
           <>
-            <h2 className="mt-5 text-[14px] font-black text-cac-navy">{t('detail.context')}</h2>
-            <p className="mt-2 text-[11px] leading-relaxed text-cac-muted">{item.context}</p>
+            <DetailHeroChip>{item.needType}</DetailHeroChip>
+            {item.country ? <DetailHeroChip>{item.country}</DetailHeroChip> : null}
+            {item.region ? <DetailHeroChip>{item.region}</DetailHeroChip> : null}
           </>
-        ) : null}
-        <div className="mt-4 flex flex-wrap gap-1.5">
-          <Chip>{item.needType}</Chip>
-          {item.country ? <Chip>{item.country}</Chip> : null}
-          {item.tags.map((tag) => (
-            <Chip key={tag}>{tag}</Chip>
-          ))}
+        }
+      />
+      <CatalogDetailBody>
+        <div className="grid gap-6 lg:grid-cols-[minmax(0,1.45fr)_minmax(260px,0.7fr)] lg:gap-8">
+          <article className="cac-fade-up rounded-[18px] border border-cac-line bg-white px-5 py-2 shadow-[0_16px_40px_rgba(10,36,64,.07)] md:px-8">
+            {item.context ? (
+              <DetailSection title={t('detail.context')} index="01">
+                <p>{item.context}</p>
+              </DetailSection>
+            ) : null}
+            {item.tags.length ? (
+              <DetailSection title={t('detail.topics')} index="02">
+                <div className="flex flex-wrap gap-1.5">
+                  {item.tags.map((tag) => (
+                    <DetailMetaChip key={tag}>{tag}</DetailMetaChip>
+                  ))}
+                </div>
+              </DetailSection>
+            ) : null}
+          </article>
+          <aside className="cac-fade-up-delay space-y-4">
+            {item.organization ? (
+              <DetailOrgCard
+                to={`/organizations/${item.organization.slug}`}
+                name={item.organization.name}
+                summary={item.organization.summary}
+                label={t('detail.organization')}
+                verifiedLabel={t('detail.verified')}
+                verified={item.organization.verificationStatus === 'VERIFIED'}
+              />
+            ) : null}
+            <div className="rounded-[16px] border border-cac-line bg-white p-5 shadow-[0_10px_28px_rgba(10,36,64,.06)]">
+              <DetailPrimaryButton href={`${urls.web}/catalog/challenges/new`}>
+                {t('home.path03')}
+              </DetailPrimaryButton>
+              <Link
+                to={item.organization ? `/organizations/${item.organization.slug}` : '/search'}
+                className="mt-3 flex w-full items-center justify-center rounded-[12px] border border-cac-line bg-[#f7faf8] px-4 py-3 text-[0.8rem] font-black text-cac-navy"
+              >
+                {t('detail.organization')}
+              </Link>
+            </div>
+          </aside>
         </div>
-        {item.organization ? (
-          <Link
-            to={`/organizations/${item.organization.slug}`}
-            className="mt-5 block text-[11px] font-black text-cac-green"
-          >
-            {item.organization.name}
-          </Link>
-        ) : null}
-        <a
-          href={`${urls.web}/catalog/challenges/new`}
-          className="mt-5 inline-flex rounded-[10px] bg-cac-green2 px-3.5 py-2.5 text-[11px] font-black text-white"
-        >
-          {t('home.path03')}
-        </a>
-      </article>
-    </PageShell>
+      </CatalogDetailBody>
+    </div>
   );
 }

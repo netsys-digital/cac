@@ -51,7 +51,7 @@ export type SearchResponse = {
 export async function postSearch(body: {
   query: string;
   filters?: SearchFilters;
-  lang?: 'pt' | 'en';
+  lang?: 'pt' | 'en' | 'es';
 }): Promise<SearchResponse> {
   const res = await fetch(`${urls.api}/api/search`, {
     method: 'POST',

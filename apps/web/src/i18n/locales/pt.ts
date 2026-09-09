@@ -346,6 +346,8 @@ export const pt = {
     problemHint: 'Qual dor climática/territorial a solução ataca?',
     how: 'Como funciona',
     howHint: 'Mecanismo, requisitos e o que o adotante precisa ter.',
+    videoUrl: 'URL do vídeo',
+    videoUrlHint: 'Opcional. YouTube, Vimeo ou link direto (.mp4). Aparece no detalhe da solução.',
     country: 'País (ISO)',
     countryHint: 'Código de 2 letras, ex.: BR, MZ, KE.',
     tags: 'Tags',
@@ -518,5 +520,6 @@ export const pt = {
   lang: {
     pt: 'PT',
     en: 'EN',
+    es: 'ES',
   },
 };

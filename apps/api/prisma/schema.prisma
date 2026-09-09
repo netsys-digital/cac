@@ -200,6 +200,7 @@ model Technology {
   summary          String
   problemStatement String
   howItWorks       String
+  videoUrl         String?
   status           ContentStatus     @default(DRAFT)
   curationNote     String?
   reviewedAt       DateTime?

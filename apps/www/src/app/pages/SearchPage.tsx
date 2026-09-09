@@ -1,5 +1,5 @@
-import { type FormEvent, useEffect, useMemo, useState } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { type FormEvent, useEffect, useMemo, useRef, useState } from 'react';
+import { useLocation, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { postSearch, type SearchFilters, type SearchResponse } from '../api/searchApi';
 import { PageShell, ResultCard } from '../components/PageChrome';
@@ -7,6 +7,12 @@ import { FilterPanel } from '../components/search/FilterPanel';
 import { MatchPaths } from '../components/search/MatchPaths';
 import { ResultFacets } from '../components/search/ResultFacets';
 import { normalizeLanguage } from '../../i18n';
+import {
+  consumeSearchScroll,
+  filtersFromSearchParams,
+  saveSearchReturn,
+  searchParamsFromState,
+} from '../search/searchReturn';
 
 const STATIC_OPTIONS = {
   themes: [
@@ -73,15 +79,25 @@ function contentLabel(type: string, t: (k: string) => string): string {
   }
 }
 
+function filtersEqual(a: SearchFilters, b: SearchFilters) {
+  const keys = new Set([...Object.keys(a), ...Object.keys(b)]);
+  for (const key of keys) {
+    if (a[key as keyof SearchFilters] !== b[key as keyof SearchFilters]) return false;
+  }
+  return true;
+}
+
 export function SearchPage() {
   const { t, i18n } = useTranslation();
+  const location = useLocation();
   const [params, setParams] = useSearchParams();
   const qParam = params.get('q') ?? '';
+  const filters = useMemo(() => filtersFromSearchParams(params), [params]);
   const [query, setQuery] = useState(qParam);
-  const [filters, setFilters] = useState<SearchFilters>({});
   const [data, setData] = useState<SearchResponse | null>(null);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const restoredScroll = useRef(false);
 
   const lang = normalizeLanguage(i18n.language);
 
@@ -109,6 +125,23 @@ export function SearchPage() {
     };
   }, [qParam, filters, lang, t]);
 
+  useEffect(() => {
+    if (loading || !data || restoredScroll.current) return;
+    const shouldRestore =
+      (location.state as { restoreSearchScroll?: boolean } | null)?.restoreSearchScroll === true;
+    if (!shouldRestore) return;
+    const y = consumeSearchScroll();
+    if (y == null) return;
+    restoredScroll.current = true;
+    requestAnimationFrame(() => {
+      window.scrollTo({ top: y, behavior: 'auto' });
+    });
+  }, [loading, data, location.state]);
+
+  useEffect(() => {
+    saveSearchReturn(`${location.pathname}${location.search}`);
+  }, [location.pathname, location.search]);
+
   const interpretation = useMemo(() => {
     if (!data) return '';
     const i = data.interpretation;
@@ -120,10 +153,18 @@ export function SearchPage() {
     });
   }, [data, t]);
 
+  function commitSearch(nextQuery: string, nextFilters: SearchFilters) {
+    setParams(searchParamsFromState(nextQuery, nextFilters), { replace: false });
+  }
+
   function onSubmit(event: FormEvent) {
     event.preventDefault();
-    const next = query.trim();
-    setParams(next ? { q: next } : {});
+    commitSearch(query, filters);
+  }
+
+  function onFiltersChange(next: SearchFilters) {
+    if (filtersEqual(next, filters)) return;
+    commitSearch(qParam, next);
   }
 
   return (
@@ -147,7 +188,7 @@ export function SearchPage() {
 
       <FilterPanel
         value={filters}
-        onChange={setFilters}
+        onChange={onFiltersChange}
         labels={{
           country: t('search.filters.country'),
           region: t('search.filters.region'),
@@ -206,6 +247,9 @@ export function SearchPage() {
                 <ResultCard
                   key={item.id}
                   to={item.href}
+                  onNavigate={() =>
+                    saveSearchReturn(`${location.pathname}${location.search}`, window.scrollY)
+                  }
                   title={item.title}
                   summary={item.summary}
                   meta={[

@@ -27,6 +27,7 @@ export type Technology = {
   summary: string;
   problemStatement: string;
   howItWorks: string;
+  videoUrl?: string | null;
   status: string;
   country: string;
   region?: string | null;

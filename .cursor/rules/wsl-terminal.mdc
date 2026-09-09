@@ -1,0 +1,12 @@
+---
+description: Sempre usar WSL para terminal; nunca PowerShell do Windows
+alwaysApply: true
+---
+
+# Terminal: só WSL
+
+- Todo comando de terminal, teste, migrate, npm, docker, curl, git operacional → **WSL Ubuntu** (`/app/netsys-apps/cac`).
+- **Nunca** usar PowerShell do Windows como shell de trabalho.
+- Invocar assim: `wsl -d Ubuntu-24.04 -e bash -lc 'cd /app/netsys-apps/cac && …'`
+- Se o Shell do agente falhar, orientar o comando **já em bash WSL** para colar num terminal que já esteja em `netsys@…:/app/netsys-apps/cac$` — não sugerir `powershell`, `cmd` nem paths `C:\`.
+- UI/componentes: seguir o protótipo consolidado existente no projeto.

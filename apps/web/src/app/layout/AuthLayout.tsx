@@ -3,7 +3,7 @@ import { Outlet, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { BrandMark, Button, Container } from '@cac/ui';
 import { brand, urls } from '../../config';
-import { normalizeLanguage } from '../../i18n';
+import { LanguageSwitcher } from '../components/LanguageSwitcher';
 
 function JourneyHint() {
   const { t } = useTranslation();
@@ -64,7 +64,7 @@ function JourneyHint() {
 }
 
 export function AuthLayout() {
-  const { i18n, t } = useTranslation();
+  const { t } = useTranslation();
 
   return (
     <div className="min-h-screen bg-cac-bg font-sans">
@@ -80,16 +80,7 @@ export function AuthLayout() {
           </a>
 
           <div className="ml-auto flex items-center gap-[7px]">
-            <button
-              type="button"
-              className="rounded-lg px-2 py-1 text-[10px] font-black tracking-[1px] text-[#90d6b6] hover:bg-white/10"
-              onClick={() => {
-                const next = normalizeLanguage(i18n.language) === 'pt' ? 'en' : 'pt';
-                void i18n.changeLanguage(next);
-              }}
-            >
-              {normalizeLanguage(i18n.language) === 'pt' ? t('lang.en') : t('lang.pt')}
-            </button>
+            <LanguageSwitcher />
             <a href={urls.www} className="hidden sm:inline-flex">
               <Button variant="ghostDark">{t('shell.portal')}</Button>
             </a>

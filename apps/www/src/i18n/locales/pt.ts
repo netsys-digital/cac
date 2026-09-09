@@ -110,11 +110,31 @@ export const pt = {
     connect: 'Solicitar conexão',
     favorite: 'Favoritar',
     complementary: 'Informações complementares',
+    complementaryHint:
+      'Use a busca e o diretório de financiamento para cruzar esta solução com projetos e oportunidades abertas.',
     pathImpl: 'Implementação e requisitos de adoção',
     pathProjects: 'Projetos relacionados',
     pathFunding: 'Financiamento compatível',
     orgSolutions: 'Soluções publicadas',
     open: 'Abrir',
+    topics: 'Temas e tags',
+    nextSteps: 'Próximos caminhos',
+    nextStepsBody:
+      'A plataforma conecta esta solução a adoção, projetos e financiamento — escolha a ação que faz sentido agora.',
+    actions: 'Ações',
+    actionsHint: 'Conexões e favoritos pedem conta no painel. Você volta para este item depois do login.',
+    climate: {
+      adaptation: 'Adaptação',
+      mitigation: 'Mitigação',
+      both: 'Adaptação e mitigação',
+    },
+    maturity: {
+      research: 'Pesquisa',
+      validation: 'Validação',
+      demonstration: 'Demonstração',
+      ready: 'Pronta para implementação',
+      scale: 'Em escala',
+    },
   },
   funding: {
     badge: '02 • FINANCIAMENTO',
@@ -144,6 +164,7 @@ export const pt = {
   lang: {
     pt: 'PT',
     en: 'EN',
+    es: 'ES',
   },
   footer: {
     tagline: 'Global · Local · Action',

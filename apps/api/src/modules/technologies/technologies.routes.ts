@@ -22,6 +22,7 @@ function mapTech(tech: {
   summary: string;
   problemStatement: string;
   howItWorks: string;
+  videoUrl?: string | null;
   status: string;
   organizationId: string;
   country: string;
@@ -36,6 +37,12 @@ function mapTech(tech: {
     ...tech,
     tags: tech.tags?.map((t) => t.tag) ?? [],
   };
+}
+
+function normalizeVideoUrl(value: unknown): string | null | undefined {
+  if (value === undefined) return undefined;
+  if (value === null || value === '') return null;
+  return String(value).trim();
 }
 
 technologiesRouter.get('/', async (req, res, next) => {
@@ -92,6 +99,7 @@ technologiesRouter.post('/', requireAuth, validateBody(createTechnologyBodySchem
         summary: req.body.summary,
         problemStatement: req.body.problemStatement,
         howItWorks: req.body.howItWorks,
+        videoUrl: normalizeVideoUrl(req.body.videoUrl) ?? null,
         organizationId: req.body.organizationId,
         country: req.body.country,
         region: req.body.region,
@@ -134,6 +142,7 @@ technologiesRouter.patch(
           summary: req.body.summary,
           problemStatement: req.body.problemStatement,
           howItWorks: req.body.howItWorks,
+          videoUrl: normalizeVideoUrl(req.body.videoUrl),
           country: req.body.country,
           region: req.body.region,
           climateAction: req.body.climateAction,

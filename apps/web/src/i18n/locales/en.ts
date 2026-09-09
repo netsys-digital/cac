@@ -346,6 +346,8 @@ export const en = {
     problemHint: 'Which climate/territorial pain does it tackle?',
     how: 'How it works',
     howHint: 'Mechanism, requirements, and adopter prerequisites.',
+    videoUrl: 'Video URL',
+    videoUrlHint: 'Optional. YouTube, Vimeo or direct link (.mp4). Shown on the solution detail page.',
     country: 'Country (ISO)',
     countryHint: '2-letter code, e.g. BR, MZ, KE.',
     tags: 'Tags',
@@ -518,5 +520,6 @@ export const en = {
   lang: {
     pt: 'PT',
     en: 'EN',
+    es: 'ES',
   },
 };

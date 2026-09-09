@@ -3,10 +3,10 @@ import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { BrandMark, Button } from '@cac/ui';
 import { brand, urls } from '../../config';
-import { normalizeLanguage } from '../../i18n';
 import { useAuth } from '../auth/AuthContext';
 import { useRepresentation } from '../auth/RepresentationContext';
 import { useStaffTasks } from '../auth/StaffTasksContext';
+import { LanguageSwitcher } from '../components/LanguageSwitcher';
 import { SideNav, sideIcons, type SideNavItem } from './SideNav';
 
 type NavItem = { to: string; label: string; end?: boolean; badge?: string };
@@ -52,7 +52,7 @@ function useBreadcrumbs() {
 }
 
 export function AppShell() {
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
   const { user, logout } = useAuth();
   const { canPublish, gate, isStaff } = useRepresentation();
   const { contentCount, repCount } = useStaffTasks();
@@ -199,16 +199,7 @@ export function AppShell() {
           </nav>
 
           <div className="flex shrink-0 items-center gap-2.5">
-            <button
-              type="button"
-              className="rounded-xl px-3 py-2 text-[12px] font-black tracking-[1px] text-[#90d6b6] hover:bg-white/10"
-              onClick={() => {
-                const next = normalizeLanguage(i18n.language) === 'pt' ? 'en' : 'pt';
-                void i18n.changeLanguage(next);
-              }}
-            >
-              {normalizeLanguage(i18n.language) === 'pt' ? t('lang.en') : t('lang.pt')}
-            </button>
+            <LanguageSwitcher buttonClassName="px-2.5 py-1.5 text-[12px]" />
             <a href={urls.www} className="hidden sm:inline-flex">
               <Button variant="ghostDark">{t('shell.portal')}</Button>
             </a>

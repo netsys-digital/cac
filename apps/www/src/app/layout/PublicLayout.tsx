@@ -2,8 +2,8 @@ import { NavLink, Outlet } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { BrandMark } from '@cac/ui';
 import { brand, urls } from '../../config';
-import { normalizeLanguage } from '../../i18n';
 import { usePortalAuth } from '../auth/PortalAuthContext';
+import { LanguageSwitcher } from '../components/LanguageSwitcher';
 import { SiteFooter } from './SiteFooter';
 
 /** Conteúdo centralizado — classes no app para o Tailwind escanear. */
@@ -20,7 +20,7 @@ function displayName(name: string) {
 }
 
 export function PublicLayout() {
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
   const { user, loading } = usePortalAuth();
 
   const desktopLinks = [
@@ -73,16 +73,7 @@ export function PublicLayout() {
           </nav>
 
           <div className="ml-auto flex shrink-0 items-center gap-[10px]">
-            <button
-              type="button"
-              className="rounded-lg px-2 py-1 text-[10px] font-black tracking-[1px] text-[#90d6b6] hover:bg-white/10"
-              onClick={() => {
-                const next = normalizeLanguage(i18n.language) === 'pt' ? 'en' : 'pt';
-                void i18n.changeLanguage(next);
-              }}
-            >
-              {normalizeLanguage(i18n.language) === 'pt' ? t('lang.en') : t('lang.pt')}
-            </button>
+            <LanguageSwitcher />
 
             {!loading && user && name ? (
               <>

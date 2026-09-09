@@ -38,6 +38,7 @@ export function NewTechnologyPage() {
         summary: String(form.get('summary')),
         problemStatement: String(form.get('problemStatement')),
         howItWorks: String(form.get('howItWorks')),
+        videoUrl: String(form.get('videoUrl') || '').trim() || undefined,
         organizationId: String(form.get('organizationId')),
         country: String(form.get('country') || 'BR'),
         tags: String(form.get('tags') || '')
@@ -96,6 +97,15 @@ export function NewTechnologyPage() {
       </FieldFull>
       <FieldFull>
         <TextArea label={t('catalog.how')} hint={t('catalog.howHint')} name="howItWorks" required rows={4} />
+      </FieldFull>
+      <FieldFull>
+        <Input
+          label={t('catalog.videoUrl')}
+          hint={t('catalog.videoUrlHint')}
+          name="videoUrl"
+          type="url"
+          placeholder="https://www.youtube.com/watch?v=…"
+        />
       </FieldFull>
       <Input label={t('catalog.country')} hint={t('catalog.countryHint')} name="country" defaultValue="BR" />
       <Input label={t('catalog.tags')} hint={t('catalog.tagsHint')} name="tags" placeholder="pasture, drought" />

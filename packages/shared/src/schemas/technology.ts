@@ -7,6 +7,14 @@ export const createTechnologyBodySchema = z.object({
   summary: z.string().min(10).max(2000),
   problemStatement: z.string().min(10).max(5000),
   howItWorks: z.string().min(10).max(5000),
+  videoUrl: z
+    .string()
+    .max(500)
+    .optional()
+    .nullable()
+    .refine((v) => v == null || v === '' || /^https?:\/\/.+/i.test(v), {
+      message: 'invalid_video_url',
+    }),
   organizationId: z.string().uuid(),
   country: z.string().length(2),
   region: z.string().max(64).optional(),
@@ -36,6 +44,7 @@ export const technologySchema = z.object({
   summary: z.string(),
   problemStatement: z.string(),
   howItWorks: z.string(),
+  videoUrl: z.string().nullable().optional(),
   status: z.enum([
     ContentStatus.DRAFT,
     ContentStatus.IN_REVIEW,

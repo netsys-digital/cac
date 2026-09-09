@@ -1,8 +1,16 @@
 import { useEffect, useState } from 'react';
-import { Link, useParams } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { catalogApi, type Project } from '../api/catalogApi';
-import { Chip, PageShell, shell } from '../components/PageChrome';
+import {
+  CatalogDetailBody,
+  CatalogDetailHero,
+  DetailHeroChip,
+  DetailOrgCard,
+  DetailSection,
+} from '../components/CatalogDetail';
+import { BackToSearchLink } from '../components/BackToSearchLink';
+import { shell } from '../components/PageChrome';
 
 export function ProjectDetailPage() {
   const { slug = '' } = useParams();
@@ -25,26 +33,53 @@ export function ProjectDetailPage() {
     };
   }, [slug, t]);
 
-  if (error) return <PageShell title={t('detail.notFound')} />;
+  if (error) {
+    return (
+      <div className={`${shell} py-12`}>
+        <h1 className="text-[1.5rem] font-black text-cac-navy">{t('detail.notFound')}</h1>
+        <div className="mt-4">
+          <BackToSearchLink className="inline-flex items-center gap-2 rounded-[10px] border border-cac-line bg-white px-3.5 py-2.5 text-[11px] font-black text-cac-navy" />
+        </div>
+      </div>
+    );
+  }
   if (!item) return <div className={`${shell} py-10 text-cac-muted`}>{t('detail.loading')}</div>;
 
   return (
-    <PageShell eyebrow={t('detail.projectBadge')} title={item.title}>
-      <article className="rounded-[16px] border border-cac-line bg-white p-4 shadow-[0_14px_38px_rgba(10,36,64,.10)]">
-        <div className="mb-3 flex flex-wrap gap-1.5">
-          <Chip>{item.type}</Chip>
-          {item.country ? <Chip>{item.country}</Chip> : null}
+    <div className="bg-cac-bg">
+      <CatalogDetailHero
+        eyebrow={t('detail.projectBadge')}
+        title={item.title}
+        summary={item.summary}
+        chips={
+          <>
+            <DetailHeroChip>{item.type}</DetailHeroChip>
+            {item.country ? <DetailHeroChip>{item.country}</DetailHeroChip> : null}
+            {item.region ? <DetailHeroChip>{item.region}</DetailHeroChip> : null}
+          </>
+        }
+      />
+      <CatalogDetailBody>
+        <div className="grid gap-6 lg:grid-cols-[minmax(0,1.45fr)_minmax(260px,0.7fr)] lg:gap-8">
+          <article className="cac-fade-up rounded-[18px] border border-cac-line bg-white px-5 py-6 shadow-[0_16px_40px_rgba(10,36,64,.07)] md:px-8">
+            <DetailSection title={t('detail.context')} index="01">
+              <p>{item.summary}</p>
+            </DetailSection>
+          </article>
+          <aside className="cac-fade-up-delay space-y-4">
+            {item.organization ? (
+              <DetailOrgCard
+                to={`/organizations/${item.organization.slug}`}
+                name={item.organization.name}
+                summary={item.organization.summary}
+                label={t('detail.organization')}
+                verifiedLabel={t('detail.verified')}
+                verified={item.organization.verificationStatus === 'VERIFIED'}
+              />
+            ) : null}
+          </aside>
         </div>
-        <p className="text-[11px] leading-relaxed text-cac-muted">{item.summary}</p>
-        {item.organization ? (
-          <Link
-            to={`/organizations/${item.organization.slug}`}
-            className="mt-5 block text-[11px] font-black text-cac-green"
-          >
-            {item.organization.name}
-          </Link>
-        ) : null}
-      </article>
-    </PageShell>
+      </CatalogDetailBody>
+    </div>
   );
 }

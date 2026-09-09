@@ -2,8 +2,25 @@ import { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { catalogApi, type Technology } from '../api/catalogApi';
-import { Chip, DetailPhoto, PageShell, shell } from '../components/PageChrome';
+import {
+  CatalogDetailBody,
+  CatalogDetailHero,
+  DetailActionStack,
+  DetailHeroChip,
+  DetailMetaChip,
+  DetailOrgCard,
+  DetailPrimaryButton,
+  DetailSecondaryButton,
+  DetailSection,
+} from '../components/CatalogDetail';
+import { BackToSearchLink } from '../components/BackToSearchLink';
+import { shell } from '../components/PageChrome';
 import { urls } from '../../config';
+
+function labelOrRaw(value: string | null | undefined, map: Record<string, string>) {
+  if (!value) return null;
+  return map[value] ?? value.replace(/_/g, ' ');
+}
 
 export function TechnologyDetailPage() {
   const { slug = '' } = useParams();
@@ -30,100 +47,134 @@ export function TechnologyDetailPage() {
 
   if (error) {
     return (
-      <PageShell title={t('detail.notFound')}>
-        <Link to="/search" className="text-[11px] font-black text-cac-green">
-          {t('detail.backSearch')}
-        </Link>
-      </PageShell>
+      <div className={`${shell} py-12`}>
+        <h1 className="text-[1.5rem] font-black text-cac-navy">{t('detail.notFound')}</h1>
+        <div className="mt-4">
+          <BackToSearchLink className="inline-flex items-center gap-2 rounded-[10px] border border-cac-line bg-white px-3.5 py-2.5 text-[11px] font-black text-cac-navy" />
+        </div>
+      </div>
     );
   }
 
   if (!item) {
-    return (
-      <div className={`${shell} py-10 text-cac-muted`}>{t('detail.loading')}</div>
-    );
+    return <div className={`${shell} py-10 text-cac-muted`}>{t('detail.loading')}</div>;
   }
 
-  return (
-    <PageShell
-      eyebrow={t('detail.solutionBadge')}
-      title={item.title}
-      actions={
-        <Link
-          to="/search"
-          className="rounded-[10px] border border-cac-line bg-white px-3.5 py-2.5 text-[11px] font-black text-cac-navy"
-        >
-          {t('detail.backSearch')}
-        </Link>
-      }
-    >
-      <div className="grid gap-4 lg:grid-cols-[1.15fr_.85fr]">
-        <article className="rounded-[16px] border border-cac-line bg-white p-4 shadow-[0_14px_38px_rgba(10,36,64,.10)]">
-          <DetailPhoto />
-          <p className="mt-3 text-[11px] leading-relaxed text-cac-muted">{item.summary}</p>
-          <h2 className="mt-5 text-[14px] font-black text-cac-navy">{t('detail.problem')}</h2>
-          <p className="mt-2 text-[11px] leading-relaxed text-cac-muted">{item.problemStatement}</p>
-          <h2 className="mt-5 text-[14px] font-black text-cac-navy">{t('detail.how')}</h2>
-          <p className="mt-2 text-[11px] leading-relaxed text-cac-muted">{item.howItWorks}</p>
-          <div className="mt-4 flex flex-wrap gap-1.5">
-            <Chip>{item.country}</Chip>
-            {item.climateAction ? <Chip>{item.climateAction}</Chip> : null}
-            {item.maturity ? <Chip>{item.maturity}</Chip> : null}
-            {item.tags.map((tag) => (
-              <Chip key={tag}>{tag}</Chip>
-            ))}
-          </div>
-          <div className="mt-5 flex flex-wrap gap-2">
-            <a
-              href={`${urls.web}/login?returnUrl=${encodeURIComponent(`/connections/new?targetType=TECHNOLOGY&targetId=${item.id}`)}`}
-              className="rounded-[10px] bg-cac-green2 px-3.5 py-2.5 text-[11px] font-black text-white"
-            >
-              {t('detail.interest')}
-            </a>
-            <a
-              href={`${urls.web}/login?returnUrl=${encodeURIComponent(`/connections/new?targetType=TECHNOLOGY&targetId=${item.id}`)}`}
-              className="rounded-[10px] border border-cac-green bg-white px-3.5 py-2.5 text-[11px] font-black text-cac-green"
-            >
-              {t('detail.connect')}
-            </a>
-            <a
-              href={`${urls.web}/login?returnUrl=${encodeURIComponent(`/connections/new?targetType=TECHNOLOGY&targetId=${item.id}&intent=save`)}`}
-              className="rounded-[10px] border border-cac-line bg-white px-3.5 py-2.5 text-[11px] font-black text-cac-navy"
-            >
-              {t('detail.favorite')}
-            </a>
-            <a
-              href={`${urls.web}/catalog/challenges/new`}
-              className="rounded-[10px] border border-cac-line bg-white px-3.5 py-2.5 text-[11px] font-black text-cac-navy"
-            >
-              {t('home.path03')}
-            </a>
-          </div>
-        </article>
+  const climate = labelOrRaw(item.climateAction, {
+    ADAPTATION: t('detail.climate.adaptation'),
+    MITIGATION: t('detail.climate.mitigation'),
+    BOTH: t('detail.climate.both'),
+  });
+  const maturity = labelOrRaw(item.maturity, {
+    RESEARCH: t('detail.maturity.research'),
+    VALIDATION: t('detail.maturity.validation'),
+    DEMONSTRATION: t('detail.maturity.demonstration'),
+    READY_FOR_IMPLEMENTATION: t('detail.maturity.ready'),
+    AT_SCALE: t('detail.maturity.scale'),
+  });
 
-        <aside className="space-y-3">
-          {item.organization ? (
-            <Link
-              to={`/organizations/${item.organization.slug}`}
-              className="block rounded-[16px] border border-cac-line bg-white p-4 shadow-[0_14px_38px_rgba(10,36,64,.10)]"
-            >
-              <p className="text-[10px] font-black tracking-wide text-cac-green uppercase">
-                {t('detail.organization')}
+  const connectUrl = `${urls.web}/login?returnUrl=${encodeURIComponent(`/connections/new?targetType=TECHNOLOGY&targetId=${item.id}`)}`;
+  const favoriteUrl = `${urls.web}/login?returnUrl=${encodeURIComponent(`/connections/new?targetType=TECHNOLOGY&targetId=${item.id}&intent=save`)}`;
+
+  return (
+    <div className="bg-cac-bg">
+      <CatalogDetailHero
+        eyebrow={t('detail.solutionBadge')}
+        title={item.title}
+        summary={item.summary}
+        videoUrl={item.videoUrl}
+        chips={
+          <>
+            {item.country ? <DetailHeroChip>{item.country}</DetailHeroChip> : null}
+            {item.region ? <DetailHeroChip>{item.region}</DetailHeroChip> : null}
+            {climate ? <DetailHeroChip>{climate}</DetailHeroChip> : null}
+            {maturity ? <DetailHeroChip>{maturity}</DetailHeroChip> : null}
+          </>
+        }
+      />
+
+      <CatalogDetailBody>
+        <div className="grid gap-6 lg:grid-cols-[minmax(0,1.45fr)_minmax(260px,0.7fr)] lg:gap-8">
+          <article className="cac-fade-up rounded-[18px] border border-cac-line bg-white px-5 py-2 shadow-[0_16px_40px_rgba(10,36,64,.07)] md:px-8">
+            <DetailSection title={t('detail.problem')} index="01">
+              <p>{item.problemStatement}</p>
+            </DetailSection>
+
+            <DetailSection title={t('detail.how')} index="02">
+              <p>{item.howItWorks}</p>
+            </DetailSection>
+
+            {item.tags.length ? (
+              <DetailSection title={t('detail.topics')} index="03">
+                <div className="flex flex-wrap gap-1.5">
+                  {item.tags.map((tag) => (
+                    <DetailMetaChip key={tag}>{tag}</DetailMetaChip>
+                  ))}
+                </div>
+              </DetailSection>
+            ) : null}
+
+            <DetailSection title={t('detail.nextSteps')} index="04">
+              <p className="text-cac-muted">{t('detail.nextStepsBody')}</p>
+              <ul className="mt-4 space-y-2.5 text-[0.85rem] text-cac-navy">
+                <li className="flex gap-2">
+                  <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-cac-green" />
+                  {t('detail.pathImpl')}
+                </li>
+                <li className="flex gap-2">
+                  <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-cac-green" />
+                  {t('detail.pathProjects')}
+                </li>
+                <li className="flex gap-2">
+                  <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-cac-green" />
+                  {t('detail.pathFunding')}
+                </li>
+              </ul>
+            </DetailSection>
+          </article>
+
+          <aside className="cac-fade-up-delay-2 space-y-4">
+            {item.organization ? (
+              <DetailOrgCard
+                to={`/organizations/${item.organization.slug}`}
+                name={item.organization.name}
+                summary={item.organization.summary}
+                label={t('detail.organization')}
+                verifiedLabel={t('detail.verified')}
+                verified={item.organization.verificationStatus === 'VERIFIED'}
+              />
+            ) : null}
+
+            <DetailActionStack>
+              <p className="text-[0.65rem] font-black tracking-[1.4px] text-cac-muted uppercase">
+                {t('detail.actions')}
               </p>
-              <h3 className="mt-1 text-[14px] font-black text-cac-navy">{item.organization.name}</h3>
-              <p className="mt-2 text-[10px] text-cac-muted">{item.organization.summary}</p>
-            </Link>
-          ) : null}
-          <div className="rounded-[16px] border border-cac-line bg-[#eff7f3] p-4">
-            <p className="text-[10px] font-black text-cac-navy uppercase">{t('detail.complementary')}</p>
-            <ul className="mt-3 space-y-2 text-[10px] leading-snug text-cac-muted">
-              <li>{t('detail.pathImpl')}</li>
-              <li>{t('detail.pathProjects')}</li>
-              <li>{t('detail.pathFunding')}</li>
-            </ul>
-          </div>
-        </aside>
-      </div>
-    </PageShell>
+              <DetailPrimaryButton href={connectUrl}>{t('detail.interest')}</DetailPrimaryButton>
+              <DetailSecondaryButton href={connectUrl}>{t('detail.connect')}</DetailSecondaryButton>
+              <DetailSecondaryButton href={favoriteUrl}>{t('detail.favorite')}</DetailSecondaryButton>
+              <DetailSecondaryButton href={`${urls.web}/catalog/challenges/new`}>
+                {t('home.path03')}
+              </DetailSecondaryButton>
+              <p className="pt-1 text-[0.7rem] leading-snug text-cac-muted">{t('detail.actionsHint')}</p>
+            </DetailActionStack>
+
+            <div className="rounded-[16px] border border-dashed border-cac-line bg-[#eff7f3] p-5">
+              <p className="text-[0.65rem] font-black tracking-[1.4px] text-cac-navy uppercase">
+                {t('detail.complementary')}
+              </p>
+              <p className="mt-2 text-[0.75rem] leading-relaxed text-cac-muted">
+                {t('detail.complementaryHint')}
+              </p>
+              <Link
+                to="/funding"
+                className="mt-3 inline-flex text-[0.75rem] font-black text-cac-green hover:underline"
+              >
+                {t('detail.pathFunding')} →
+              </Link>
+            </div>
+          </aside>
+        </div>
+      </CatalogDetailBody>
+    </div>
   );
 }

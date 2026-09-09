@@ -173,6 +173,7 @@ async function upsertCatalog() {
       climateAction: ClimateAction.ADAPTATION,
       maturity: Maturity.READY_FOR_IMPLEMENTATION,
       tags: ['pastagem', 'seca', 'adaptação', 'pecuária', 'recuperação'],
+      videoUrl: 'https://www.youtube.com/watch?v=ScMzIvxBSi4',
     },
     {
       slug: 'manejo-hidrico-pequenos-produtores',
@@ -242,6 +243,7 @@ async function upsertCatalog() {
         summary: data.summary,
         problemStatement: data.problemStatement,
         howItWorks: data.howItWorks,
+        videoUrl: 'videoUrl' in data ? ((data as { videoUrl?: string }).videoUrl ?? null) : undefined,
         organizationId: data.organizationId,
         country: data.country,
         region: data.region,

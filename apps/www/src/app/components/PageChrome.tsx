@@ -42,6 +42,7 @@ export function ResultCard({
   tags,
   score,
   factors,
+  onNavigate,
 }: {
   to: string;
   title: string;
@@ -50,6 +51,7 @@ export function ResultCard({
   tags?: string[];
   score?: string;
   factors?: Array<{ label: string; weight: number; value: number }>;
+  onNavigate?: () => void;
 }) {
   const { t } = useTranslation();
   const topFactors = (factors ?? [])
@@ -60,6 +62,7 @@ export function ResultCard({
   return (
     <Link
       to={to}
+      onClick={() => onNavigate?.()}
       className="grid grid-cols-[1fr_auto] items-start gap-3 rounded-[13px] border border-cac-line bg-white p-3.5 transition hover:-translate-y-0.5 hover:border-cac-green/40 sm:grid-cols-[4.5rem_1fr_auto] sm:items-center sm:gap-3"
     >
       <span className="hidden h-[4.25rem] rounded-[9px] bg-gradient-to-br from-[#d5ebde] to-[#91b58b] sm:block" />
