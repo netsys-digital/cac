@@ -9,7 +9,25 @@ COMPOSE=(docker compose -f docker-compose.prod.yml --env-file .env.prod)
 FORCE_ALL=0
 [[ "${1:-}" == "--full" ]] && FORCE_ALL=1
 
-DOCKER_CONFIG_DIR="$(cd ../docker-config 2>/dev/null && pwd || true)"
+resolve_docker_config() {
+  local candidates=(
+    "${DOCKER_CONFIG_DIR:-}"
+    "$(cd "$(dirname "$0")" && pwd)/../docker-config"
+    /app/docker-config
+    /app/netsys-apps/docker-config
+  )
+  local d
+  for d in "${candidates[@]}"; do
+    [[ -z "$d" ]] && continue
+    if [[ -f "$d/docker-compose.yml" && -f "$d/.env" ]]; then
+      echo "$(cd "$d" && pwd)"
+      return 0
+    fi
+  done
+  return 1
+}
+
+DOCKER_CONFIG_DIR="$(resolve_docker_config || true)"
 
 mkdir -p /var/lock
 exec 9>/var/lock/cac-deploy.lock
@@ -60,24 +78,39 @@ smoke_test() {
   wait_http "http://127.0.0.1:8086/" || fail=1
 
   # Frontends Vite: JS não deve apontar para localhost (build sem PUBLIC_*)
-  local js_web js_www
+  # nem retornar text/html (try_files → página em branco).
+  local js_web js_www ctype
   js_www="$(curl -s http://127.0.0.1:8084/ | grep -oE '/assets/[^"]+\.js' | head -1 || true)"
   js_web="$(curl -s http://127.0.0.1:8086/ | grep -oE '/assets/[^"]+\.js' | head -1 || true)"
   if [[ -n "$js_www" ]]; then
-    if curl -s "http://127.0.0.1:8084${js_www}" | grep -q 'localhost:5178'; then
+    ctype="$(curl -s -o /tmp/cac-smoke-www.js -w '%{content_type}' "http://127.0.0.1:8084${js_www}" || true)"
+    if echo "$ctype" | grep -qi html || head -c 32 /tmp/cac-smoke-www.js | grep -qi '<!DOCTYPE\|<html'; then
+      echo "  FAIL portal JS é HTML (${js_www} ctype=${ctype}) — rebuild www / assets ausentes"
+      fail=1
+    elif curl -s "http://127.0.0.1:8084${js_www}" | grep -q 'localhost:5178'; then
       echo "  FAIL portal JS ainda contém localhost:5178 (rebuild www com --env-file .env.prod)"
       fail=1
     else
       echo "  portal assets OK (${js_www})"
     fi
+  else
+    echo "  FAIL portal: HTML sem /assets/*.js"
+    fail=1
   fi
   if [[ -n "$js_web" ]]; then
-    if curl -s "http://127.0.0.1:8086${js_web}" | grep -q 'localhost:5178'; then
+    ctype="$(curl -s -o /tmp/cac-smoke-web.js -w '%{content_type}' "http://127.0.0.1:8086${js_web}" || true)"
+    if echo "$ctype" | grep -qi html || head -c 32 /tmp/cac-smoke-web.js | grep -qi '<!DOCTYPE\|<html'; then
+      echo "  FAIL gestor JS é HTML (${js_web} ctype=${ctype}) — rebuild web / assets ausentes"
+      fail=1
+    elif curl -s "http://127.0.0.1:8086${js_web}" | grep -q 'localhost:5178'; then
       echo "  FAIL gestor JS ainda contém localhost:5178"
       fail=1
     else
       echo "  gestor assets OK (${js_web})"
     fi
+  else
+    echo "  FAIL gestor: HTML sem /assets/*.js"
+    fail=1
   fi
 
   "${COMPOSE[@]}" ps
@@ -104,7 +137,7 @@ recreate_svc() {
 
 ensure_netsys_infra() {
   if [[ -z "${DOCKER_CONFIG_DIR}" || ! -f "${DOCKER_CONFIG_DIR}/docker-compose.yml" ]]; then
-    echo "docker-config não encontrado em ../docker-config (infra compartilhada)."
+    echo "docker-config não encontrado (tente /app/docker-config ou ../docker-config)."
     exit 1
   fi
   if [[ ! -f "${DOCKER_CONFIG_DIR}/.env" ]]; then
@@ -112,7 +145,7 @@ ensure_netsys_infra() {
     exit 1
   fi
 
-  echo "Garante infra compartilhada (postgres + redis)…"
+  echo "Garante infra compartilhada (postgres + redis) em ${DOCKER_CONFIG_DIR}…"
   (cd "${DOCKER_CONFIG_DIR}" && docker compose --env-file .env up -d postgres redis)
 
   local i

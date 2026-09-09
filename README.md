@@ -8,124 +8,128 @@ Monorepo da plataforma Climate Action Connect — **E0–E6 PASS** (Marco 1 demo
 - React 19 · Vite 7 · Tailwind CSS · i18n (PT/EN)
 - Apps: `@cac/api` · `@cac/www` · `@cac/web` · packages `@cac/shared` · `@cac/ui`
 
-## Subir com Docker (stack completo)
+## Paths
+
+| Ambiente | Path |
+|---|---|
+| Dev (WSL) | `/app/netsys-apps/cac` |
+| Produção (servidor) | `/app/cac` |
+| Infra compartilhada | `/app/docker-config` (rede `netsys`, postgres, redis) |
+
+## 1) Ambiente local (do zero)
 
 ```bash
-cp .env.example .env
-docker compose up --build
+cd /app/netsys-apps/cac
+bash scripts/bootstrap-local.sh
+docker compose up -d postgres redis api api-worker
+docker compose stop web www          # libera 5178/5179 para Vite
+npm install
+npm run db:migrate -w @cac/api
+npm run db:seed -w @cac/api
+bash scripts/dev-frontends.sh        # ou: npm run dev:www / npm run dev:web
 ```
 
 | Serviço | URL |
 |---|---|
-| Portal (`www`) | http://localhost:5179 |
-| Painel (`web`) | http://localhost:5178 |
+| Portal (`www`) Vite | http://localhost:5179 |
+| Painel (`web`) Vite | http://localhost:5178 |
 | API | http://localhost:3003 |
 | Postgres | localhost:5433 |
 | Redis | localhost:6381 |
 
-## Desenvolvimento local (recomendado no dia a dia)
-
-> **Importante:** não misture Docker `web`/`www` com Vite nas mesmas portas.
-> O container Docker serve um **build antigo** (sem HMR). O layout novo só aparece no **Vite**.
-> Se `5179` parecer “layout velho”, quase sempre é o nginx Docker — pare com `docker compose stop web www`.
-
-Evita conflito de porta entre Docker nginx e Vite:
-
-```bash
-cp .env.example .env
-docker compose up -d postgres redis api api-worker
-docker compose stop web www   # libera 5178/5179
-# ou de uma vez:
-bash scripts/dev-frontends.sh
-```
-
-Manual:
-
-```bash
-npm run dev:www   # http://localhost:5179 — layout atual
-npm run dev:web   # http://localhost:5178
-```
-
-Hard refresh no browser se ainda parecer cache: `Ctrl+Shift+R`.
+> Não misture Docker `web`/`www` com Vite nas mesmas portas. O container Docker serve build estático (sem HMR).
 
 ### Credenciais seed
 
 - Admin: `admin@cac.local` / `Admin123!`
 - Curador: `curador@cac.local` / `Curador123!`
 
-### Smoke E0
+### Smoke local
 
 ```bash
 curl -s http://localhost:3003/health
-curl -s http://localhost:3003/ready
 curl -s -X POST http://localhost:3003/api/auth/login \
   -H 'Content-Type: application/json' \
   -d '{"email":"admin@cac.local","password":"Admin123!"}'
 ```
 
-## Demo hospedada (Marco 1 / E6)
+## 2) Produção — instalação do zero
 
-Portas no host NETSYS (sem conflito com Usinup `8080`, Agipoint `8081–8083`, Netsys `8085`):
+No servidor (`/app/cac`), com docker-config já no ar:
 
-| Porta | App | Domínio |
+```bash
+cd /app/cac
+git pull origin main   # ou clone fresco
+
+cp .env.prod.example .env.prod
+# Edite obrigatoriamente:
+#   CAC_DB_PASSWORD, POSTGRES_PASSWORD (iguais)
+#   JWT_SECRET, JWT_REFRESH_SECRET (≥32 chars)
+#   CORS_ORIGIN / PUBLIC_* se os domínios mudarem
+
+bash scripts/install-prod.sh
+# Banco limpo (apaga schema public do DB cac):
+# bash scripts/install-prod.sh --wipe-db
+```
+
+| Porta host | App | Domínio |
 |---|---|---|
 | **8084** | Portal (`www` + `/api`) | `portalcac.netsys.company` |
 | **8086** | Gestor (`web` + `/api`) | `gestorcac.netsys.company` |
 
+Nginx do host (TLS com certbot):
+
 ```bash
-cp .env.prod.example .env.prod   # ajuste senhas / CORS
-docker compose -f docker-compose.prod.yml --env-file .env.prod up -d --build
-# Anexar snippet ao nginx do host:
-#   deploy/nginx/netsys-apps-cac.conf.snippet → /etc/nginx/sites-available/netsys-apps
+# Anexar: deploy/nginx/netsys-apps-cac.conf.snippet → sites-available
 sudo nginx -t && sudo systemctl reload nginx
-bash scripts/smoke-marco1.sh          # API em :8084
-bash scripts/backup-postgres.sh
+sudo certbot --nginx -d portalcac.netsys.company -d gestorcac.netsys.company
 ```
 
-Local sem DNS: http://localhost:8084 · http://localhost:8086
-
-Roteiro: [`_REQUISITOS/roteiro-demo-marco1.md`](./_REQUISITOS/roteiro-demo-marco1.md)
-
-> PostgreSQL 16 (não MySQL). Backups via `pg_dump`.
-
-### Deploy automatizado (GitHub Actions)
-
-No push em `main` roda só o **CI** (lint/test/build).
-
-O **Deploy produção** é manual por enquanto (`workflow_dispatch`). Roda `bash deploy.sh --full` (rebuild web/www **sem cache** Docker).
-
-Se o layout não atualizar no browser: `Ctrl+Shift+R` ou purge na Cloudflare (HTML/JS em cache).
-
-| Item | Valor |
-|---|---|
-| Workflow CI | `.github/workflows/ci.yml` — automático no push/PR |
-| Workflow deploy | `.github/workflows/deploy.yml` — **Run workflow** na UI |
-| Script | `deploy.sh` (`--full` força rebuild geral) |
-| Path no servidor | `/app/cac` |
-| Environment GitHub | `DEPLOY_HETZNER` |
-| Secrets (obrigatórios) | `DEPLOY_HOST` · `DEPLOY_USER` · `DEPLOY_SSH_KEY` |
-
-**Configurar secrets (uma vez):** Settings → Environments → `DEPLOY_HETZNER` → Environment secrets  
-(mesmo padrão do `escolar`, se for o mesmo servidor pode reutilizar host/user/key).
-
-Depois dos secrets, para voltar o deploy no push: descomente o bloco `push:` em `deploy.yml`.
-
-No servidor (uma vez):
+Smoke no host:
 
 ```bash
-cd /app/cac
-cp .env.prod.example .env.prod   # JWT, senhas, CORS dos domínios
-chmod +x deploy.sh
+curl -s http://127.0.0.1:8084/health
+curl -sI http://127.0.0.1:8084/ | head -5
+# JS deve ser application/javascript — nunca text/html
+JS=$(curl -s http://127.0.0.1:8084/ | grep -oE '/assets/[^"]+\.js' | head -1)
+curl -sI "http://127.0.0.1:8084$JS" | head -10
+bash scripts/smoke-marco1.sh
 ```
 
-Manual no host:
+> **Postgres compartilhado:** tabelas do banco `cac` devem ser **OWNER `cac`**.  
+> `deploy.sh` / `install-prod.sh` rodam `scripts/prod-db-prepare.sh` antes de recrear a API.
+
+## 3) Deploy contínuo
 
 ```bash
 bash deploy.sh          # incremental conforme diff
-bash deploy.sh --full   # rebuild api + worker + web + www + gateway
+bash deploy.sh --full   # rebuild api + worker + web + www + gateway (sem cache nos fronts)
 ```
+
+### GitHub Actions
+
+| Item | Valor |
+|---|---|
+| CI | `.github/workflows/ci.yml` — push/PR |
+| Deploy | `.github/workflows/deploy.yml` — **manual** (`workflow_dispatch`) |
+| Path no servidor | `/app/cac` |
+| Environment | `DEPLOY_HETZNER` |
+| Secrets | `DEPLOY_HOST` · `DEPLOY_USER` · `DEPLOY_SSH_KEY` |
+
+O deploy remoto executa `bash deploy.sh --full` em `/app/cac`.
+
+## Variáveis críticas (prod)
+
+| Variável | Uso |
+|---|---|
+| `CAC_DB_PASSWORD` | Senha do role `cac` no Postgres compartilhado (obrigatória no compose) |
+| `PUBLIC_WWW_URL` / `PUBLIC_WEB_URL` | Bake no build Vite dos containers www/web |
+| `PUBLIC_API_URL` | Vazio = `/api` same-origin |
+| `GATEWAY_PORT_*` | 8084 / 8086 no host |
+
+Arquivos: [`.env.example`](./.env.example) (local) · [`.env.prod.example`](./.env.prod.example) (prod).
 
 ## Aceite
 
-Status detalhado: [`_REQUISITOS/aceite-e0-e1-status.md`](./_REQUISITOS/aceite-e0-e1-status.md) (E0–E6).
-
+Status: [`_REQUISITOS/aceite-e0-e1-status.md`](./_REQUISITOS/aceite-e0-e1-status.md) (E0–E6).  
+Roteiro demo: [`_REQUISITOS/roteiro-demo-marco1.md`](./_REQUISITOS/roteiro-demo-marco1.md).

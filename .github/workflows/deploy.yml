@@ -48,6 +48,7 @@ jobs:
           command_timeout: 25m
           script: |
             set -euo pipefail
+            # Path canônico de produção (não confundir com clone local /app/netsys-apps/cac)
             cd /app/cac
             # --full: garante rebuild de web/www sem cache Docker (layout/UI Vite)
             bash deploy.sh --full

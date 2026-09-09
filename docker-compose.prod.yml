@@ -1,8 +1,11 @@
 # Produção — CAC na rede netsys (Postgres/Redis compartilhados).
-# Pré-requisito: docker-config no ar. Origem (cac_postgres_data) preservada.
+# Path canônico no servidor: /app/cac
+# Pré-requisito: docker-config (/app/docker-config) + volume cac_uploads_data.
 #
-#   cd /app/netsys-apps/cac
-#   docker compose -f docker-compose.prod.yml --env-file .env.prod up --build -d
+# Instalação do zero:
+#   bash scripts/install-prod.sh
+# Deploy incremental:
+#   bash deploy.sh [--full]
 
 name: cac
 
@@ -22,7 +25,7 @@ services:
     env_file:
       - ${ENV_FILE:-.env.prod}
     environment:
-      DATABASE_URL: postgresql://cac:${CAC_DB_PASSWORD}@postgres:5432/cac
+      DATABASE_URL: postgresql://cac:${CAC_DB_PASSWORD:?CAC_DB_PASSWORD required in .env.prod}@postgres:5432/cac
       REDIS_URL: redis://redis:6379/5
       API_PORT: '3003'
       NODE_ENV: production
@@ -52,7 +55,7 @@ services:
     env_file:
       - ${ENV_FILE:-.env.prod}
     environment:
-      DATABASE_URL: postgresql://cac:${CAC_DB_PASSWORD}@postgres:5432/cac
+      DATABASE_URL: postgresql://cac:${CAC_DB_PASSWORD:?CAC_DB_PASSWORD required in .env.prod}@postgres:5432/cac
       REDIS_URL: redis://redis:6379/5
       NODE_ENV: production
       OFFLINE_MODE: ${OFFLINE_MODE:-true}

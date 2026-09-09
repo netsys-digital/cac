@@ -17,3 +17,7 @@ _MATERIAIS
 _REQUISITOS
 backups
 temp/
+.diag-*.html
+cac_full_diag.txt
+.cac-prod-fix-*.sh
+.cac-blank-diag.out

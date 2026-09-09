@@ -4,7 +4,7 @@ set -euo pipefail
 KEY="${SSH_KEY:-$HOME/NETSYS_HETZNER}"
 HOST="${SSH_HOST:-root@77.42.127.221}"
 SSH=(ssh -i "$KEY" -o StrictHostKeyChecking=accept-new "$HOST")
-REPO=/app/netsys-apps/cac
+REPO=/app/cac
 COMPOSE="docker compose -f docker-compose.prod.yml --env-file .env.prod"
 
 echo "==> DDL + ownership"
