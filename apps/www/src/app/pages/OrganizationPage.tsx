@@ -3,6 +3,7 @@ import { Link, useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { catalogApi, type OrgSummary, type Technology } from '../api/catalogApi';
 import { Chip, PageShell, ResultCard, shell } from '../components/PageChrome';
+import { resolveMediaUrl } from '../lib/mediaUrl';
 
 export function OrganizationPage() {
   const { slug = '' } = useParams();
@@ -62,6 +63,7 @@ export function OrganizationPage() {
             title={tech.title}
             meta={tech.summary}
             tags={tech.tags}
+            imageUrl={resolveMediaUrl(tech.coverImageUrl)}
           />
         ))}
         {!techs.length ? <p className="text-pequena text-cac-muted">{t('detail.emptyList')}</p> : null}

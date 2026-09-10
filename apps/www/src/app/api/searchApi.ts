@@ -27,6 +27,7 @@ export type SearchResult = {
   country?: string | null;
   region?: string | null;
   organizationName?: string | null;
+  coverImageUrl?: string | null;
 };
 
 export type SearchResponse = {

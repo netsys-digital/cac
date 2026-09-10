@@ -17,20 +17,18 @@ export const createTechnologyBodySchema = z.object({
     }),
   organizationId: z.string().uuid(),
   country: z.string().length(2),
-  region: z.string().max(64).optional(),
+  region: z.string().min(2).max(64),
   climateAction: z
     .enum([ClimateAction.ADAPTATION, ClimateAction.MITIGATION, ClimateAction.BOTH])
     .optional(),
-  maturity: z
-    .enum([
-      Maturity.RESEARCH,
-      Maturity.VALIDATION,
-      Maturity.DEMONSTRATION,
-      Maturity.READY_FOR_IMPLEMENTATION,
-      Maturity.AT_SCALE,
-    ])
-    .optional(),
-  tags: z.array(z.string().min(1).max(64)).max(20).optional(),
+  maturity: z.enum([
+    Maturity.RESEARCH,
+    Maturity.VALIDATION,
+    Maturity.DEMONSTRATION,
+    Maturity.READY_FOR_IMPLEMENTATION,
+    Maturity.AT_SCALE,
+  ]),
+  tags: z.array(z.string().min(1).max(64)).min(1).max(20),
 });
 
 export const updateTechnologyBodySchema = createTechnologyBodySchema

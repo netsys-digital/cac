@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Button } from '@cac/ui';
+import { formatDateTime } from '@cac/shared';
 import { useAuth } from '../../auth/AuthContext';
 import {
   myContentsApi,
@@ -47,7 +48,7 @@ function curationNoteLabel(status: string, t: (key: string) => string) {
 function MetricCard({ label, value, hint }: { label: string; value: string | number; hint?: string }) {
   return (
     <div
-      className="min-w-[72px] rounded-xl border border-cac-line bg-[#f7faf8] px-2.5 py-2 text-center"
+      className="min-w-[4.5rem] shrink-0 rounded-xl border border-cac-line bg-[#f7faf8] px-2 py-2 text-center"
       title={hint}
     >
       <p className="text-media font-bold leading-none text-cac-navy">{value}</p>
@@ -57,7 +58,7 @@ function MetricCard({ label, value, hint }: { label: string; value: string | num
 }
 
 export function MyContentsPage() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { accessToken } = useAuth();
   const [items, setItems] = useState<MyContentItem[]>([]);
   const [counts, setCounts] = useState({ DRAFT: 0, IN_REVIEW: 0, PUBLISHED: 0, ARCHIVED: 0 });
@@ -331,7 +332,7 @@ export function MyContentsPage() {
               return (
                 <li
                   key={`${item.kind}-${item.id}`}
-                  className="grid gap-4 px-4 py-4 md:grid-cols-[minmax(0,1.4fr)_minmax(280px,1fr)_auto] md:items-center md:px-5"
+                  className="grid gap-4 px-4 py-4 md:grid-cols-[minmax(0,1.2fr)_auto_auto] md:items-center md:px-5"
                 >
                   <div className="min-w-0">
                     <div className="flex flex-wrap items-center gap-2">
@@ -344,7 +345,8 @@ export function MyContentsPage() {
                     </div>
                     <p className="mt-1.5 truncate text-media font-bold text-cac-navy">{item.title}</p>
                     <p className="mt-0.5 text-pequena text-cac-muted">
-                      {item.organizationName} · {item.country} · {new Date(item.updatedAt).toLocaleString()}
+                      {item.organizationName} · {item.country} ·{' '}
+                      {formatDateTime(item.updatedAt, i18n.language)}
                     </p>
                     {item.curationNote ? (
                       <p className="mt-2 rounded-lg border border-cac-line bg-[#fbfcfb] px-2.5 py-2 text-pequena leading-snug text-cac-navy">
@@ -354,7 +356,7 @@ export function MyContentsPage() {
                     ) : null}
                   </div>
 
-                  <div className="flex flex-wrap gap-2">
+                  <div className="flex flex-nowrap gap-2 overflow-x-auto pb-0.5">
                     <MetricCard label={t('mine.metrics.likes')} value={m.likes} hint={t('mine.metrics.likesHint')} />
                     <MetricCard
                       label={t('mine.metrics.connections')}

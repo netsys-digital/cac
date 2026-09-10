@@ -5,7 +5,7 @@ import {
   updateTechnologyBodySchema,
   UserRole,
 } from '@cac/shared';
-import { assertCanActForOrganization } from '../../lib/org-access.js';
+import { assertCanActForOrganization, assertCanPublishKind } from '../../lib/org-access.js';
 import { prisma } from '../../lib/prisma.js';
 import { slugify } from '../../lib/slug.js';
 import { requireAuth, requireRole } from '../../middleware/auth.js';
@@ -84,7 +84,7 @@ technologiesRouter.get('/:slugOrId', async (req, res, next) => {
 
 technologiesRouter.post('/', requireAuth, validateBody(createTechnologyBodySchema), async (req, res, next) => {
   try {
-    await assertCanActForOrganization(req.auth!.sub, req.body.organizationId, req.auth!.role);
+    await assertCanPublishKind(req.auth!.sub, req.body.organizationId, req.auth!.role, 'TECHNOLOGY');
     const slug = req.body.slug || slugify(req.body.title);
     const existing = await prisma.technology.findUnique({ where: { slug } });
     if (existing) {

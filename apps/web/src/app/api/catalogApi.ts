@@ -1,27 +1,5 @@
 import type { AuthUser } from '@cac/shared';
-import { urls } from '../../config';
-
-async function api<T>(
-  path: string,
-  options: RequestInit & { accessToken?: string | null } = {},
-): Promise<T> {
-  const { accessToken, headers, ...rest } = options;
-  const res = await fetch(`${urls.api}${path}`, {
-    credentials: 'include',
-    ...rest,
-    headers: {
-      ...(rest.body instanceof FormData ? {} : { 'Content-Type': 'application/json' }),
-      ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
-      ...headers,
-    },
-  });
-  if (!res.ok) {
-    const body = await res.json().catch(() => ({}));
-    throw new Error((body as { error?: string }).error ?? `http_${res.status}`);
-  }
-  if (res.status === 204) return undefined as T;
-  return (await res.json()) as T;
-}
+import { api } from './http';
 
 export type Organization = {
   id: string;
@@ -30,6 +8,20 @@ export type Organization = {
   verificationStatus: string;
   country?: string | null;
   region?: string | null;
+  logoUrl?: string | null;
+  publishKinds?: Array<'TECHNOLOGY' | 'CHALLENGE' | 'FUNDING_OFFER' | 'SUCCESS_CASE'>;
+};
+
+export type AdminOrganization = Organization & {
+  summary?: string | null;
+  website?: string | null;
+  _count?: {
+    members: number;
+    technologies: number;
+    challenges: number;
+    fundingOffers: number;
+    successCases: number;
+  };
 };
 
 export type RepresentationRequest = {
@@ -38,6 +30,8 @@ export type RepresentationRequest = {
   unit: string;
   linkRole: string;
   interest: string;
+  proofDocument1Url?: string;
+  proofDocument2Url?: string | null;
   organizationId: string;
   organization?: Organization;
   user?: Pick<AuthUser, 'id' | 'email' | 'name'>;
@@ -46,33 +40,91 @@ export type RepresentationRequest = {
 export const catalogApi = {
   listOrganizations: (token: string) =>
     api<{ items: Organization[] }>('/api/organizations', { accessToken: token }),
-  createOrganization: (token: string, body: Record<string, unknown>) =>
-    api<{ organization: Organization }>('/api/organizations', {
+  createOrganization: (
+    token: string,
+    body: {
+      name: string;
+      summary: string;
+      country: string;
+      region: string;
+      website?: string;
+      logo: File;
+    },
+  ) => {
+    const form = new FormData();
+    form.append('name', body.name);
+    form.append('summary', body.summary);
+    form.append('country', body.country);
+    form.append('region', body.region);
+    if (body.website) form.append('website', body.website);
+    form.append('logo', body.logo);
+    return api<{ organization: Organization }>('/api/organizations', {
       method: 'POST',
       accessToken: token,
-      body: JSON.stringify(body),
-    }),
-  createRepresentation: (token: string, orgId: string, body: Record<string, unknown>) =>
-    api<{ request: RepresentationRequest }>(`/api/organizations/${orgId}/representation-requests`, {
-      method: 'POST',
-      accessToken: token,
-      body: JSON.stringify(body),
-    }),
+      body: form,
+    });
+  },
+  createRepresentation: (
+    token: string,
+    orgId: string,
+    body: {
+      unit: string;
+      linkRole: string;
+      interest: string;
+      proofDocument1: File;
+      proofDocument2?: File | null;
+    },
+  ) => {
+    const form = new FormData();
+    form.append('unit', body.unit);
+    form.append('linkRole', body.linkRole);
+    form.append('interest', body.interest);
+    form.append('proofDocument1', body.proofDocument1);
+    if (body.proofDocument2) form.append('proofDocument2', body.proofDocument2);
+    return api<{ request: RepresentationRequest }>(
+      `/api/organizations/${orgId}/representation-requests`,
+      {
+        method: 'POST',
+        accessToken: token,
+        body: form,
+      },
+    );
+  },
   myRepresentations: (token: string) =>
     api<{ items: RepresentationRequest[] }>('/api/me/representation-requests', { accessToken: token }),
   adminRepresentations: (token: string) =>
     api<{ items: RepresentationRequest[] }>('/api/admin/representation-requests?status=REQUESTED', {
       accessToken: token,
     }),
-  approveRepresentation: (token: string, id: string) =>
+  approveRepresentation: (
+    token: string,
+    id: string,
+    body: { publishKinds: Array<'TECHNOLOGY' | 'CHALLENGE' | 'FUNDING_OFFER' | 'SUCCESS_CASE'> },
+  ) =>
     api<{ request: RepresentationRequest }>(`/api/admin/representation-requests/${id}/approve`, {
       method: 'POST',
       accessToken: token,
+      body: JSON.stringify(body),
     }),
   rejectRepresentation: (token: string, id: string) =>
     api<{ request: RepresentationRequest }>(`/api/admin/representation-requests/${id}/reject`, {
       method: 'POST',
       accessToken: token,
+    }),
+  adminOrganizations: (token: string) =>
+    api<{ items: AdminOrganization[] }>('/api/admin/organizations', { accessToken: token }),
+  updateOrganization: (
+    token: string,
+    id: string,
+    body: {
+      publishKinds?: Array<'TECHNOLOGY' | 'CHALLENGE' | 'FUNDING_OFFER' | 'SUCCESS_CASE'>;
+      verificationStatus?: string;
+    },
+  ) =>
+    api<{ organization: Organization }>(`/api/admin/organizations/${id}`, {
+      method: 'PATCH',
+      accessToken: token,
+      body: JSON.stringify(body),
     }),
   verifyOrganization: (token: string, id: string) =>
     api<{ organization: Organization }>(`/api/admin/organizations/${id}/verify`, {
@@ -110,4 +162,18 @@ export const catalogApi = {
       method: 'POST',
       accessToken: token,
     }),
+  uploadCover: (
+    token: string,
+    kind: 'technologies' | 'challenges' | 'funding-offers' | 'success-cases' | 'projects',
+    id: string,
+    file: File,
+  ) => {
+    const body = new FormData();
+    body.append('file', file);
+    return api<{ coverImageUrl: string }>(`/api/${kind}/${id}/cover`, {
+      method: 'POST',
+      accessToken: token,
+      body,
+    });
+  },
 };

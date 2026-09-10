@@ -1,9 +1,15 @@
 ﻿import { Router } from 'express';
+import { randomUUID } from 'node:crypto';
+import fs from 'node:fs';
+import path from 'node:path';
+import multer from 'multer';
 import {
   addMemberBodySchema,
   createOrganizationBodySchema,
+  createRepresentationBodySchema,
   updateOrganizationBodySchema,
 } from '@cac/shared';
+import { ZodError } from 'zod';
 import { prisma } from '../../lib/prisma.js';
 import { slugify } from '../../lib/slug.js';
 import { requireAuth } from '../../middleware/auth.js';
@@ -11,6 +17,82 @@ import { validateBody } from '../../middleware/validate.js';
 import { isUuid, param } from '../../lib/params.js';
 
 export const organizationsRouter = Router();
+
+function respondZod(res: Parameters<typeof requireAuth>[1], error: ZodError) {
+  res.status(400).json({
+    error: 'validation_error',
+    details: error.flatten(),
+  });
+}
+
+const uploadDir = process.env.UPLOAD_DIR || 'uploads';
+fs.mkdirSync(uploadDir, { recursive: true });
+
+const proofAllowed = new Set(['image/jpeg', 'image/png', 'image/webp', 'application/pdf']);
+const logoAllowed = new Set(['image/jpeg', 'image/png', 'image/webp']);
+
+const diskStorage = multer.diskStorage({
+  destination: (_req, _file, cb) => cb(null, uploadDir),
+  filename: (_req, file, cb) => {
+    const ext = path.extname(file.originalname).toLowerCase() || '.bin';
+    cb(null, `${randomUUID()}${ext}`);
+  },
+});
+
+const proofUpload = multer({
+  storage: diskStorage,
+  limits: { fileSize: 8 * 1024 * 1024 },
+  fileFilter: (_req, file, cb) => {
+    if (!proofAllowed.has(file.mimetype)) {
+      cb(new Error('invalid_mime'));
+      return;
+    }
+    cb(null, true);
+  },
+});
+
+const logoUpload = multer({
+  storage: diskStorage,
+  limits: { fileSize: 8 * 1024 * 1024 },
+  fileFilter: (_req, file, cb) => {
+    if (!logoAllowed.has(file.mimetype)) {
+      cb(new Error('invalid_mime'));
+      return;
+    }
+    cb(null, true);
+  },
+});
+
+function withProofUpload(
+  req: Parameters<typeof requireAuth>[0],
+  res: Parameters<typeof requireAuth>[1],
+  next: Parameters<typeof requireAuth>[2],
+) {
+  proofUpload.fields([
+    { name: 'proofDocument1', maxCount: 1 },
+    { name: 'proofDocument2', maxCount: 1 },
+  ])(req, res, (err: unknown) => {
+    if (err) {
+      res.status(400).json({ error: 'invalid_upload', detail: String(err) });
+      return;
+    }
+    next();
+  });
+}
+
+function withLogoUpload(
+  req: Parameters<typeof requireAuth>[0],
+  res: Parameters<typeof requireAuth>[1],
+  next: Parameters<typeof requireAuth>[2],
+) {
+  logoUpload.single('logo')(req, res, (err: unknown) => {
+    if (err) {
+      res.status(400).json({ error: 'invalid_upload', detail: String(err) });
+      return;
+    }
+    next();
+  });
+}
 
 organizationsRouter.get('/', async (_req, res, next) => {
   try {
@@ -45,16 +127,13 @@ organizationsRouter.get('/:slugOrId', async (req, res, next) => {
   }
 });
 
-organizationsRouter.post('/', requireAuth, validateBody(createOrganizationBodySchema), async (req, res, next) => {
+organizationsRouter.post('/', requireAuth, withLogoUpload, async (req, res, next) => {
   try {
-    const body = req.body as {
-      name: string;
-      slug?: string;
-      summary?: string;
-      country?: string;
-      region?: string;
-      website?: string;
-    };
+    const body = createOrganizationBodySchema.parse(req.body);
+    if (!req.file) {
+      res.status(400).json({ error: 'logo_required' });
+      return;
+    }
     const baseSlug = body.slug || slugify(body.name);
     const existing = await prisma.organization.findUnique({ where: { slug: baseSlug } });
     if (existing) {
@@ -62,6 +141,7 @@ organizationsRouter.post('/', requireAuth, validateBody(createOrganizationBodySc
       return;
     }
 
+    const logoUrl = `/uploads/${req.file.filename}`;
     const organization = await prisma.organization.create({
       data: {
         name: body.name,
@@ -70,6 +150,7 @@ organizationsRouter.post('/', requireAuth, validateBody(createOrganizationBodySc
         country: body.country,
         region: body.region,
         website: body.website || null,
+        logoUrl,
         members: {
           create: {
             userId: req.auth!.sub,
@@ -80,6 +161,10 @@ organizationsRouter.post('/', requireAuth, validateBody(createOrganizationBodySc
     });
     res.status(201).json({ organization });
   } catch (error) {
+    if (error instanceof ZodError) {
+      respondZod(res, error);
+      return;
+    }
     next(error);
   }
 });
@@ -134,15 +219,41 @@ organizationsRouter.post(
 organizationsRouter.post(
   '/:id/representation-requests',
   requireAuth,
+  withProofUpload,
   async (req, res, next) => {
     try {
-      const { createRepresentationBodySchema } = await import('@cac/shared');
       const body = createRepresentationBodySchema.parse(req.body);
       const organization = await prisma.organization.findUnique({ where: { id: param(req.params.id) } });
       if (!organization) {
         res.status(404).json({ error: 'not_found' });
         return;
       }
+
+      const files = req.files as
+        | Record<string, Array<{ filename: string }> | undefined>
+        | undefined;
+      const file1 = files?.proofDocument1?.[0];
+      const file2 = files?.proofDocument2?.[0];
+
+      const existing = await prisma.orgRepresentationRequest.findUnique({
+        where: {
+          userId_organizationId: {
+            userId: req.auth!.sub,
+            organizationId: param(req.params.id),
+          },
+        },
+      });
+
+      const proofDocument1Url = file1
+        ? `/uploads/${file1.filename}`
+        : existing?.proofDocument1Url || '';
+      if (!proofDocument1Url) {
+        res.status(400).json({ error: 'proof_document_required' });
+        return;
+      }
+      const proofDocument2Url = file2
+        ? `/uploads/${file2.filename}`
+        : (existing?.proofDocument2Url ?? null);
 
       const request = await prisma.orgRepresentationRequest.upsert({
         where: {
@@ -157,18 +268,26 @@ organizationsRouter.post(
           unit: body.unit,
           linkRole: body.linkRole,
           interest: body.interest,
+          proofDocument1Url,
+          proofDocument2Url,
           status: 'REQUESTED',
         },
         update: {
           unit: body.unit,
           linkRole: body.linkRole,
           interest: body.interest,
+          proofDocument1Url,
+          proofDocument2Url,
           status: 'REQUESTED',
         },
         include: { organization: true },
       });
       res.status(201).json({ request });
     } catch (error) {
+      if (error instanceof ZodError) {
+        respondZod(res, error);
+        return;
+      }
       next(error);
     }
   },

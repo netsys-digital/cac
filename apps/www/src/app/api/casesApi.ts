@@ -15,9 +15,23 @@ export type SuccessCase = {
   outcomes?: string | null;
   country: string;
   region?: string | null;
-  organization?: { id: string; name: string; slug: string };
+  coverImageUrl?: string | null;
+  organization?: {
+    id: string;
+    name: string;
+    slug: string;
+    summary?: string | null;
+    verificationStatus?: string;
+  };
   needs: Array<{ id: string; needType: string; detail?: string | null }>;
-  media: Array<{ id: string; filename: string; caption?: string | null; url: string }>;
+  media: Array<{
+    id: string;
+    filename: string;
+    caption?: string | null;
+    url: string;
+    kind?: string;
+    mimeType?: string;
+  }>;
 };
 
 export const casesApi = {

@@ -20,6 +20,36 @@ meRouter.get('/representation-requests', requireAuth, async (req, res, next) => 
   }
 });
 
+/** Organizações em que o usuário pode atuar (membro ou representação aprovada). */
+meRouter.get('/organizations', requireAuth, async (req, res, next) => {
+  try {
+    const ids = await organizationIdsForUser(req.auth!.sub, req.auth!.role);
+    const items =
+      ids === 'all'
+        ? await prisma.organization.findMany({ orderBy: { name: 'asc' }, take: 200 })
+        : ids.length === 0
+          ? []
+          : await prisma.organization.findMany({
+              where: { id: { in: ids } },
+              orderBy: { name: 'asc' },
+            });
+    res.json({
+      items: items.map((o) => ({
+        id: o.id,
+        name: o.name,
+        slug: o.slug,
+        verificationStatus: o.verificationStatus,
+        country: o.country,
+        region: o.region,
+        logoUrl: o.logoUrl,
+        publishKinds: o.publishKinds,
+      })),
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
 meRouter.get('/dashboard', requireAuth, async (req, res, next) => {
   try {
     const userId = req.auth!.sub;

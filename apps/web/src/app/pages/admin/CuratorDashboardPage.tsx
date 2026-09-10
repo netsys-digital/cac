@@ -209,12 +209,20 @@ export function CuratorDashboardPage() {
             </p>
             <p className="mt-2 text-media leading-relaxed text-cac-muted">{t('curator.domainsHint')}</p>
           </div>
-          <Link
-            to="/admin/domains"
-            className="mt-4 inline-flex items-center justify-center rounded-[12px] border border-cac-green bg-white px-4 py-3 text-media font-extrabold text-cac-green transition hover:bg-cac-green3"
-          >
-            {t('nav.adminDomains')}
-          </Link>
+          <div className="mt-4 flex flex-col gap-2">
+            <Link
+              to="/admin/organizations"
+              className="inline-flex items-center justify-center rounded-[12px] border border-cac-line bg-[#fbfcfb] px-4 py-3 text-media font-extrabold text-cac-navy transition hover:bg-cac-green3"
+            >
+              {t('nav.adminOrgs')}
+            </Link>
+            <Link
+              to="/admin/domains"
+              className="inline-flex items-center justify-center rounded-[12px] border border-cac-green bg-white px-4 py-3 text-media font-extrabold text-cac-green transition hover:bg-cac-green3"
+            >
+              {t('nav.adminDomains')}
+            </Link>
+          </div>
         </div>
       </section>
     </div>

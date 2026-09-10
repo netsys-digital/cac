@@ -113,6 +113,31 @@ function includeConnection() {
   } as const;
 }
 
+async function withRequesterRoles<T extends { requesterUserId: string; requesterOrgId: string }>(
+  items: T[],
+) {
+  if (!items.length) return items.map((item) => ({ ...item, requesterRole: null as null }));
+  const reps = await prisma.orgRepresentationRequest.findMany({
+    where: {
+      status: 'APPROVED',
+      OR: items.map((item) => ({
+        userId: item.requesterUserId,
+        organizationId: item.requesterOrgId,
+      })),
+    },
+    select: { userId: true, organizationId: true, unit: true, linkRole: true },
+  });
+  const key = (userId: string, orgId: string) => `${userId}:${orgId}`;
+  const map = new Map(reps.map((r) => [key(r.userId, r.organizationId), r]));
+  return items.map((item) => {
+    const role = map.get(key(item.requesterUserId, item.requesterOrgId));
+    return {
+      ...item,
+      requesterRole: role ? { unit: role.unit, linkRole: role.linkRole } : null,
+    };
+  });
+}
+
 export async function createConnection(userId: string, userRole: string, body: CreateConnectionBody) {
   await assertCanActForOrganization(userId, body.requesterOrgId, userRole);
   const resolved = await resolveTargetOrg(body.targetType, body.targetId);
@@ -181,7 +206,7 @@ export async function listConnectionsForUser(userId: string, userRole: string) {
   const orgIds = memberships.map((m) => m.organizationId);
   const isStaff = userRole === 'ADMIN' || userRole === 'CURADOR';
 
-  return prisma.connection.findMany({
+  const items = await prisma.connection.findMany({
     where: isStaff
       ? undefined
       : {
@@ -195,6 +220,7 @@ export async function listConnectionsForUser(userId: string, userRole: string) {
     orderBy: { createdAt: 'desc' },
     take: 100,
   });
+  return withRequesterRoles(items);
 }
 
 async function loadForTargetAction(id: string, userId: string, userRole: string) {

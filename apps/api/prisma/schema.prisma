@@ -20,6 +20,13 @@ enum OrgVerificationStatus {
   REJECTED
 }
 
+enum OrgPublishKind {
+  TECHNOLOGY
+  CHALLENGE
+  FUNDING_OFFER
+  SUCCESS_CASE
+}
+
 enum ContentStatus {
   DRAFT
   IN_REVIEW
@@ -130,7 +137,9 @@ model Organization {
   country                String?
   region                 String?
   website                String?
+  logoUrl                String?
   verificationStatus     OrgVerificationStatus      @default(PENDING)
+  publishKinds           OrgPublishKind[]           @default([])
   createdAt              DateTime                   @default(now())
   updatedAt              DateTime                   @updatedAt
   members                OrganizationMember[]
@@ -162,17 +171,19 @@ model OrganizationMember {
 }
 
 model OrgRepresentationRequest {
-  id             String               @id @default(uuid()) @db.Uuid
-  userId         String               @db.Uuid
-  organizationId String               @db.Uuid
-  unit           String
-  linkRole       String
-  interest       String
-  status         RepresentationStatus @default(REQUESTED)
-  createdAt      DateTime             @default(now())
-  updatedAt      DateTime             @updatedAt
-  user           User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
-  organization   Organization         @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  id                String               @id @default(uuid()) @db.Uuid
+  userId            String               @db.Uuid
+  organizationId    String               @db.Uuid
+  unit              String
+  linkRole          String
+  interest          String
+  proofDocument1Url String
+  proofDocument2Url String?
+  status            RepresentationStatus @default(REQUESTED)
+  createdAt         DateTime             @default(now())
+  updatedAt         DateTime             @updatedAt
+  user              User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
+  organization      Organization         @relation(fields: [organizationId], references: [id], onDelete: Cascade)
 
   @@unique([userId, organizationId])
   @@index([status])
@@ -201,6 +212,7 @@ model Technology {
   problemStatement String
   howItWorks       String
   videoUrl         String?
+  coverImageUrl    String?
   status           ContentStatus     @default(DRAFT)
   curationNote     String?
   reviewedAt       DateTime?
@@ -253,6 +265,7 @@ model Challenge {
   summary        String
   context        String?
   needType       NeedType
+  coverImageUrl  String?
   status         ContentStatus  @default(DRAFT)
   curationNote   String?
   reviewedAt     DateTime?
@@ -286,6 +299,7 @@ model Project {
   slug           String        @unique
   type           ProjectType
   summary        String
+  coverImageUrl  String?
   status         ContentStatus @default(DRAFT)
   curationNote   String?
   reviewedAt     DateTime?
@@ -366,6 +380,7 @@ model FundingOffer {
   deadline       DateTime?
   country        String?
   region         String?
+  coverImageUrl  String?
   organizationId String        @db.Uuid
   status         ContentStatus @default(DRAFT)
   curationNote   String?
@@ -388,6 +403,7 @@ model SuccessCase {
   outcomes       String?
   country        String
   region         String?
+  coverImageUrl  String?
   organizationId String            @db.Uuid
   status         ContentStatus     @default(DRAFT)
   curationNote   String?

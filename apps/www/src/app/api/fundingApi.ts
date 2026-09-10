@@ -18,7 +18,14 @@ export type FundingOffer = {
   deadline?: string | null;
   country?: string | null;
   region?: string | null;
-  organization?: { id: string; name: string; slug: string };
+  coverImageUrl?: string | null;
+  organization?: {
+    id: string;
+    name: string;
+    slug: string;
+    summary?: string | null;
+    verificationStatus?: string;
+  };
 };
 
 export type FunderProfile = {
@@ -33,5 +40,6 @@ export type FunderProfile = {
 export const fundingApi = {
   listOffers: (active = true) =>
     api<{ items: FundingOffer[] }>(`/api/funding-offers${active ? '?active=true' : ''}`),
+  getOffer: (slug: string) => api<{ offer: FundingOffer }>(`/api/funding-offers/${slug}`),
   listFunders: () => api<{ items: FunderProfile[] }>('/api/funders'),
 };

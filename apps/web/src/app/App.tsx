@@ -8,9 +8,11 @@ import { AppShell } from './layout/AppShell';
 import { LoginPage } from './pages/auth/LoginPage';
 import { RegisterPage } from './pages/auth/RegisterPage';
 import { HomePage } from './pages/HomePage';
+import { RepresentationListPage } from './pages/org/RepresentationListPage';
 import { RepresentationWizardPage } from './pages/org/RepresentationWizardPage';
 import { AdminRepresentationPage } from './pages/admin/AdminRepresentationPage';
 import { AdminDomainsPage } from './pages/admin/AdminDomainsPage';
+import { AdminOrganizationsPage } from './pages/admin/AdminOrganizationsPage';
 import { AdminCuratePage } from './pages/admin/AdminCuratePage';
 import { NewTechnologyPage } from './pages/catalog/NewTechnologyPage';
 import { NewChallengePage } from './pages/catalog/NewChallengePage';
@@ -59,7 +61,8 @@ export default function App() {
       >
         <Route index element={<HomePage />} />
         <Route path="welcome" element={<Navigate to="/" replace />} />
-        <Route path="org/representation" element={<RepresentationWizardPage />} />
+        <Route path="org/representation" element={<RepresentationListPage />} />
+        <Route path="org/representation/new" element={<RepresentationWizardPage />} />
         <Route
           path="my/contents"
           element={
@@ -121,6 +124,14 @@ export default function App() {
           element={
             <RequireRole roles={[UserRole.ADMIN, UserRole.CURADOR]}>
               <AdminDomainsPage />
+            </RequireRole>
+          }
+        />
+        <Route
+          path="admin/organizations"
+          element={
+            <RequireRole roles={[UserRole.ADMIN, UserRole.CURADOR]}>
+              <AdminOrganizationsPage />
             </RequireRole>
           }
         />

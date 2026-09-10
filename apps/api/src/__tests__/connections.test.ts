@@ -59,17 +59,29 @@ describe('E4 connections + governance', () => {
   });
 
   it('creates two orgs + published tech on target org', async () => {
+    const logo = Buffer.from(
+      'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==',
+      'base64',
+    );
     const reqOrg = await request(app)
       .post('/api/organizations')
       .set('Authorization', `Bearer ${requesterToken}`)
-      .send({ name: `Req Org ${suffix}`, country: 'BR' });
+      .field('name', `Req Org ${suffix}`)
+      .field('summary', 'Resumo institucional com tamanho suficiente para o schema.')
+      .field('country', 'BR')
+      .field('region', 'south_america')
+      .attach('logo', logo, { filename: 'logo.png', contentType: 'image/png' });
     expect(reqOrg.status).toBe(201);
     requesterOrgId = reqOrg.body.organization.id;
 
     const tgtOrg = await request(app)
       .post('/api/organizations')
       .set('Authorization', `Bearer ${targetToken}`)
-      .send({ name: `Tgt Org ${suffix}`, country: 'BR' });
+      .field('name', `Tgt Org ${suffix}`)
+      .field('summary', 'Resumo institucional com tamanho suficiente para o schema.')
+      .field('country', 'BR')
+      .field('region', 'south_america')
+      .attach('logo', logo, { filename: 'logo.png', contentType: 'image/png' });
     expect(tgtOrg.status).toBe(201);
     targetOrgId = tgtOrg.body.organization.id;
 

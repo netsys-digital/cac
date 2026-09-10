@@ -10,16 +10,16 @@ export const createFundingOfferBodySchema = z.object({
     .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/)
     .optional(),
   summary: z.string().min(10).max(2000),
-  whatFunds: z.string().max(2000).optional(),
-  criteria: z.string().max(2000).optional(),
+  whatFunds: z.string().min(10).max(2000),
+  criteria: z.string().min(10).max(2000),
   amountRange: z.string().max(120).optional(),
   officialUrl: z.string().url().optional().or(z.literal('')),
   deadline: z
     .string()
     .optional()
     .refine((v) => !v || !Number.isNaN(Date.parse(v)), { message: 'invalid_deadline' }),
-  country: z.string().length(2).optional(),
-  region: z.string().max(64).optional(),
+  country: z.string().length(2),
+  region: z.string().min(2).max(64),
   organizationId: z.string().uuid(),
   status: z
     .enum([ContentStatus.DRAFT, ContentStatus.IN_REVIEW, ContentStatus.PUBLISHED])
@@ -39,8 +39,8 @@ export const createFunderProfileBodySchema = z.object({
     .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/)
     .optional(),
   summary: z.string().min(10).max(2000),
-  country: z.string().length(2).optional(),
-  region: z.string().max(64).optional(),
+  country: z.string().length(2),
+  region: z.string().min(2).max(64),
   organizationId: z.string().uuid().optional(),
 });
 
@@ -53,10 +53,10 @@ export const createSuccessCaseBodySchema = z.object({
     .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/)
     .optional(),
   summary: z.string().min(10).max(2000),
-  context: z.string().max(4000).optional(),
-  outcomes: z.string().max(4000).optional(),
+  context: z.string().min(10).max(4000),
+  outcomes: z.string().min(10).max(4000),
   country: z.string().length(2),
-  region: z.string().max(64).optional(),
+  region: z.string().min(2).max(64),
   organizationId: z.string().uuid(),
   needs: z
     .array(
@@ -73,7 +73,7 @@ export const createSuccessCaseBodySchema = z.object({
         detail: z.string().max(500).optional(),
       }),
     )
-    .optional(),
+    .min(1),
   evidenceNotes: z.array(z.string().max(500)).optional(),
 });
 

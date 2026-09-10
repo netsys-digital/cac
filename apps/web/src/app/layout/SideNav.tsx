@@ -11,6 +11,8 @@ export type SideNavItem = {
   badge?: string;
   /** Numeric count shown on the icon when the rail is collapsed. */
   count?: number;
+  /** Destaque visual (ex.: link ao portal público). */
+  tone?: 'default' | 'portal';
 };
 
 function IconBulb() {
@@ -89,6 +91,14 @@ function IconGrid() {
   );
 }
 
+function IconHome() {
+  return (
+    <svg viewBox="0 0 24 24" className="size-[22px]" fill="none" stroke="currentColor" strokeWidth="1.8">
+      <path d="M4 10.5 12 4l8 6.5V20a1 1 0 0 1-1 1h-5v-6H10v6H5a1 1 0 0 1-1-1v-9.5Z" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
 function IconGlobe() {
   return (
     <svg viewBox="0 0 24 24" className="size-[22px]" fill="none" stroke="currentColor" strokeWidth="1.8">
@@ -115,7 +125,17 @@ function IconBadge() {
   );
 }
 
+function IconBuilding() {
+  return (
+    <svg viewBox="0 0 24 24" className="size-[22px]" fill="none" stroke="currentColor" strokeWidth="1.8">
+      <path d="M4 20h16M6 20V8l6-4 6 4v12" strokeLinejoin="round" />
+      <path d="M9 20v-5h6v5M10 11h.01M14 11h.01M10 14h.01M14 14h.01" strokeLinecap="round" />
+    </svg>
+  );
+}
+
 export const sideIcons = {
+  home: <IconHome />,
   mine: <IconList />,
   tech: <IconBulb />,
   challenge: <IconAlert />,
@@ -124,6 +144,7 @@ export const sideIcons = {
   curate: <IconStar />,
   adminRep: <IconUsers />,
   domains: <IconGrid />,
+  orgs: <IconBuilding />,
   portal: <IconGlobe />,
   connections: <IconLink />,
   representation: <IconBadge />,
@@ -162,13 +183,19 @@ export function SideNav({ items }: SideNavProps) {
         }
 
         const isExternal = item.to.startsWith('http');
+        const portalTone = item.tone === 'portal';
         if (isExternal) {
           return (
             <a
               key={item.to}
               href={item.to}
               title={item.label}
-              className="mx-2 flex items-center gap-3 rounded-[10px] border-t-2 border-transparent px-2.5 py-2.5 text-pequena font-bold text-[#c5d5dc] transition hover:bg-white/10 hover:text-white"
+              className={[
+                'mx-2 flex items-center gap-3 rounded-[10px] border-t-2 px-2.5 py-2.5 text-pequena font-bold transition',
+                portalTone
+                  ? 'border-cac-green/50 bg-cac-green3/15 text-[#8ed5b5] hover:bg-cac-green3/25 hover:text-white'
+                  : 'border-transparent text-[#c5d5dc] hover:bg-white/10 hover:text-white',
+              ].join(' ')}
             >
               <span className="flex size-8 shrink-0 items-center justify-center">{item.icon}</span>
               <span className="max-w-0 overflow-hidden whitespace-nowrap opacity-0 transition-all duration-200 group-hover/side:max-w-[140px] group-hover/side:opacity-100">

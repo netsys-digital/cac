@@ -4,7 +4,7 @@ import { Chip, shell } from './PageChrome';
 import { BackToSearchLink } from './BackToSearchLink';
 import { isDirectVideoFile, toVideoEmbedUrl } from '../lib/videoEmbed';
 
-/** Placeholder visual no hero quando a publicação não tem vídeo. */
+/** Placeholder quando não há vídeo nem capa. */
 function AbstractMediaGraphic() {
   return (
     <div
@@ -18,23 +18,37 @@ function AbstractMediaGraphic() {
   );
 }
 
+/**
+ * Hero de detalhe.
+ * - Soluções: passar `videoUrl` (prioridade) + `coverImageUrl` (fallback).
+ * - Demais entidades (desafio, caso, projeto): só `coverImageUrl`.
+ * - Financiamento: preferir `aside` (cards de condições) no lugar da mídia.
+ */
 export function CatalogDetailHero({
   eyebrow,
   title,
   summary,
   chips,
+  aside,
   videoUrl,
+  coverImageUrl,
   showBack = true,
 }: {
   eyebrow: string;
   title: string;
   summary?: string;
   chips?: ReactNode;
+  /** Conteúdo à direita (ex.: cards de condições). Se presente, substitui a mídia. */
+  aside?: ReactNode;
+  /** Só soluções — vídeo relacionado. Se ausente, usa a capa. */
   videoUrl?: string | null;
+  coverImageUrl?: string | null;
   showBack?: boolean;
 }) {
   const embedUrl = toVideoEmbedUrl(videoUrl);
   const directFile = embedUrl ? isDirectVideoFile(embedUrl) : false;
+  const hasVideo = Boolean(embedUrl);
+  const hasCover = Boolean(coverImageUrl);
 
   return (
     <section className="relative overflow-hidden text-white">
@@ -93,35 +107,59 @@ export function CatalogDetailHero({
             {chips ? <div className="mt-5 flex flex-wrap gap-1.5">{chips}</div> : null}
           </div>
 
-          <div className="cac-fade-up-delay w-full min-w-0">
-            <div className="aspect-video w-full overflow-hidden rounded-[16px] border border-white/15 bg-black/35 shadow-[0_24px_56px_rgba(0,0,0,.38)]">
-              {embedUrl && directFile ? (
-                <video
-                  className="h-full w-full object-cover"
-                  controls
-                  playsInline
-                  preload="metadata"
-                  src={embedUrl}
-                />
-              ) : embedUrl ? (
-                <iframe
-                  title={title}
-                  src={embedUrl}
-                  className="h-full w-full border-0"
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                  allowFullScreen
-                  loading="lazy"
-                  referrerPolicy="strict-origin-when-cross-origin"
-                />
-              ) : (
-                <AbstractMediaGraphic />
-              )}
-            </div>
+          <div className="cac-fade-up-delay w-full min-w-0 lg:pt-10">
+            {aside ? (
+              aside
+            ) : (
+              <div className="aspect-video w-full overflow-hidden rounded-[16px] border border-white/15 bg-black/35 shadow-[0_24px_56px_rgba(0,0,0,.38)]">
+                {hasVideo && directFile ? (
+                  <video
+                    className="h-full w-full object-cover"
+                    controls
+                    playsInline
+                    preload="metadata"
+                    src={embedUrl!}
+                  />
+                ) : hasVideo ? (
+                  <iframe
+                    title={title}
+                    src={embedUrl!}
+                    className="h-full w-full border-0"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                    allowFullScreen
+                    loading="lazy"
+                    referrerPolicy="strict-origin-when-cross-origin"
+                  />
+                ) : hasCover ? (
+                  <img
+                    src={coverImageUrl!}
+                    alt=""
+                    className="h-full w-full object-cover"
+                  />
+                ) : (
+                  <AbstractMediaGraphic />
+                )}
+              </div>
+            )}
           </div>
         </div>
       </div>
     </section>
   );
+}
+
+/** Card de condição / métrica no hero (ex.: faixa de valor, prazo). */
+export function DetailHeroStatCard({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="flex min-h-[5.5rem] flex-col justify-between rounded-[16px] border border-white/20 bg-white/[0.14] px-4 py-3.5 shadow-[0_14px_32px_rgba(0,0,0,.22)] backdrop-blur-[6px]">
+      <p className="text-mini font-bold tracking-[1.3px] text-[#90d6b6] uppercase">{label}</p>
+      <p className="mt-2 text-grande font-bold leading-snug text-white">{value}</p>
+    </div>
+  );
+}
+
+export function DetailHeroStatGrid({ children }: PropsWithChildren) {
+  return <div className="grid grid-cols-2 gap-3 sm:gap-3.5">{children}</div>;
 }
 
 export function CatalogDetailBody({ children }: PropsWithChildren) {

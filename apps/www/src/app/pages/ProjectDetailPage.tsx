@@ -11,6 +11,7 @@ import {
 } from '../components/CatalogDetail';
 import { BackToSearchLink } from '../components/BackToSearchLink';
 import { shell } from '../components/PageChrome';
+import { resolveMediaUrl } from '../lib/mediaUrl';
 
 export function ProjectDetailPage() {
   const { slug = '' } = useParams();
@@ -51,6 +52,7 @@ export function ProjectDetailPage() {
         eyebrow={t('detail.projectBadge')}
         title={item.title}
         summary={item.summary}
+        coverImageUrl={resolveMediaUrl(item.coverImageUrl)}
         chips={
           <>
             <DetailHeroChip>{item.type}</DetailHeroChip>

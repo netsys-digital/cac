@@ -39,6 +39,7 @@ function useBreadcrumbs() {
       { match: /^\/connections/, label: t('nav.connections') },
       { match: /^\/admin\/curate/, label: t('nav.adminCurate') },
       { match: /^\/admin\/representation/, label: t('nav.adminRep') },
+      { match: /^\/admin\/organizations/, label: t('nav.adminOrgs') },
       { match: /^\/admin\/domains/, label: t('nav.adminDomains') },
     ];
 
@@ -65,8 +66,13 @@ export function AppShell() {
     return `${parts[0]} ${parts[parts.length - 1]}`;
   })();
 
+  const pendingBadge = gate === 'pending' ? t('onboarding.pendingBadge') : undefined;
+  const lockedHint = !canPublish ? t('nav.publishLocked') : undefined;
+
+  /** Topo: só filas urgentes e atalhos de trabalho principal (resto fica na lateral). */
+  const homePrimary: NavItem = { to: '/', label: t('nav.home'), end: true };
+
   const staffPrimary: NavItem[] = [
-    { to: '/', label: t('nav.dashboard'), end: true },
     {
       to: '/admin/curate',
       label: t('nav.adminCurate'),
@@ -77,26 +83,18 @@ export function AppShell() {
       label: t('nav.adminRep'),
       badge: repCount > 0 ? String(repCount) : undefined,
     },
-    { to: '/admin/domains', label: t('nav.adminDomains') },
-    { to: '/my/connections', label: t('nav.connections') },
   ];
 
-  /** Admin: governança + publicação (capacidades restauradas pré-7342ef2). */
-  const adminPrimary: NavItem[] = [
-    ...staffPrimary,
-    { to: '/my/contents', label: t('nav.myContents') },
-  ];
-
-  const orgPrimary: NavItem[] = [
-    { to: '/', label: t('nav.dashboard'), end: true },
-    { to: '/my/connections', label: t('nav.connections') },
-    { to: '/org/representation', label: t('nav.representation') },
-  ];
-
-  const primary: NavItem[] = isCurator ? staffPrimary : isAdmin ? adminPrimary : orgPrimary;
-
-  const pendingBadge = gate === 'pending' ? t('onboarding.pendingBadge') : undefined;
-  const lockedHint = !canPublish ? t('nav.publishLocked') : undefined;
+  const primary: NavItem[] = isCurator
+    ? [homePrimary, ...staffPrimary]
+    : isAdmin
+      ? [homePrimary, ...staffPrimary, { to: '/my/contents', label: t('nav.myContents') }]
+      : [
+          homePrimary,
+          { to: '/my/connections', label: t('nav.connections') },
+          { to: '/org/representation', label: t('nav.representation') },
+          { to: '/my/contents', label: t('nav.myContents') },
+        ];
 
   const publishItems: SideNavItem[] = [
     {
@@ -152,25 +150,41 @@ export function AppShell() {
           badge: repCount > 0 ? t('nav.tasksBadge', { count: repCount }) : undefined,
           count: repCount,
         },
+        { to: '/admin/organizations', label: t('nav.adminOrgs'), icon: sideIcons.orgs },
         { to: '/admin/domains', label: t('nav.adminDomains'), icon: sideIcons.domains },
       ]
     : [];
 
+  const portalItem: SideNavItem = {
+    to: urls.www,
+    label: t('nav.portal'),
+    icon: sideIcons.portal,
+    tone: 'portal',
+  };
+  const homeItem: SideNavItem = {
+    to: '/',
+    label: t('nav.home'),
+    icon: sideIcons.home,
+  };
+
   const sideItems: SideNavItem[] = isCurator
     ? [
-        { to: urls.www, label: t('nav.backPortal'), icon: sideIcons.portal },
+        homeItem,
+        portalItem,
         ...staffItems,
         { to: '/my/connections', label: t('nav.connections'), icon: sideIcons.connections },
       ]
     : isAdmin
       ? [
-          { to: urls.www, label: t('nav.backPortal'), icon: sideIcons.portal },
+          homeItem,
+          portalItem,
           ...staffItems,
           { to: '/my/connections', label: t('nav.connections'), icon: sideIcons.connections },
           ...publishItems,
         ]
       : [
-          { to: urls.www, label: t('nav.backPortal'), icon: sideIcons.portal },
+          homeItem,
+          portalItem,
           { to: '/my/connections', label: t('nav.connections'), icon: sideIcons.connections },
           {
             to: '/org/representation',
@@ -194,31 +208,30 @@ export function AppShell() {
             />
           </Link>
 
-          <nav className="hidden min-w-0 flex-1 items-center gap-2 lg:flex" aria-label="Primary">
-            {primary.map((link) => (
-              <NavLink
-                key={link.to}
-                to={link.to}
-                end={link.end}
-                className={({ isActive }) => primaryLinkClass(isActive)}
-              >
-                <span className="inline-flex items-center gap-2">
-                  {link.label}
-                  {link.badge ? (
-                    <span className="grid min-w-5 place-items-center rounded-full bg-amber-400 px-1.5 py-0.5 text-mini font-bold text-cac-navy">
-                      {link.badge}
-                    </span>
-                  ) : null}
-                </span>
-              </NavLink>
-            ))}
-          </nav>
+          {primary.length > 0 ? (
+            <nav className="hidden min-w-0 flex-1 items-center gap-2 lg:flex" aria-label="Primary">
+              {primary.map((link) => (
+                <NavLink
+                  key={link.to}
+                  to={link.to}
+                  end={link.end}
+                  className={({ isActive }) => primaryLinkClass(isActive)}
+                >
+                  <span className="inline-flex items-center gap-2">
+                    {link.label}
+                    {link.badge ? (
+                      <span className="grid min-w-5 place-items-center rounded-full bg-amber-400 px-1.5 py-0.5 text-mini font-bold text-cac-navy">
+                        {link.badge}
+                      </span>
+                    ) : null}
+                  </span>
+                </NavLink>
+              ))}
+            </nav>
+          ) : null}
 
-          <div className="flex shrink-0 items-center gap-2.5">
+          <div className="ml-auto flex shrink-0 items-center gap-2.5">
             <LanguageSwitcher buttonClassName="px-2.5 py-1.5 text-pequena" />
-            <a href={urls.www} className="hidden sm:inline-flex">
-              <Button variant="ghostDark">{t('shell.portal')}</Button>
-            </a>
             {displayName ? (
               <>
                 <Link
@@ -262,27 +275,29 @@ export function AppShell() {
               </span>
             ))}
           </nav>
-          <nav className="ml-auto flex flex-wrap items-center gap-1.5 lg:hidden" aria-label="Mobile primary">
-            {primary.map((link) => (
-              <NavLink
-                key={link.to}
-                to={link.to}
-                end={link.end}
-                className={({ isActive }) =>
-                  `inline-flex items-center gap-1 rounded-lg px-2.5 py-1.5 text-pequena font-bold ${
-                    isActive ? 'bg-cac-green3 text-cac-navy' : 'text-cac-muted'
-                  }`
-                }
-              >
-                {link.label}
-                {link.badge ? (
-                  <span className="rounded-full bg-amber-400 px-1.5 text-mini text-cac-navy">
-                    {link.badge}
-                  </span>
-                ) : null}
-              </NavLink>
-            ))}
-          </nav>
+          {primary.length > 0 ? (
+            <nav className="ml-auto flex flex-wrap items-center gap-1.5 lg:hidden" aria-label="Mobile primary">
+              {primary.map((link) => (
+                <NavLink
+                  key={link.to}
+                  to={link.to}
+                  end={link.end}
+                  className={({ isActive }) =>
+                    `inline-flex items-center gap-1 rounded-lg px-2.5 py-1.5 text-pequena font-bold ${
+                      isActive ? 'bg-cac-green3 text-cac-navy' : 'text-cac-muted'
+                    }`
+                  }
+                >
+                  {link.label}
+                  {link.badge ? (
+                    <span className="rounded-full bg-amber-400 px-1.5 text-mini text-cac-navy">
+                      {link.badge}
+                    </span>
+                  ) : null}
+                </NavLink>
+              ))}
+            </nav>
+          ) : null}
         </div>
       </div>
 

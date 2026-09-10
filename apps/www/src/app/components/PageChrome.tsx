@@ -42,6 +42,7 @@ export function ResultCard({
   tags,
   score,
   factors,
+  imageUrl,
   onNavigate,
 }: {
   to: string;
@@ -51,6 +52,8 @@ export function ResultCard({
   tags?: string[];
   score?: string;
   factors?: Array<{ label: string; weight: number; value: number }>;
+  /** Capa resolvida (URL absoluta) — exibida com destaque à esquerda. */
+  imageUrl?: string | null;
   onNavigate?: () => void;
 }) {
   const { t } = useTranslation();
@@ -59,14 +62,27 @@ export function ResultCard({
     .sort((a, b) => b.value - a.value)
     .slice(0, 3);
 
+  const media = (
+    <span className="relative block h-full min-h-[9.5rem] w-full overflow-hidden rounded-[12px] bg-gradient-to-br from-[#d5ebde] to-[#91b58b] sm:min-h-[10.5rem]">
+      {imageUrl ? (
+        <img src={imageUrl} alt="" className="absolute inset-0 h-full w-full object-cover" />
+      ) : (
+        <>
+          <span className="absolute inset-x-[-10%] bottom-[-8%] h-[46%] -skew-y-[8deg] bg-[rgba(75,122,80,.35)]" />
+          <span className="absolute inset-x-[-8%] top-[18%] h-[22%] -skew-y-[-6deg] bg-white/20" />
+        </>
+      )}
+    </span>
+  );
+
   return (
     <Link
       to={to}
       onClick={() => onNavigate?.()}
-      className="grid grid-cols-[1fr_auto] items-start gap-3 rounded-[13px] border border-cac-line bg-white p-3.5 transition hover:-translate-y-0.5 hover:border-cac-green/40 sm:grid-cols-[4.5rem_1fr_auto] sm:items-center sm:gap-3"
+      className="grid grid-cols-1 gap-3 rounded-[13px] border border-cac-line bg-white p-3 transition hover:-translate-y-0.5 hover:border-cac-green/40 sm:grid-cols-[11.5rem_minmax(0,1fr)_auto] sm:items-stretch sm:gap-4 sm:p-3.5"
     >
-      <span className="hidden h-[4.25rem] rounded-[9px] bg-gradient-to-br from-[#d5ebde] to-[#91b58b] sm:block" />
-      <span className="min-w-0">
+      <span className="block sm:self-stretch">{media}</span>
+      <span className="min-w-0 self-center">
         <span className="block text-media font-bold leading-snug text-cac-navy">
           {title}
         </span>
@@ -93,14 +109,16 @@ export function ResultCard({
           </span>
         ) : null}
       </span>
-      <span className="shrink-0 text-right">
-        {score ? <b className="block text-media leading-none text-cac-green">{score}</b> : null}
-        {score ? (
-          <span className="mt-0.5 block text-mini font-bold tracking-wide text-cac-muted uppercase">
-            {t('search.matchLabel')}
-          </span>
-        ) : null}
-        <span className="mt-2 inline-flex rounded-[10px] border border-cac-green bg-white px-3 py-2 text-pequena font-extrabold text-cac-green">
+      <span className="flex shrink-0 flex-row items-center justify-between gap-3 sm:flex-col sm:items-end sm:justify-center sm:text-right">
+        <span>
+          {score ? <b className="block text-media leading-none text-cac-green">{score}</b> : null}
+          {score ? (
+            <span className="mt-0.5 block text-mini font-bold tracking-wide text-cac-muted uppercase">
+              {t('search.matchLabel')}
+            </span>
+          ) : null}
+        </span>
+        <span className="inline-flex rounded-[10px] border border-cac-green bg-white px-3 py-2 text-pequena font-extrabold text-cac-green">
           {t('detail.open')}
         </span>
       </span>

@@ -12,8 +12,8 @@ export const createProjectBodySchema = z.object({
   ]),
   summary: z.string().min(10).max(2000),
   organizationId: z.string().uuid(),
-  country: z.string().length(2).optional(),
-  region: z.string().max(64).optional(),
+  country: z.string().length(2),
+  region: z.string().min(2).max(64),
   status: z
     .enum([ContentStatus.DRAFT, ContentStatus.IN_REVIEW, ContentStatus.PUBLISHED])
     .optional(),

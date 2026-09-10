@@ -51,11 +51,20 @@ describe('E1 catalog + representation', () => {
   });
 
   it('creates organization', async () => {
+    const logo = Buffer.from(
+      'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==',
+      'base64',
+    );
     const res = await request(app)
       .post('/api/organizations')
       .set('Authorization', `Bearer ${userToken}`)
-      .send({ name: `Org E1 ${suffix}`, country: 'BR', region: 'latam' });
+      .field('name', `Org E1 ${suffix}`)
+      .field('summary', 'Resumo institucional com tamanho suficiente para o schema.')
+      .field('country', 'BR')
+      .field('region', 'south_america')
+      .attach('logo', logo, { filename: 'logo.png', contentType: 'image/png' });
     expect(res.status).toBe(201);
+    expect(res.body.organization.logoUrl).toMatch(/^\/uploads\//);
     orgId = res.body.organization.id;
   });
 
@@ -78,12 +87,15 @@ describe('E1 catalog + representation', () => {
     const reqRes = await request(app)
       .post(`/api/organizations/${orgId}/representation-requests`)
       .set('Authorization', `Bearer ${outsiderToken}`)
-      .send({
-        unit: 'Unidade Experimental',
-        linkRole: 'Pesquisador',
-        interest: 'Quero representar a organização no catálogo CAC.',
+      .field('unit', 'Unidade Experimental')
+      .field('linkRole', 'Pesquisador')
+      .field('interest', 'Quero representar a organização no catálogo CAC.')
+      .attach('proofDocument1', Buffer.from('%PDF-1.4 proof'), {
+        filename: 'proof.pdf',
+        contentType: 'application/pdf',
       });
     expect(reqRes.status).toBe(201);
+    expect(reqRes.body.request.proofDocument1Url).toMatch(/^\/uploads\//);
     const requestId = reqRes.body.request.id;
 
     const approve = await request(app)

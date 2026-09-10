@@ -5,7 +5,7 @@ import {
   updateSuccessCaseBodySchema,
   UserRole,
 } from '@cac/shared';
-import { assertCanActForOrganization } from '../../lib/org-access.js';
+import { assertCanActForOrganization, assertCanPublishKind } from '../../lib/org-access.js';
 import { prisma } from '../../lib/prisma.js';
 import { slugify } from '../../lib/slug.js';
 import { requireAuth, requireRole } from '../../middleware/auth.js';
@@ -62,7 +62,7 @@ successCasesRouter.get('/:slugOrId', async (req, res, next) => {
 
 successCasesRouter.post('/', requireAuth, validateBody(createSuccessCaseBodySchema), async (req, res, next) => {
   try {
-    await assertCanActForOrganization(req.auth!.sub, req.body.organizationId, req.auth!.role);
+    await assertCanPublishKind(req.auth!.sub, req.body.organizationId, req.auth!.role, 'SUCCESS_CASE');
     const slug = req.body.slug || slugify(req.body.title);
     const successCase = await prisma.successCase.create({
       data: {

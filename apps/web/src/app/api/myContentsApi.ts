@@ -1,26 +1,4 @@
-import { urls } from '../../config';
-
-async function api<T>(
-  path: string,
-  options: RequestInit & { accessToken?: string | null } = {},
-): Promise<T> {
-  const { accessToken, headers, ...rest } = options;
-  const res = await fetch(`${urls.api}${path}`, {
-    credentials: 'include',
-    ...rest,
-    headers: {
-      ...(rest.body ? { 'Content-Type': 'application/json' } : {}),
-      ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
-      ...headers,
-    },
-  });
-  if (!res.ok) {
-    const body = await res.json().catch(() => ({}));
-    throw new Error((body as { error?: string }).error ?? `http_${res.status}`);
-  }
-  if (res.status === 204) return undefined as T;
-  return (await res.json()) as T;
-}
+import { api } from './http';
 
 export type ContentKind = 'TECHNOLOGY' | 'CHALLENGE' | 'FUNDING_OFFER' | 'SUCCESS_CASE';
 
@@ -114,6 +92,19 @@ export const myContentsApi = {
     }),
   remove: (token: string, kind: ContentKind, id: string) =>
     api<void>(`/api/me/contents/${kind}/${id}`, { method: 'DELETE', accessToken: token }),
+  listMyOrganizations: (token: string) =>
+    api<{
+      items: Array<{
+        id: string;
+        name: string;
+        slug: string;
+        verificationStatus: string;
+        country?: string | null;
+        region?: string | null;
+        logoUrl?: string | null;
+        publishKinds?: Array<'TECHNOLOGY' | 'CHALLENGE' | 'FUNDING_OFFER' | 'SUCCESS_CASE'>;
+      }>;
+    }>('/api/me/organizations', { accessToken: token }),
   patchTechnology: (token: string, id: string, body: Record<string, unknown>) =>
     api<{ technology: { id: string; status: string; slug: string } }>(`/api/technologies/${id}`, {
       method: 'PATCH',

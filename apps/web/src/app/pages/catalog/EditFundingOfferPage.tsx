@@ -4,7 +4,13 @@ import { useTranslation } from 'react-i18next';
 import { Input, TextArea } from '@cac/ui';
 import { useAuth } from '../../auth/AuthContext';
 import { myContentsApi } from '../../api/myContentsApi';
+import { catalogApi } from '../../api/catalogApi';
 import { FieldFull, FormPage } from '../../components/forms/FormPage';
+import {
+  pickCoverFile,
+  RepresentativeImageField,
+} from '../../components/forms/RepresentativeImageField';
+import { RegionCountryFields } from '../../components/forms/RegionCountryFields';
 
 export function EditFundingOfferPage() {
   const { id = '' } = useParams();
@@ -47,13 +53,18 @@ export function EditFundingOfferPage() {
       await myContentsApi.patchOffer(accessToken, id, {
         title: String(form.get('title')),
         summary: String(form.get('summary')),
-        whatFunds: String(form.get('whatFunds') || ''),
-        criteria: String(form.get('criteria') || ''),
+        whatFunds: String(form.get('whatFunds')),
+        criteria: String(form.get('criteria')),
         amountRange: String(form.get('amountRange') || ''),
         officialUrl: String(form.get('officialUrl') || ''),
         deadline: String(form.get('deadline') || '') || undefined,
-        country: String(form.get('country') || 'BR'),
+        country: String(form.get('country')),
+        region: String(form.get('region')),
       });
+      const cover = pickCoverFile(form);
+      if (cover) {
+        await catalogApi.uploadCover(accessToken, 'funding-offers', id, cover);
+      }
       const after = await myContentsApi.get(accessToken, 'FUNDING_OFFER', id);
       if (String(after.item.status) === 'DRAFT') {
         await myContentsApi.submitOffer(accessToken, id);
@@ -105,17 +116,23 @@ export function EditFundingOfferPage() {
         <TextArea label={t('catalog.summary')} name="summary" required rows={3} defaultValue={String(item.summary)} />
       </FieldFull>
       <FieldFull>
-        <TextArea label={t('catalog.whatFunds')} name="whatFunds" rows={3} defaultValue={String(item.whatFunds || '')} />
+        <RepresentativeImageField currentUrl={item.coverImageUrl ? String(item.coverImageUrl) : null} />
       </FieldFull>
       <FieldFull>
-        <TextArea label={t('catalog.criteria')} name="criteria" rows={3} defaultValue={String(item.criteria || '')} />
+        <TextArea label={t('catalog.whatFunds')} name="whatFunds" required rows={3} defaultValue={String(item.whatFunds || '')} />
+      </FieldFull>
+      <FieldFull>
+        <TextArea label={t('catalog.criteria')} name="criteria" required rows={3} defaultValue={String(item.criteria || '')} />
       </FieldFull>
       <Input label={t('catalog.amountRange')} name="amountRange" defaultValue={String(item.amountRange || '')} />
       <Input label={t('catalog.deadline')} name="deadline" type="date" defaultValue={deadline} />
       <FieldFull>
         <Input label={t('catalog.officialUrl')} name="officialUrl" defaultValue={String(item.officialUrl || '')} />
       </FieldFull>
-      <Input label={t('catalog.country')} name="country" defaultValue={String(item.country || 'BR')} />
+      <RegionCountryFields
+        defaultRegion={String(item.region || 'south_america')}
+        defaultCountry={String(item.country || 'BR')}
+      />
     </FormPage>
   );
 }

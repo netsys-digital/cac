@@ -4,7 +4,20 @@ import { useTranslation } from 'react-i18next';
 import { Input, TextArea } from '@cac/ui';
 import { useAuth } from '../../auth/AuthContext';
 import { myContentsApi } from '../../api/myContentsApi';
-import { FieldFull, FormPage } from '../../components/forms/FormPage';
+import { FieldFull, FormPage, SelectField } from '../../components/forms/FormPage';
+import { catalogApi } from '../../api/catalogApi';
+import {
+  pickCoverFile,
+  RepresentativeImageField,
+} from '../../components/forms/RepresentativeImageField';
+import { RegionCountryFields } from '../../components/forms/RegionCountryFields';
+
+function parseTags(raw: FormDataEntryValue | null): string[] {
+  return String(raw || '')
+    .split(',')
+    .map((s) => s.trim())
+    .filter(Boolean);
+}
 
 export function EditTechnologyPage() {
   const { id = '' } = useParams();
@@ -40,6 +53,11 @@ export function EditTechnologyPage() {
     setError('');
     setMessage('');
     const form = new FormData(e.currentTarget);
+    const tags = parseTags(form.get('tags'));
+    if (!tags.length) {
+      setError(t('catalog.tagsRequired'));
+      return;
+    }
     const status = String(item?.status ?? '');
     try {
       if (status === 'PUBLISHED') {
@@ -51,12 +69,15 @@ export function EditTechnologyPage() {
         problemStatement: String(form.get('problemStatement')),
         howItWorks: String(form.get('howItWorks')),
         videoUrl: String(form.get('videoUrl') || '').trim() || null,
-        country: String(form.get('country') || 'BR'),
-        tags: String(form.get('tags') || '')
-          .split(',')
-          .map((s) => s.trim())
-          .filter(Boolean),
+        country: String(form.get('country')),
+        region: String(form.get('region')),
+        maturity: String(form.get('maturity')),
+        tags,
       });
+      const cover = pickCoverFile(form);
+      if (cover) {
+        await catalogApi.uploadCover(accessToken, 'technologies', id, cover);
+      }
       const after = await myContentsApi.get(accessToken, 'TECHNOLOGY', id);
       setItem(after.item);
       if (String(after.item.status) === 'DRAFT') {
@@ -115,6 +136,9 @@ export function EditTechnologyPage() {
         <TextArea label={t('catalog.how')} hint={t('catalog.howHint')} name="howItWorks" required rows={4} defaultValue={String(item.howItWorks)} />
       </FieldFull>
       <FieldFull>
+        <RepresentativeImageField currentUrl={item.coverImageUrl ? String(item.coverImageUrl) : null} />
+      </FieldFull>
+      <FieldFull>
         <Input
           label={t('catalog.videoUrl')}
           hint={t('catalog.videoUrlHint')}
@@ -124,8 +148,26 @@ export function EditTechnologyPage() {
           defaultValue={item.videoUrl ? String(item.videoUrl) : ''}
         />
       </FieldFull>
-      <Input label={t('catalog.country')} hint={t('catalog.countryHint')} name="country" defaultValue={String(item.country || 'BR')} />
-      <Input label={t('catalog.tags')} hint={t('catalog.tagsHint')} name="tags" defaultValue={tags} />
+      <RegionCountryFields
+        defaultRegion={String(item.region || 'south_america')}
+        defaultCountry={String(item.country || 'BR')}
+      />
+      <SelectField
+        label={t('catalog.maturity')}
+        hint={t('catalog.maturityHint')}
+        name="maturity"
+        required
+        defaultValue={String(item.maturity || 'READY_FOR_IMPLEMENTATION')}
+      >
+        <option value="RESEARCH">{t('catalog.maturityResearch')}</option>
+        <option value="VALIDATION">{t('catalog.maturityValidation')}</option>
+        <option value="DEMONSTRATION">{t('catalog.maturityDemonstration')}</option>
+        <option value="READY_FOR_IMPLEMENTATION">{t('catalog.maturityReady')}</option>
+        <option value="AT_SCALE">{t('catalog.maturityScale')}</option>
+      </SelectField>
+      <FieldFull>
+        <Input label={t('catalog.tags')} hint={t('catalog.tagsHint')} name="tags" required defaultValue={tags} />
+      </FieldFull>
     </FormPage>
   );
 }

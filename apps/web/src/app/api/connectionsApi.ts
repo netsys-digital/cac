@@ -1,26 +1,4 @@
-import { urls } from '../../config';
-
-async function api<T>(
-  path: string,
-  options: RequestInit & { accessToken?: string | null } = {},
-): Promise<T> {
-  const { accessToken, headers, ...rest } = options;
-  const res = await fetch(`${urls.api}${path}`, {
-    credentials: 'include',
-    ...rest,
-    headers: {
-      'Content-Type': 'application/json',
-      ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
-      ...headers,
-    },
-  });
-  if (!res.ok) {
-    const body = await res.json().catch(() => ({}));
-    throw new Error((body as { error?: string }).error ?? `http_${res.status}`);
-  }
-  if (res.status === 204) return undefined as T;
-  return (await res.json()) as T;
-}
+import { api } from './http';
 
 export type Connection = {
   id: string;
@@ -30,9 +8,13 @@ export type Connection = {
   targetId: string;
   message?: string | null;
   expiresAt: string;
-  requesterOrg?: { id: string; name: string; slug: string };
-  targetOrg?: { id: string; name: string; slug: string };
+  requesterOrgId: string;
+  targetOrgId: string;
+  requesterUserId: string;
+  requesterOrg?: { id: string; name: string; slug: string; logoUrl?: string | null };
+  targetOrg?: { id: string; name: string; slug: string; logoUrl?: string | null };
   requesterUser?: { id: string; name: string; email: string };
+  requesterRole?: { unit: string; linkRole: string } | null;
 };
 
 export type PendingItem = {

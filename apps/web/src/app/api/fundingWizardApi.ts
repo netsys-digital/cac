@@ -1,25 +1,4 @@
-import { urls } from '../../config';
-
-async function api<T>(
-  path: string,
-  options: RequestInit & { accessToken?: string | null } = {},
-): Promise<T> {
-  const { accessToken, headers, ...rest } = options;
-  const res = await fetch(`${urls.api}${path}`, {
-    credentials: 'include',
-    ...rest,
-    headers: {
-      'Content-Type': 'application/json',
-      ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
-      ...headers,
-    },
-  });
-  if (!res.ok) {
-    const body = await res.json().catch(() => ({}));
-    throw new Error((body as { error?: string }).error ?? `http_${res.status}`);
-  }
-  return (await res.json()) as T;
-}
+import { api } from './http';
 
 export const fundingWizardApi = {
   createOffer: (token: string, body: Record<string, unknown>) =>

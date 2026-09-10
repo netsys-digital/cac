@@ -1,7 +1,9 @@
 import { Router } from 'express';
 import {
+  approveRepresentationBodySchema,
   createDomainBodySchema,
   updateDomainBodySchema,
+  updateOrganizationAdminBodySchema,
   UserRole,
 } from '@cac/shared';
 import { prisma } from '../../lib/prisma.js';
@@ -30,44 +32,59 @@ adminRouter.get('/representation-requests', async (req, res, next) => {
   }
 });
 
-adminRouter.post('/representation-requests/:id/approve', async (req, res, next) => {
-  try {
-    const existing = await prisma.orgRepresentationRequest.findUnique({
-      where: { id: param(req.params.id) },
-    });
-    if (!existing) {
-      res.status(404).json({ error: 'not_found' });
-      return;
-    }
-
-    const result = await prisma.$transaction(async (tx) => {
-      const request = await tx.orgRepresentationRequest.update({
-        where: { id: existing.id },
-        data: { status: 'APPROVED' },
-        include: { organization: true, user: { select: { id: true, email: true, name: true } } },
+adminRouter.post(
+  '/representation-requests/:id/approve',
+  validateBody(approveRepresentationBodySchema),
+  async (req, res, next) => {
+    try {
+      const existing = await prisma.orgRepresentationRequest.findUnique({
+        where: { id: param(req.params.id) },
       });
-      await tx.organizationMember.upsert({
-        where: {
-          userId_organizationId: {
+      if (!existing) {
+        res.status(404).json({ error: 'not_found' });
+        return;
+      }
+
+      const publishKinds = [...new Set(req.body.publishKinds as string[])] as Array<
+        'TECHNOLOGY' | 'CHALLENGE' | 'FUNDING_OFFER' | 'SUCCESS_CASE'
+      >;
+
+      const result = await prisma.$transaction(async (tx) => {
+        const request = await tx.orgRepresentationRequest.update({
+          where: { id: existing.id },
+          data: { status: 'APPROVED' },
+          include: { organization: true, user: { select: { id: true, email: true, name: true } } },
+        });
+        await tx.organizationMember.upsert({
+          where: {
+            userId_organizationId: {
+              userId: existing.userId,
+              organizationId: existing.organizationId,
+            },
+          },
+          create: {
             userId: existing.userId,
             organizationId: existing.organizationId,
+            role: 'ORG_MEMBER',
           },
-        },
-        create: {
-          userId: existing.userId,
-          organizationId: existing.organizationId,
-          role: 'ORG_MEMBER',
-        },
-        update: {},
+          update: {},
+        });
+        await tx.organization.update({
+          where: { id: existing.organizationId },
+          data: {
+            publishKinds,
+            verificationStatus: 'VERIFIED',
+          },
+        });
+        return request;
       });
-      return request;
-    });
 
-    res.json({ request: result });
-  } catch (error) {
-    next(error);
-  }
-});
+      res.json({ request: result });
+    } catch (error) {
+      next(error);
+    }
+  },
+);
 
 adminRouter.post('/representation-requests/:id/reject', async (req, res, next) => {
   try {
@@ -81,6 +98,56 @@ adminRouter.post('/representation-requests/:id/reject', async (req, res, next) =
     next(error);
   }
 });
+
+adminRouter.get('/organizations', async (_req, res, next) => {
+  try {
+    const items = await prisma.organization.findMany({
+      orderBy: { name: 'asc' },
+      include: {
+        _count: {
+          select: {
+            members: true,
+            technologies: true,
+            challenges: true,
+            fundingOffers: true,
+            successCases: true,
+          },
+        },
+      },
+    });
+    res.json({ items });
+  } catch (error) {
+    next(error);
+  }
+});
+
+adminRouter.patch(
+  '/organizations/:id',
+  validateBody(updateOrganizationAdminBodySchema),
+  async (req, res, next) => {
+    try {
+      const data: {
+        publishKinds?: Array<'TECHNOLOGY' | 'CHALLENGE' | 'FUNDING_OFFER' | 'SUCCESS_CASE'>;
+        verificationStatus?: 'PENDING' | 'VERIFIED' | 'REJECTED';
+      } = {};
+      if (req.body.publishKinds !== undefined) {
+        data.publishKinds = [...new Set(req.body.publishKinds as string[])] as Array<
+          'TECHNOLOGY' | 'CHALLENGE' | 'FUNDING_OFFER' | 'SUCCESS_CASE'
+        >;
+      }
+      if (req.body.verificationStatus !== undefined) {
+        data.verificationStatus = req.body.verificationStatus;
+      }
+      const organization = await prisma.organization.update({
+        where: { id: param(req.params.id) },
+        data,
+      });
+      res.json({ organization });
+    } catch (error) {
+      next(error);
+    }
+  },
+);
 
 adminRouter.post('/organizations/:id/verify', async (req, res, next) => {
   try {

@@ -33,6 +33,7 @@ export type SearchResultItem = {
   country?: string | null;
   region?: string | null;
   organizationName?: string | null;
+  coverImageUrl?: string | null;
 };
 
 export type SearchResponse = {
@@ -76,6 +77,7 @@ type Candidate = {
   vector?: number[] | null;
   textBlob: string;
   href: string;
+  coverImageUrl?: string | null;
 };
 
 function asVector(value: unknown): number[] | null {
@@ -223,6 +225,7 @@ export async function runSearch(body: SearchBody): Promise<SearchResponse> {
       vector: asVector(tech.embedding?.vector),
       textBlob: `${tech.title} ${tech.summary} ${tech.problemStatement} ${tech.howItWorks} ${tags.join(' ')}`,
       href: `/solutions/${tech.slug}`,
+      coverImageUrl: tech.coverImageUrl,
     });
   }
 
@@ -243,6 +246,7 @@ export async function runSearch(body: SearchBody): Promise<SearchResponse> {
       vector: asVector(project.embedding?.vector),
       textBlob: `${project.title} ${project.summary} ${project.type}`,
       href: `/projects/${project.slug}`,
+      coverImageUrl: project.coverImageUrl,
     });
   }
 
@@ -292,7 +296,8 @@ export async function runSearch(body: SearchBody): Promise<SearchResponse> {
       region: offer.region,
       organizationId: offer.organizationId,
       textBlob: `${offer.title} ${offer.summary} ${offer.whatFunds ?? ''} ${offer.criteria ?? ''}`,
-      href: `/funding?tab=active`,
+      href: `/funding/${offer.slug}`,
+      coverImageUrl: offer.coverImageUrl,
     });
   }
 
@@ -313,6 +318,7 @@ export async function runSearch(body: SearchBody): Promise<SearchResponse> {
       vector: asVector(challenge.embedding?.vector),
       textBlob: `${challenge.title} ${challenge.summary} ${challenge.context ?? ''} ${tags.join(' ')}`,
       href: `/challenges/${challenge.slug}`,
+      coverImageUrl: challenge.coverImageUrl,
     });
   }
 
@@ -332,6 +338,7 @@ export async function runSearch(body: SearchBody): Promise<SearchResponse> {
       organizationSlug: successCase.organization.slug,
       textBlob: `${successCase.title} ${successCase.summary} ${successCase.context ?? ''} ${successCase.outcomes ?? ''} ${needTags.join(' ')}`,
       href: `/cases/${successCase.slug}`,
+      coverImageUrl: successCase.coverImageUrl,
     });
   }
 
@@ -373,6 +380,7 @@ export async function runSearch(body: SearchBody): Promise<SearchResponse> {
       country: c.country,
       region: c.region,
       organizationName: c.organizationName,
+      coverImageUrl: c.coverImageUrl ?? null,
     });
   }
 

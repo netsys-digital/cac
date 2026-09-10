@@ -1,12 +1,14 @@
 import { useEffect, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import { formatDate } from '@cac/shared';
 import { PageShell } from '../components/PageChrome';
 import { urls } from '../../config';
 import { fundingApi, type FundingOffer, type FunderProfile } from '../api/fundingApi';
+import { resolveMediaUrl } from '../lib/mediaUrl';
 
 export function FundingPage() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [params, setParams] = useSearchParams();
   const tab = params.get('tab') === 'directory' ? 'directory' : 'active';
   const [offers, setOffers] = useState<FundingOffer[]>([]);
@@ -70,22 +72,38 @@ export function FundingPage() {
       {tab === 'active' ? (
         <div className="space-y-3">
           <p className="text-pequena text-cac-muted">{t('funding.activeBody')}</p>
-          {offers.map((offer) => (
-            <article
-              key={offer.id}
-              className="rounded-[16px] border border-cac-line bg-white p-4 shadow-[0_14px_38px_rgba(10,36,64,.08)]"
-            >
-              <h2 className="text-media font-bold text-cac-navy">{offer.title}</h2>
-              <p className="mt-2 text-pequena text-cac-muted">{offer.summary}</p>
-              <p className="mt-2 text-mini text-cac-ink">
-                {offer.amountRange ? `${offer.amountRange} · ` : ''}
-                {offer.deadline ? `${t('funding.deadline')}: ${offer.deadline.slice(0, 10)}` : t('funding.noDeadline')}
-              </p>
-              {offer.organization ? (
-                <p className="mt-1 text-mini font-bold text-cac-green">{offer.organization.name}</p>
-              ) : null}
-            </article>
-          ))}
+          <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+            {offers.map((offer) => (
+              <Link
+                key={offer.id}
+                to={`/funding/${offer.slug}`}
+                className="flex h-full flex-col overflow-hidden rounded-[16px] border border-cac-line bg-white shadow-[0_14px_38px_rgba(10,36,64,.08)] transition hover:-translate-y-0.5 hover:border-cac-green/40"
+              >
+                <div className="h-[120px] bg-gradient-to-br from-[#b8d7bf] to-[#dce9d3]">
+                  {resolveMediaUrl(offer.coverImageUrl) ? (
+                    <img
+                      src={resolveMediaUrl(offer.coverImageUrl)!}
+                      alt=""
+                      className="h-full w-full object-cover"
+                    />
+                  ) : null}
+                </div>
+                <div className="flex flex-1 flex-col p-4">
+                  <h2 className="text-media font-bold text-cac-navy">{offer.title}</h2>
+                  <p className="mt-2 flex-1 text-pequena leading-relaxed text-cac-muted">{offer.summary}</p>
+                  <p className="mt-3 text-mini text-cac-ink">
+                    {offer.amountRange ? `${offer.amountRange} · ` : ''}
+                    {offer.deadline
+                      ? `${t('funding.deadline')}: ${formatDate(offer.deadline, i18n.language)}`
+                      : t('funding.noDeadline')}
+                  </p>
+                  {offer.organization ? (
+                    <p className="mt-1 text-mini font-bold text-cac-green">{offer.organization.name}</p>
+                  ) : null}
+                </div>
+              </Link>
+            ))}
+          </div>
           {!offers.length ? <p className="text-pequena text-cac-muted">{t('detail.emptyList')}</p> : null}
         </div>
       ) : (
@@ -94,15 +112,20 @@ export function FundingPage() {
             {t('funding.directoryWarning')}
           </div>
           <p className="text-pequena text-cac-muted">{t('funding.directoryBody')}</p>
-          {funders.map((funder) => (
-            <article key={funder.id} className="rounded-[16px] border border-cac-line bg-white p-4">
-              <h2 className="text-media font-bold text-cac-navy">{funder.name}</h2>
-              <p className="mt-2 text-pequena text-cac-muted">{funder.summary}</p>
-              <p className="mt-1 text-mini text-cac-ink">
-                {[funder.country, funder.region].filter(Boolean).join(' · ')}
-              </p>
-            </article>
-          ))}
+          <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+            {funders.map((funder) => (
+              <article
+                key={funder.id}
+                className="flex h-full flex-col rounded-[16px] border border-cac-line bg-white p-4 shadow-[0_14px_38px_rgba(10,36,64,.08)]"
+              >
+                <h2 className="text-media font-bold text-cac-navy">{funder.name}</h2>
+                <p className="mt-2 flex-1 text-pequena leading-relaxed text-cac-muted">{funder.summary}</p>
+                <p className="mt-3 text-mini text-cac-ink">
+                  {[funder.country, funder.region].filter(Boolean).join(' · ')}
+                </p>
+              </article>
+            ))}
+          </div>
           {!funders.length ? <p className="text-pequena text-cac-muted">{t('detail.emptyList')}</p> : null}
         </div>
       )}

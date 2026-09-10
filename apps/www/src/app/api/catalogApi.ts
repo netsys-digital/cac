@@ -20,6 +20,14 @@ export type OrgSummary = {
   verificationStatus: string;
 };
 
+export type TechnologyMedia = {
+  id: string;
+  url: string;
+  kind: string;
+  filename: string;
+  mimeType: string;
+};
+
 export type Technology = {
   id: string;
   title: string;
@@ -28,12 +36,14 @@ export type Technology = {
   problemStatement: string;
   howItWorks: string;
   videoUrl?: string | null;
+  coverImageUrl?: string | null;
   status: string;
   country: string;
   region?: string | null;
   climateAction?: string | null;
   maturity?: string | null;
   tags: string[];
+  media?: TechnologyMedia[];
   organization?: OrgSummary;
 };
 
@@ -44,6 +54,7 @@ export type Challenge = {
   summary: string;
   context?: string | null;
   needType: string;
+  coverImageUrl?: string | null;
   country?: string | null;
   region?: string | null;
   tags: string[];
@@ -56,6 +67,7 @@ export type Project = {
   slug: string;
   type: string;
   summary: string;
+  coverImageUrl?: string | null;
   country?: string | null;
   region?: string | null;
   organization?: OrgSummary;

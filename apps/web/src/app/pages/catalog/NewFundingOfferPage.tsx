@@ -1,22 +1,32 @@
-import { type FormEvent, useEffect, useMemo, useState } from 'react';
+import { type FormEvent, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Input, TextArea } from '@cac/ui';
 import { useAuth } from '../../auth/AuthContext';
-import { catalogApi, type Organization } from '../../api/catalogApi';
+import { catalogApi } from '../../api/catalogApi';
 import { fundingWizardApi } from '../../api/fundingWizardApi';
-import { FieldFull, FormPage, SelectField } from '../../components/forms/FormPage';
+import { FieldFull, FormPage } from '../../components/forms/FormPage';
+import {
+  LinkedOrganizationField,
+  LinkedOrganizationsLoading,
+  NeedLinkedOrganization,
+  NeedOrgPublishKind,
+} from '../../components/forms/LinkedOrganizationField';
+import {
+  pickCoverFile,
+  RepresentativeImageField,
+} from '../../components/forms/RepresentativeImageField';
+import { RegionCountryFields } from '../../components/forms/RegionCountryFields';
+import { useMyOrganizations } from '../../hooks/useMyOrganizations';
 
 export function NewFundingOfferPage() {
   const { t } = useTranslation();
   const { accessToken } = useAuth();
-  const [orgs, setOrgs] = useState<Organization[]>([]);
+  const { loading, orgs, allOrgs, organizationId, setOrganizationId } = useMyOrganizations(
+    accessToken,
+    'FUNDING_OFFER',
+  );
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
-
-  useEffect(() => {
-    if (!accessToken) return;
-    void catalogApi.listOrganizations(accessToken).then((res) => setOrgs(res.items));
-  }, [accessToken]);
 
   const tips = useMemo(
     () => [
@@ -33,24 +43,48 @@ export function NewFundingOfferPage() {
     setError('');
     setMessage('');
     const form = new FormData(e.currentTarget);
+    const orgId = String(form.get('organizationId') || organizationId);
+    if (!orgId) {
+      setError(t('catalog.needOrg'));
+      return;
+    }
+    const cover = pickCoverFile(form);
     try {
       const created = await fundingWizardApi.createOffer(accessToken, {
         title: String(form.get('title')),
         summary: String(form.get('summary')),
-        whatFunds: String(form.get('whatFunds') || ''),
-        criteria: String(form.get('criteria') || ''),
+        whatFunds: String(form.get('whatFunds')),
+        criteria: String(form.get('criteria')),
         amountRange: String(form.get('amountRange') || ''),
         officialUrl: String(form.get('officialUrl') || ''),
         deadline: String(form.get('deadline') || '') || undefined,
-        organizationId: String(form.get('organizationId')),
-        country: String(form.get('country') || 'BR'),
+        organizationId: orgId,
+        country: String(form.get('country')),
+        region: String(form.get('region')),
       });
+      if (cover) {
+        await catalogApi.uploadCover(accessToken, 'funding-offers', created.offer.id, cover);
+      }
       await fundingWizardApi.submitOffer(accessToken, created.offer.id);
       setMessage(t('catalog.offerSubmitted', { slug: created.offer.slug }));
       e.currentTarget.reset();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'error');
     }
+  }
+
+  if (loading) return <LinkedOrganizationsLoading />;
+  if (allOrgs.length === 0) {
+    return <NeedLinkedOrganization badge="03 · financiamento" title={t('catalog.newOffer')} />;
+  }
+  if (orgs.length === 0) {
+    return (
+      <NeedOrgPublishKind
+        badge="03 · financiamento"
+        title={t('catalog.newOffer')}
+        kindLabel={t('admin.publishKind.FUNDING_OFFER')}
+      />
+    );
   }
 
   return (
@@ -65,19 +99,11 @@ export function NewFundingOfferPage() {
       message={message}
     >
       <FieldFull>
-        <SelectField
-          label={t('catalog.organization')}
-          hint={t('catalog.organizationHint')}
-          name="organizationId"
-          required
-        >
-          <option value="">{t('rep.selectOrg')}</option>
-          {orgs.map((o) => (
-            <option key={o.id} value={o.id}>
-              {o.name}
-            </option>
-          ))}
-        </SelectField>
+        <LinkedOrganizationField
+          orgs={orgs}
+          value={organizationId}
+          onChange={setOrganizationId}
+        />
       </FieldFull>
       <FieldFull>
         <Input label={t('catalog.title')} hint={t('catalog.titleHint')} name="title" required />
@@ -86,10 +112,25 @@ export function NewFundingOfferPage() {
         <TextArea label={t('catalog.summary')} hint={t('catalog.summaryHint')} name="summary" required rows={3} />
       </FieldFull>
       <FieldFull>
-        <TextArea label={t('catalog.whatFunds')} hint={t('catalog.whatFundsHint')} name="whatFunds" rows={3} />
+        <RepresentativeImageField />
       </FieldFull>
       <FieldFull>
-        <TextArea label={t('catalog.criteria')} hint={t('catalog.criteriaHint')} name="criteria" rows={3} />
+        <TextArea
+          label={t('catalog.whatFunds')}
+          hint={t('catalog.whatFundsHint')}
+          name="whatFunds"
+          required
+          rows={3}
+        />
+      </FieldFull>
+      <FieldFull>
+        <TextArea
+          label={t('catalog.criteria')}
+          hint={t('catalog.criteriaHint')}
+          name="criteria"
+          required
+          rows={3}
+        />
       </FieldFull>
       <Input
         label={t('catalog.amountRange')}
@@ -101,7 +142,7 @@ export function NewFundingOfferPage() {
       <FieldFull>
         <Input label={t('catalog.officialUrl')} hint={t('catalog.officialUrlHint')} name="officialUrl" />
       </FieldFull>
-      <Input label={t('catalog.country')} hint={t('catalog.countryHint')} name="country" defaultValue="BR" />
+      <RegionCountryFields defaultRegion="south_america" defaultCountry="BR" />
     </FormPage>
   );
 }

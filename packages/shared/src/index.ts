@@ -1,4 +1,5 @@
 export * from './enums.js';
+export * from './formatDate.js';
 export * from './schemas/auth.js';
 export * from './schemas/organization.js';
 export * from './schemas/representation.js';

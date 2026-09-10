@@ -1,6 +1,6 @@
 ﻿import { Router } from 'express';
 import { ContentStatus, createChallengeBodySchema, updateChallengeBodySchema } from '@cac/shared';
-import { assertCanActForOrganization } from '../../lib/org-access.js';
+import { assertCanActForOrganization, assertCanPublishKind } from '../../lib/org-access.js';
 import { prisma } from '../../lib/prisma.js';
 import { slugify } from '../../lib/slug.js';
 import { requireAuth } from '../../middleware/auth.js';
@@ -50,7 +50,7 @@ challengesRouter.get('/:slugOrId', async (req, res, next) => {
 
 challengesRouter.post('/', requireAuth, validateBody(createChallengeBodySchema), async (req, res, next) => {
   try {
-    await assertCanActForOrganization(req.auth!.sub, req.body.organizationId, req.auth!.role);
+    await assertCanPublishKind(req.auth!.sub, req.body.organizationId, req.auth!.role, 'CHALLENGE');
     const status = req.body.status ?? ContentStatus.DRAFT;
     if (status === ContentStatus.PUBLISHED) {
       res.status(400).json({ error: 'workflow_required' });

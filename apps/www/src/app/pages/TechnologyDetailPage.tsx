@@ -16,6 +16,7 @@ import {
 import { BackToSearchLink } from '../components/BackToSearchLink';
 import { shell } from '../components/PageChrome';
 import { urls } from '../../config';
+import { resolveMediaUrl } from '../lib/mediaUrl';
 
 function labelOrRaw(value: string | null | undefined, map: Record<string, string>) {
   if (!value) return null;
@@ -76,13 +77,20 @@ export function TechnologyDetailPage() {
   const connectUrl = `${urls.web}/login?returnUrl=${encodeURIComponent(`/connections/new?targetType=TECHNOLOGY&targetId=${item.id}`)}`;
   const favoriteUrl = `${urls.web}/login?returnUrl=${encodeURIComponent(`/connections/new?targetType=TECHNOLOGY&targetId=${item.id}&intent=save`)}`;
 
+  const relatedVideoRaw =
+    item.videoUrl ||
+    item.media?.find((m) => m.kind === 'VIDEO' || m.mimeType?.startsWith('video/'))?.url ||
+    null;
+  const relatedVideo = resolveMediaUrl(relatedVideoRaw) ?? relatedVideoRaw;
+
   return (
     <div className="bg-cac-bg">
       <CatalogDetailHero
         eyebrow={t('detail.solutionBadge')}
         title={item.title}
         summary={item.summary}
-        videoUrl={item.videoUrl}
+        videoUrl={relatedVideo}
+        coverImageUrl={resolveMediaUrl(item.coverImageUrl)}
         chips={
           <>
             {item.country ? <DetailHeroChip>{item.country}</DetailHeroChip> : null}

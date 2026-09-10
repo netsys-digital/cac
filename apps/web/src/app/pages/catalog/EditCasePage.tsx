@@ -4,7 +4,13 @@ import { useTranslation } from 'react-i18next';
 import { Input, TextArea } from '@cac/ui';
 import { useAuth } from '../../auth/AuthContext';
 import { myContentsApi } from '../../api/myContentsApi';
+import { catalogApi } from '../../api/catalogApi';
 import { FieldFull, FormPage } from '../../components/forms/FormPage';
+import {
+  pickCoverFile,
+  RepresentativeImageField,
+} from '../../components/forms/RepresentativeImageField';
+import { RegionCountryFields } from '../../components/forms/RegionCountryFields';
 
 export function EditCasePage() {
   const { id = '' } = useParams();
@@ -40,15 +46,19 @@ export function EditCasePage() {
     setError('');
     setMessage('');
     const form = new FormData(e.currentTarget);
+    const needs = String(form.get('needs') || '')
+      .split(',')
+      .map((s) => s.trim())
+      .filter(Boolean)
+      .map((needType) => ({ needType, detail: '' }));
+    if (!needs.length) {
+      setError(t('catalog.needsRequired'));
+      return;
+    }
     try {
       if (String(item?.status) === 'PUBLISHED') {
         await myContentsApi.withdraw(accessToken, 'SUCCESS_CASE', id);
       }
-      const needs = String(form.get('needs') || '')
-        .split(',')
-        .map((s) => s.trim())
-        .filter(Boolean)
-        .map((needType) => ({ needType, detail: '' }));
       const evidenceNotes = String(form.get('evidence') || '')
         .split('|')
         .map((s) => s.trim())
@@ -56,12 +66,17 @@ export function EditCasePage() {
       await myContentsApi.patchCase(accessToken, id, {
         title: String(form.get('title')),
         summary: String(form.get('summary')),
-        context: String(form.get('context') || ''),
-        outcomes: String(form.get('outcomes') || ''),
-        country: String(form.get('country') || 'MZ'),
+        context: String(form.get('context')),
+        outcomes: String(form.get('outcomes')),
+        country: String(form.get('country')),
+        region: String(form.get('region')),
         needs,
         evidenceNotes,
       });
+      const cover = pickCoverFile(form);
+      if (cover) {
+        await catalogApi.uploadCover(accessToken, 'success-cases', id, cover);
+      }
       const after = await myContentsApi.get(accessToken, 'SUCCESS_CASE', id);
       if (String(after.item.status) === 'DRAFT') {
         await myContentsApi.submitCase(accessToken, id);
@@ -83,6 +98,10 @@ export function EditCasePage() {
       </p>
     );
   }
+
+  const needsDefault = Array.isArray(item.needs)
+    ? (item.needs as Array<{ needType?: string }>).map((n) => n.needType).filter(Boolean).join(', ')
+    : String(item.needs || '');
 
   return (
     <FormPage
@@ -110,13 +129,19 @@ export function EditCasePage() {
         <TextArea label={t('catalog.summary')} name="summary" required rows={3} defaultValue={String(item.summary)} />
       </FieldFull>
       <FieldFull>
-        <TextArea label={t('catalog.context')} name="context" rows={4} defaultValue={String(item.context || '')} />
+        <RepresentativeImageField currentUrl={item.coverImageUrl ? String(item.coverImageUrl) : null} />
       </FieldFull>
       <FieldFull>
-        <TextArea label={t('catalog.outcomes')} name="outcomes" rows={3} defaultValue={String(item.outcomes || '')} />
+        <TextArea label={t('catalog.context')} name="context" required rows={4} defaultValue={String(item.context || '')} />
       </FieldFull>
-      <Input label={t('catalog.country')} name="country" defaultValue={String(item.country || 'MZ')} />
-      <Input label={t('catalog.needs')} name="needs" defaultValue={String(item.needs || '')} />
+      <FieldFull>
+        <TextArea label={t('catalog.outcomes')} name="outcomes" required rows={3} defaultValue={String(item.outcomes || '')} />
+      </FieldFull>
+      <RegionCountryFields
+        defaultRegion={String(item.region || 'africa')}
+        defaultCountry={String(item.country || 'MZ')}
+      />
+      <Input label={t('catalog.needs')} name="needs" required defaultValue={needsDefault} />
       <FieldFull>
         <TextArea label={t('catalog.evidence')} name="evidence" rows={3} defaultValue={String(item.evidence || '')} />
       </FieldFull>

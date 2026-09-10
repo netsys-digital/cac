@@ -56,7 +56,7 @@ function PhaseArrow() {
         className="hidden shrink-0 items-center justify-center self-center px-1 text-cac-green xl:flex"
         aria-hidden
       >
-        <svg viewBox="0 0 48 64" className="h-16 w-11" fill="none">
+        <svg viewBox="0 0 48 64" className="h-12 w-8" fill="none">
           <path
             d="M8 8 L36 32 L8 56"
             stroke="currentColor"
@@ -114,7 +114,7 @@ function IntentCard({
   secondaryCta,
 }: IntentCardProps) {
   const shellClass = [
-    'group flex h-full min-h-0 flex-col items-center rounded-2xl border bg-white p-5 text-center shadow-cac transition duration-200 xl:p-6',
+    'group flex h-full flex-col items-center rounded-2xl border bg-white p-4 text-center shadow-cac transition duration-200 xl:p-5',
     locked
       ? 'border-dashed border-cac-line bg-[#f8faf9]'
       : 'border-cac-line hover:-translate-y-0.5 hover:border-cac-green/45',
@@ -122,14 +122,14 @@ function IntentCard({
   ].join(' ');
 
   const ctaClass = locked
-    ? 'inline-flex w-full max-w-xs items-center justify-center rounded-[12px] bg-cac-green3 px-5 py-3.5 text-media font-extrabold text-cac-navy transition hover:brightness-95 xl:py-4 xl:text-grande'
-    : 'inline-flex w-full max-w-xs items-center justify-center rounded-[12px] bg-cac-navy px-5 py-3.5 text-media font-extrabold text-white transition group-hover:bg-cac-green2 xl:py-4 xl:text-grande';
+    ? 'inline-flex w-full max-w-xs items-center justify-center rounded-[12px] bg-cac-green3 px-4 py-2.5 text-media font-extrabold text-cac-navy transition hover:brightness-95'
+    : 'inline-flex w-full max-w-xs items-center justify-center rounded-[12px] bg-cac-navy px-4 py-2.5 text-media font-extrabold text-white transition group-hover:bg-cac-green2';
 
   const content = (
     <>
-      <div className="flex w-full flex-col items-center gap-3">
+      <div className="flex w-full flex-col items-center gap-2">
         <span
-          className={`grid size-12 place-items-center rounded-xl xl:size-14 ${
+          className={`grid size-10 place-items-center rounded-xl xl:size-11 ${
             locked ? 'bg-[#edf1f3] text-cac-muted' : 'bg-cac-green3 text-cac-navy'
           }`}
         >
@@ -144,22 +144,22 @@ function IntentCard({
             {badge}
           </span>
           {recommended && recommendedLabel ? (
-            <span className="rounded-md bg-cac-green2 px-2 py-0.5 text-mini font-bold tracking-wide text-white uppercase xl:text-pequena">
+            <span className="rounded-md bg-cac-green2 px-2 py-0.5 text-mini font-bold tracking-wide text-white uppercase">
               {recommendedLabel}
             </span>
           ) : null}
           {status ? (
-            <span className="rounded-md bg-amber-50 px-2 py-0.5 text-mini font-bold uppercase tracking-wide text-amber-800 xl:text-pequena">
+            <span className="rounded-md bg-amber-50 px-2 py-0.5 text-mini font-bold uppercase tracking-wide text-amber-800">
               {status}
             </span>
           ) : null}
         </div>
-        <h2 className="text-grande leading-snug font-bold text-cac-navy">{title}</h2>
+        <h2 className="text-media leading-snug font-bold text-cac-navy xl:text-grande">{title}</h2>
       </div>
 
-      <p className="mt-3 flex-1 text-media leading-relaxed text-cac-muted">{body}</p>
+      <p className="mt-2 flex-1 text-pequena leading-snug text-cac-muted xl:text-media">{body}</p>
 
-      <div className="mt-5 flex w-full justify-center">
+      <div className="mt-3 flex w-full justify-center">
         {locked ? (
           onSecondaryTo && secondaryCta ? (
             <Link
@@ -246,9 +246,9 @@ export function OnboardingIntentPage() {
   }
 
   return (
-    <div className="flex min-h-[calc(100vh-10.5rem)] flex-col gap-4 xl:gap-5">
+    <div className="flex flex-col gap-4 xl:gap-5">
       {/* Topo */}
-      <header className="shrink-0 overflow-hidden rounded-2xl border border-cac-line bg-white shadow-cac">
+      <header className="overflow-hidden rounded-2xl border border-cac-line bg-white shadow-cac">
         <div className="grid gap-0 lg:grid-cols-[minmax(0,1.5fr)_minmax(280px,1fr)_minmax(220px,0.75fr)]">
           <div className="p-5 xl:p-6">
             <p className="text-pequena font-extrabold tracking-[0.14em] text-cac-green uppercase">
@@ -321,14 +321,14 @@ export function OnboardingIntentPage() {
         </div>
       </header>
 
-      {/* Ações — crescem no desktop para ocupar a altura */}
-      <section className="flex min-h-0 flex-1 flex-col">
+      {/* Ações — mesma altura do card mais alto (sem esticar a viewport) */}
+      <section>
         <div className="mb-3 flex flex-wrap items-end justify-between gap-2">
           <h2 className="text-grande font-bold text-cac-navy">{t('onboarding.chooseTitle')}</h2>
           <p className="text-media text-cac-muted">{t('onboarding.chooseSubtitle')}</p>
         </div>
-        <div className="flex flex-1 flex-col gap-3 xl:flex-row xl:items-stretch xl:gap-0">
-          <div className="min-w-0 flex-1">
+        <div className="flex flex-col gap-3 xl:flex-row xl:items-stretch xl:gap-0">
+          <div className="flex min-w-0 flex-1 flex-col">
             <IntentCard
               badge={t('onboarding.exploreBadge')}
               title={t('onboarding.exploreTitle')}
@@ -341,7 +341,7 @@ export function OnboardingIntentPage() {
             />
           </div>
           <PhaseArrow />
-          <div className="min-w-0 flex-1">
+          <div className="flex min-w-0 flex-1 flex-col">
             <IntentCard
               badge={t('onboarding.repBadge')}
               title={t('onboarding.repTitle')}
@@ -355,7 +355,7 @@ export function OnboardingIntentPage() {
             />
           </div>
           <PhaseArrow />
-          <div className="min-w-0 flex-1">
+          <div className="flex min-w-0 flex-1 flex-col">
             <IntentCard
               badge={t('onboarding.publishBadge')}
               title={t('onboarding.publishTitle')}

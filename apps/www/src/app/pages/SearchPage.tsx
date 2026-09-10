@@ -3,6 +3,7 @@ import { useLocation, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { postSearch, type SearchFilters, type SearchResponse } from '../api/searchApi';
 import { PageShell, ResultCard } from '../components/PageChrome';
+import { resolveMediaUrl } from '../lib/mediaUrl';
 import { FilterPanel } from '../components/search/FilterPanel';
 import { MatchPaths } from '../components/search/MatchPaths';
 import { ResultFacets } from '../components/search/ResultFacets';
@@ -298,6 +299,7 @@ export function SearchPage() {
                   }
                   title={item.title}
                   summary={item.summary}
+                  imageUrl={resolveMediaUrl(item.coverImageUrl)}
                   meta={[
                     contentLabel(item.contentType, t),
                     item.organizationName,

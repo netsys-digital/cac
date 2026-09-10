@@ -1,26 +1,35 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Navigate } from 'react-router-dom';
+import { Link, Navigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Button, Input, TextArea } from '@cac/ui';
 import { useAuth } from '../../auth/AuthContext';
 import { useRepresentation } from '../../auth/RepresentationContext';
 import { catalogApi, type Organization } from '../../api/catalogApi';
-import { SelectField } from '../../components/forms/FormPage';
+import { RegionCountryFields } from '../../components/forms/RegionCountryFields';
+import { OrganizationSearchSelect } from '../../components/forms/OrganizationSearchSelect';
+import { ProofDocumentField } from '../../components/forms/ProofDocumentField';
+import { OrganizationLogoField } from '../../components/forms/OrganizationLogoField';
 
-const steps = ['account', 'organization', 'link', 'interest', 'confirm'] as const;
+const steps = ['account', 'organization', 'link', 'interest', 'documents', 'confirm'] as const;
 
 export function RepresentationWizardPage() {
   const { t } = useTranslation();
-  const { user, accessToken } = useAuth();
+  const { user, accessToken, ensureAccessToken } = useAuth();
   const { refresh, isStaff } = useRepresentation();
   const [step, setStep] = useState(0);
   const [orgs, setOrgs] = useState<Organization[]>([]);
   const [mode, setMode] = useState<'existing' | 'create'>('existing');
   const [organizationId, setOrganizationId] = useState('');
   const [newOrgName, setNewOrgName] = useState('');
+  const [newOrgSummary, setNewOrgSummary] = useState('');
+  const [newOrgCountry, setNewOrgCountry] = useState('');
+  const [newOrgRegion, setNewOrgRegion] = useState('');
+  const [newOrgLogo, setNewOrgLogo] = useState<File | null>(null);
   const [unit, setUnit] = useState('');
   const [linkRole, setLinkRole] = useState('');
   const [interest, setInterest] = useState('');
+  const [proofDocument1, setProofDocument1] = useState<File | null>(null);
+  const [proofDocument2, setProofDocument2] = useState<File | null>(null);
   const [error, setError] = useState('');
   const [done, setDone] = useState(false);
   const [submitting, setSubmitting] = useState(false);
@@ -49,35 +58,60 @@ export function RepresentationWizardPage() {
     return <Navigate to="/" replace />;
   }
 
-  async function ensureOrganization(): Promise<string> {
-    if (!accessToken) throw new Error('unauthorized');
+  async function submit() {
+    if (!proofDocument1) return;
+    setSubmitting(true);
+    setError('');
+    try {
+      const token = await ensureAccessToken();
+      if (!token) throw new Error('unauthorized');
+      const orgId = await ensureOrganizationWithToken(token);
+      await catalogApi.createRepresentation(token, orgId, {
+        unit,
+        linkRole,
+        interest,
+        proofDocument1,
+        proofDocument2,
+      });
+      await refresh();
+      setDone(true);
+    } catch (e) {
+      const code = e instanceof Error ? e.message : 'error';
+      if (code === 'proof_document_required') setError(t('rep.docRequired'));
+      else if (code === 'logo_required' || code.startsWith('logo_required')) setError(t('rep.orgLogoRequired'));
+      else if (code === 'slug_taken') setError(t('rep.slugTaken'));
+      else if (code === 'unauthorized' || code.startsWith('unauthorized')) setError(t('rep.sessionExpired'));
+      else if (code.startsWith('validation_error')) setError(t('rep.validationFailed'));
+      else setError(code);
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
+  async function ensureOrganizationWithToken(token: string): Promise<string> {
     if (mode === 'existing') {
       if (!organizationId) throw new Error('org_required');
       return organizationId;
     }
-    const created = await catalogApi.createOrganization(accessToken, {
-      name: newOrgName,
-      country: 'BR',
+    if (
+      !newOrgName.trim() ||
+      newOrgSummary.trim().length < 10 ||
+      !newOrgCountry ||
+      !newOrgRegion.trim() ||
+      !newOrgLogo
+    ) {
+      throw new Error(t('rep.orgFieldsRequired'));
+    }
+    const created = await catalogApi.createOrganization(token, {
+      name: newOrgName.trim(),
+      summary: newOrgSummary.trim(),
+      country: newOrgCountry.trim().toUpperCase(),
+      region: newOrgRegion.trim(),
+      logo: newOrgLogo,
     });
     setOrganizationId(created.organization.id);
     setOrgs((prev) => [...prev, created.organization]);
     return created.organization.id;
-  }
-
-  async function submit() {
-    if (!accessToken) return;
-    setSubmitting(true);
-    setError('');
-    try {
-      const orgId = await ensureOrganization();
-      await catalogApi.createRepresentation(accessToken, orgId, { unit, linkRole, interest });
-      await refresh();
-      setDone(true);
-    } catch (e) {
-      setError(e instanceof Error ? e.message : 'error');
-    } finally {
-      setSubmitting(false);
-    }
   }
 
   if (done) {
@@ -89,6 +123,14 @@ export function RepresentationWizardPage() {
         <p className="mt-4 inline-block rounded-lg bg-amber-50 px-2 py-1 text-mini font-bold uppercase tracking-wide text-amber-800">
           {t('onboarding.pendingBadge')}
         </p>
+        <div className="mt-5">
+          <Link
+            to="/org/representation"
+            className="inline-flex rounded-[12px] bg-cac-navy px-4 py-2.5 text-media font-extrabold text-white transition hover:bg-cac-green2"
+          >
+            {t('rep.backToList')}
+          </Link>
+        </div>
       </div>
     );
   }
@@ -99,6 +141,12 @@ export function RepresentationWizardPage() {
         <p className="text-mini font-extrabold tracking-[1.7px] text-cac-green uppercase">{t('rep.pageBadge')}</p>
         <h1 className="mt-2 text-grande font-bold text-cac-navy">{t('rep.pageTitle')}</h1>
         <p className="mt-2 max-w-[760px] text-pequena leading-relaxed text-cac-muted">{t('rep.pageDesc')}</p>
+        <Link
+          to="/org/representation"
+          className="mt-3 inline-flex text-pequena font-bold text-cac-navy underline-offset-2 hover:underline"
+        >
+          {t('rep.backToList')}
+        </Link>
       </header>
 
       <div className="grid gap-4 lg:grid-cols-[minmax(0,1.2fr)_minmax(260px,0.8fr)]">
@@ -153,25 +201,39 @@ export function RepresentationWizardPage() {
                     </Button>
                   </div>
                   {mode === 'existing' ? (
-                    <SelectField
+                    <OrganizationSearchSelect
                       label={t('rep.organization')}
+                      hint={t('rep.searchOrgHint')}
+                      options={orgs}
                       value={organizationId}
                       onChange={setOrganizationId}
-                    >
-                      <option value="">{t('rep.selectOrg')}</option>
-                      {orgs.map((org) => (
-                        <option key={org.id} value={org.id}>
-                          {org.name}
-                        </option>
-                      ))}
-                    </SelectField>
-                  ) : (
-                    <Input
-                      label={t('rep.newOrgName')}
-                      hint={t('rep.newOrgHint')}
-                      value={newOrgName}
-                      onChange={(e) => setNewOrgName(e.target.value)}
+                      required
                     />
+                  ) : (
+                    <div className="space-y-4">
+                      <Input
+                        label={t('rep.newOrgName')}
+                        hint={t('rep.newOrgHint')}
+                        value={newOrgName}
+                        onChange={(e) => setNewOrgName(e.target.value)}
+                        required
+                      />
+                      <OrganizationLogoField file={newOrgLogo} onChange={setNewOrgLogo} required />
+                      <TextArea
+                        label={t('catalog.summary')}
+                        hint={t('catalog.summaryHint')}
+                        value={newOrgSummary}
+                        onChange={(e) => setNewOrgSummary(e.target.value)}
+                        rows={3}
+                        required
+                      />
+                      <RegionCountryFields
+                        region={newOrgRegion}
+                        country={newOrgCountry}
+                        onRegionChange={setNewOrgRegion}
+                        onCountryChange={setNewOrgCountry}
+                      />
+                    </div>
                   )}
                 </>
               )}
@@ -203,12 +265,35 @@ export function RepresentationWizardPage() {
                 />
               )}
 
+              {current === 'documents' && (
+                <div className="space-y-4">
+                  <ProofDocumentField
+                    label={t('rep.doc1')}
+                    hint={t('rep.doc1Hint')}
+                    required
+                    file={proofDocument1}
+                    onChange={setProofDocument1}
+                  />
+                  <ProofDocumentField
+                    label={t('rep.doc2')}
+                    hint={t('rep.doc2Hint')}
+                    file={proofDocument2}
+                    onChange={setProofDocument2}
+                  />
+                </div>
+              )}
+
               {current === 'confirm' && (
                 <ul className="space-y-2 rounded-[12px] border border-cac-line bg-[#fbfcfb] p-4 text-pequena text-cac-navy">
                   <li>
                     <strong>{t('rep.organization')}:</strong>{' '}
                     {mode === 'create' ? newOrgName : selectedOrg?.name}
                   </li>
+                  {mode === 'create' ? (
+                    <li>
+                      <strong>{t('rep.orgLogo')}:</strong> {newOrgLogo?.name ?? '—'}
+                    </li>
+                  ) : null}
                   <li>
                     <strong>{t('rep.unit')}:</strong> {unit}
                   </li>
@@ -217,6 +302,12 @@ export function RepresentationWizardPage() {
                   </li>
                   <li>
                     <strong>{t('rep.interest')}:</strong> {interest}
+                  </li>
+                  <li>
+                    <strong>{t('rep.doc1')}:</strong> {proofDocument1?.name ?? '—'}
+                  </li>
+                  <li>
+                    <strong>{t('rep.doc2')}:</strong> {proofDocument2?.name ?? t('rep.docOptionalEmpty')}
                   </li>
                 </ul>
               )}
@@ -237,15 +328,22 @@ export function RepresentationWizardPage() {
                   onClick={() => setStep((s) => s + 1)}
                   disabled={
                     (current === 'organization' && mode === 'existing' && !organizationId) ||
-                    (current === 'organization' && mode === 'create' && newOrgName.trim().length < 2) ||
+                    (current === 'organization' &&
+                      mode === 'create' &&
+                      (newOrgName.trim().length < 2 ||
+                        newOrgSummary.trim().length < 10 ||
+                        !newOrgCountry ||
+                        !newOrgRegion.trim() ||
+                        !newOrgLogo)) ||
                     (current === 'link' && (unit.trim().length < 2 || linkRole.trim().length < 2)) ||
-                    (current === 'interest' && interest.trim().length < 10)
+                    (current === 'interest' && interest.trim().length < 10) ||
+                    (current === 'documents' && !proofDocument1)
                   }
                 >
                   {t('rep.next')}
                 </Button>
               ) : (
-                <Button onClick={() => void submit()} disabled={submitting}>
+                <Button onClick={() => void submit()} disabled={submitting || !proofDocument1}>
                   {t('rep.submit')}
                 </Button>
               )}

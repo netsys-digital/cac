@@ -111,6 +111,7 @@ type SelectFieldProps = {
   hint?: string;
   name?: string;
   required?: boolean;
+  disabled?: boolean;
   value?: string;
   defaultValue?: string;
   onChange?: (value: string) => void;
@@ -122,11 +123,13 @@ export function SelectField({
   hint,
   name,
   required,
+  disabled,
   value,
   defaultValue,
   onChange,
   children,
 }: SelectFieldProps) {
+  const controlled = value !== undefined;
   return (
     <label className="flex w-full flex-col gap-1">
       <span className="block text-mini font-extrabold uppercase tracking-[0.4px] text-cac-muted">
@@ -136,10 +139,10 @@ export function SelectField({
       <select
         name={name}
         required={required}
-        value={value}
-        defaultValue={defaultValue}
+        disabled={disabled}
+        {...(controlled ? { value } : { defaultValue })}
         onChange={onChange ? (e) => onChange(e.target.value) : undefined}
-        className="w-full rounded-lg border border-cac-line bg-white px-2.5 py-2 text-pequena text-cac-navy outline-none focus:ring-2 focus:ring-cac-green2/40"
+        className="w-full rounded-lg border border-cac-line bg-white px-2.5 py-2 text-pequena text-cac-navy outline-none focus:ring-2 focus:ring-cac-green2/40 disabled:cursor-not-allowed disabled:bg-[#edf1f3] disabled:text-cac-muted"
       >
         {children}
       </select>

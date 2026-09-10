@@ -10,7 +10,7 @@ export const createChallengeBodySchema = z.object({
     .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/)
     .optional(),
   summary: z.string().min(10).max(2000),
-  context: z.string().max(5000).optional(),
+  context: z.string().min(10).max(5000),
   needType: z.enum([
     NeedType.TECHNOLOGY,
     NeedType.KNOWLEDGE,
@@ -21,9 +21,9 @@ export const createChallengeBodySchema = z.object({
     NeedType.EQUIPMENT,
   ]),
   organizationId: z.string().uuid(),
-  country: z.string().length(2).optional(),
-  region: z.string().max(64).optional(),
-  tags: z.array(z.string().min(1).max(64)).max(20).optional(),
+  country: z.string().length(2),
+  region: z.string().min(2).max(64),
+  tags: z.array(z.string().min(1).max(64)).min(1).max(20),
   status: z
     .enum([ContentStatus.DRAFT, ContentStatus.IN_REVIEW, ContentStatus.PUBLISHED])
     .optional(),

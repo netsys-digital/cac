@@ -4,7 +4,20 @@ import { useTranslation } from 'react-i18next';
 import { Input, TextArea } from '@cac/ui';
 import { useAuth } from '../../auth/AuthContext';
 import { myContentsApi } from '../../api/myContentsApi';
+import { catalogApi } from '../../api/catalogApi';
 import { FieldFull, FormPage, SelectField } from '../../components/forms/FormPage';
+import {
+  pickCoverFile,
+  RepresentativeImageField,
+} from '../../components/forms/RepresentativeImageField';
+import { RegionCountryFields } from '../../components/forms/RegionCountryFields';
+
+function parseTags(raw: FormDataEntryValue | null): string[] {
+  return String(raw || '')
+    .split(',')
+    .map((s) => s.trim())
+    .filter(Boolean);
+}
 
 export function EditChallengePage() {
   const { id = '' } = useParams();
@@ -40,6 +53,11 @@ export function EditChallengePage() {
     setError('');
     setMessage('');
     const form = new FormData(e.currentTarget);
+    const tags = parseTags(form.get('tags'));
+    if (!tags.length) {
+      setError(t('catalog.tagsRequired'));
+      return;
+    }
     try {
       if (String(item?.status) === 'PUBLISHED') {
         await myContentsApi.withdraw(accessToken, 'CHALLENGE', id);
@@ -47,9 +65,16 @@ export function EditChallengePage() {
       await myContentsApi.patchChallenge(accessToken, id, {
         title: String(form.get('title')),
         summary: String(form.get('summary')),
+        context: String(form.get('context')),
         needType: String(form.get('needType')),
-        country: String(form.get('country') || 'BR'),
+        country: String(form.get('country')),
+        region: String(form.get('region')),
+        tags,
       });
+      const cover = pickCoverFile(form);
+      if (cover) {
+        await catalogApi.uploadCover(accessToken, 'challenges', id, cover);
+      }
       const after = await myContentsApi.get(accessToken, 'CHALLENGE', id);
       if (String(after.item.status) === 'DRAFT') {
         await myContentsApi.submitChallenge(accessToken, id);
@@ -71,6 +96,8 @@ export function EditChallengePage() {
       </p>
     );
   }
+
+  const tags = Array.isArray(item.tags) ? (item.tags as string[]).join(', ') : '';
 
   return (
     <FormPage
@@ -97,7 +124,20 @@ export function EditChallengePage() {
       <FieldFull>
         <TextArea label={t('catalog.summary')} name="summary" required rows={4} defaultValue={String(item.summary)} />
       </FieldFull>
-      <SelectField label={t('catalog.needType')} name="needType" defaultValue={String(item.needType || 'TECHNOLOGY')}>
+      <FieldFull>
+        <TextArea
+          label={t('catalog.context')}
+          hint={t('catalog.contextChallengeHint')}
+          name="context"
+          required
+          rows={4}
+          defaultValue={String(item.context || '')}
+        />
+      </FieldFull>
+      <FieldFull>
+        <RepresentativeImageField currentUrl={item.coverImageUrl ? String(item.coverImageUrl) : null} />
+      </FieldFull>
+      <SelectField label={t('catalog.needType')} name="needType" required defaultValue={String(item.needType || 'TECHNOLOGY')}>
         <option value="TECHNOLOGY">{t('catalog.needTechnology')}</option>
         <option value="KNOWLEDGE">{t('catalog.needKnowledge')}</option>
         <option value="PARTNERSHIP">{t('catalog.needPartnership')}</option>
@@ -106,7 +146,13 @@ export function EditChallengePage() {
         <option value="RESEARCH">{t('catalog.needResearch')}</option>
         <option value="EQUIPMENT">{t('catalog.needEquipment')}</option>
       </SelectField>
-      <Input label={t('catalog.country')} name="country" defaultValue={String(item.country || 'BR')} />
+      <RegionCountryFields
+        defaultRegion={String(item.region || 'south_america')}
+        defaultCountry={String(item.country || 'BR')}
+      />
+      <FieldFull>
+        <Input label={t('catalog.tags')} hint={t('catalog.tagsHint')} name="tags" required defaultValue={tags} />
+      </FieldFull>
     </FormPage>
   );
 }

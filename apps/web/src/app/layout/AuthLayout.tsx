@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react';
 import { Outlet, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { BrandMark, Button, Container } from '@cac/ui';
+import { BrandMark, Container } from '@cac/ui';
 import { brand, urls } from '../../config';
 import { LanguageSwitcher } from '../components/LanguageSwitcher';
 
@@ -81,9 +81,6 @@ export function AuthLayout() {
 
           <div className="ml-auto flex items-center gap-[7px]">
             <LanguageSwitcher />
-            <a href={urls.www} className="hidden sm:inline-flex">
-              <Button variant="ghostDark">{t('shell.portal')}</Button>
-            </a>
           </div>
         </Container>
       </header>

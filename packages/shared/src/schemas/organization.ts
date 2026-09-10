@@ -4,9 +4,9 @@ import { OrgVerificationStatus } from '../enums.js';
 export const createOrganizationBodySchema = z.object({
   name: z.string().min(2).max(200),
   slug: z.string().min(2).max(120).regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/).optional(),
-  summary: z.string().max(2000).optional(),
-  country: z.string().length(2).optional(),
-  region: z.string().max(64).optional(),
+  summary: z.string().min(10).max(2000),
+  country: z.string().length(2),
+  region: z.string().min(2).max(64),
   website: z.string().url().optional().or(z.literal('')),
 });
 
@@ -25,6 +25,7 @@ export const organizationSchema = z.object({
   country: z.string().nullable().optional(),
   region: z.string().nullable().optional(),
   website: z.string().nullable().optional(),
+  logoUrl: z.string().nullable().optional(),
   verificationStatus: z.enum([
     OrgVerificationStatus.PENDING,
     OrgVerificationStatus.VERIFIED,

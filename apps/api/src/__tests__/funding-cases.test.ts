@@ -31,10 +31,18 @@ describe('E5 funding + cases', () => {
     });
     adminToken = admin.body.accessToken;
 
+    const logo = Buffer.from(
+      'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==',
+      'base64',
+    );
     const org = await request(app)
       .post('/api/organizations')
       .set('Authorization', `Bearer ${token}`)
-      .send({ name: `E5 Org ${suffix}`, country: 'MZ' });
+      .field('name', `E5 Org ${suffix}`)
+      .field('summary', 'Resumo institucional com tamanho suficiente para o schema.')
+      .field('country', 'MZ')
+      .field('region', 'africa')
+      .attach('logo', logo, { filename: 'logo.png', contentType: 'image/png' });
     orgId = org.body.organization.id;
   });
 

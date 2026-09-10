@@ -14,6 +14,20 @@ export const OrgVerificationStatus = {
 export type OrgVerificationStatus =
   (typeof OrgVerificationStatus)[keyof typeof OrgVerificationStatus];
 
+export const OrgPublishKind = {
+  TECHNOLOGY: 'TECHNOLOGY',
+  CHALLENGE: 'CHALLENGE',
+  FUNDING_OFFER: 'FUNDING_OFFER',
+  SUCCESS_CASE: 'SUCCESS_CASE',
+} as const;
+export type OrgPublishKind = (typeof OrgPublishKind)[keyof typeof OrgPublishKind];
+
+export const ORG_PUBLISH_KINDS = [
+  OrgPublishKind.TECHNOLOGY,
+  OrgPublishKind.CHALLENGE,
+  OrgPublishKind.FUNDING_OFFER,
+  OrgPublishKind.SUCCESS_CASE,
+] as const;
 export const ContentStatus = {
   DRAFT: 'DRAFT',
   IN_REVIEW: 'IN_REVIEW',

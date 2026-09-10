@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Button } from '@cac/ui';
+import { formatDateTime } from '@cac/shared';
 import { useAuth } from '../../auth/AuthContext';
 import { useStaffTasks } from '../../auth/StaffTasksContext';
 import { connectionsApi, type PendingItem } from '../../api/connectionsApi';
@@ -16,20 +17,6 @@ function kindLabel(kind: string, t: (key: string) => string) {
     SUCCESS_CASE: t('curator.kindCase'),
   };
   return map[kind] ?? kind;
-}
-
-function formatDate(value: string, locale: string) {
-  try {
-    return new Intl.DateTimeFormat(locale, {
-      day: '2-digit',
-      month: 'short',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-    }).format(new Date(value));
-  } catch {
-    return value;
-  }
 }
 
 export function AdminCuratePage() {
@@ -182,11 +169,11 @@ export function AdminCuratePage() {
                       {item.organization?.name ?? '—'}
                       {item.country ? ` · ${item.country}` : ''}
                       {item.region ? ` · ${item.region}` : ''} ·{' '}
-                      {formatDate(item.updatedAt, i18n.language)}
+                      {formatDateTime(item.updatedAt, i18n.language)}
                     </p>
                   </div>
                   <span className="shrink-0 rounded-full bg-amber-100 px-2.5 py-1 text-mini font-bold uppercase tracking-wide text-amber-900">
-                    IN_REVIEW
+                    {t('mine.status.IN_REVIEW')}
                   </span>
                 </button>
 

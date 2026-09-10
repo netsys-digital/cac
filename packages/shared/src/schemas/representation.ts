@@ -1,10 +1,40 @@
 import { z } from 'zod';
-import { RepresentationStatus } from '../enums.js';
+import { OrgPublishKind, RepresentationStatus } from '../enums.js';
 
 export const createRepresentationBodySchema = z.object({
   unit: z.string().min(2).max(200),
   linkRole: z.string().min(2).max(120),
   interest: z.string().min(10).max(2000),
+});
+
+export const approveRepresentationBodySchema = z.object({
+  publishKinds: z
+    .array(
+      z.enum([
+        OrgPublishKind.TECHNOLOGY,
+        OrgPublishKind.CHALLENGE,
+        OrgPublishKind.FUNDING_OFFER,
+        OrgPublishKind.SUCCESS_CASE,
+      ]),
+    )
+    .min(1)
+    .max(4),
+});
+
+export const updateOrganizationAdminBodySchema = z.object({
+  publishKinds: z
+    .array(
+      z.enum([
+        OrgPublishKind.TECHNOLOGY,
+        OrgPublishKind.CHALLENGE,
+        OrgPublishKind.FUNDING_OFFER,
+        OrgPublishKind.SUCCESS_CASE,
+      ]),
+    )
+    .min(0)
+    .max(4)
+    .optional(),
+  verificationStatus: z.enum(['PENDING', 'VERIFIED', 'REJECTED']).optional(),
 });
 
 export const representationRequestSchema = z.object({
@@ -14,6 +44,8 @@ export const representationRequestSchema = z.object({
   unit: z.string(),
   linkRole: z.string(),
   interest: z.string(),
+  proofDocument1Url: z.string().min(1),
+  proofDocument2Url: z.string().nullable().optional(),
   status: z.enum([
     RepresentationStatus.REQUESTED,
     RepresentationStatus.UNDER_REVIEW,
@@ -23,3 +55,5 @@ export const representationRequestSchema = z.object({
 });
 
 export type CreateRepresentationBody = z.infer<typeof createRepresentationBodySchema>;
+export type ApproveRepresentationBody = z.infer<typeof approveRepresentationBodySchema>;
+export type UpdateOrganizationAdminBody = z.infer<typeof updateOrganizationAdminBodySchema>;

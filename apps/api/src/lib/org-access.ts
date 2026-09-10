@@ -1,4 +1,4 @@
-import { RepresentationStatus, UserRole } from '@cac/shared';
+import { RepresentationStatus, UserRole, type OrgPublishKind } from '@cac/shared';
 import { prisma } from './prisma.js';
 
 export async function canActForOrganization(userId: string, organizationId: string, userRole: string) {
@@ -29,6 +29,24 @@ export async function assertCanActForOrganization(
   const ok = await canActForOrganization(userId, organizationId, userRole);
   if (!ok) {
     const error = new Error('forbidden_org');
+    (error as Error & { status: number }).status = 403;
+    throw error;
+  }
+}
+
+export async function assertCanPublishKind(
+  userId: string,
+  organizationId: string,
+  userRole: string,
+  kind: OrgPublishKind,
+) {
+  await assertCanActForOrganization(userId, organizationId, userRole);
+  const org = await prisma.organization.findUnique({
+    where: { id: organizationId },
+    select: { publishKinds: true },
+  });
+  if (!org || !org.publishKinds.includes(kind)) {
+    const error = new Error('forbidden_org_publish_kind');
     (error as Error & { status: number }).status = 403;
     throw error;
   }
