@@ -64,8 +64,6 @@ function JourneyHint() {
 }
 
 export function AuthLayout() {
-  const { t } = useTranslation();
-
   return (
     <div className="min-h-screen bg-cac-bg font-sans">
       <header className="sticky top-0 z-50 h-[74px] w-full bg-[rgba(10,36,64,.98)] text-white">
