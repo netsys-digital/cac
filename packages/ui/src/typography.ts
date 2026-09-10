@@ -1,14 +1,20 @@
 /** Escala tipográfica única (www + web). Valores vêm de VITE_FONT_* no .env. */
 
-export const FONT_SCALE_DEFAULTS = {
+export type FontScale = {
+  extraGrande: string;
+  grande: string;
+  media: string;
+  pequena: string;
+  mini: string;
+};
+
+export const FONT_SCALE_DEFAULTS: FontScale = {
   extraGrande: '54px',
   grande: '32px',
   media: '18px',
   pequena: '14px',
   mini: '13px',
-} as const;
-
-export type FontScale = typeof FONT_SCALE_DEFAULTS;
+};
 
 export type FontScaleEnv = {
   VITE_FONT_EXTRA_GRANDE?: string;
