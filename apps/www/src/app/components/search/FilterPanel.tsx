@@ -2,8 +2,6 @@ import type { SearchFilters } from '../../api/searchApi';
 
 type Option = { value: string; label: string };
 
-const empty = { value: '', label: '—' };
-
 type Props = {
   value: SearchFilters;
   onChange: (next: SearchFilters) => void;
@@ -40,15 +38,19 @@ function Select({
   options: Option[];
   onChange: (v: string) => void;
 }) {
+  const empty = !value;
   return (
-    <label className="block text-mini font-bold tracking-wide text-cac-navy uppercase">
-      {label}
+    <label className="block min-w-0">
+      <span className="sr-only">{label}</span>
       <select
-        className="mt-1 w-full rounded-lg border border-cac-line bg-white px-2.5 py-2 text-pequena text-cac-ink"
+        aria-label={label}
+        className={`w-full rounded-lg border border-cac-line bg-white px-2.5 py-2 text-pequena outline-none ${
+          empty ? 'text-cac-muted' : 'text-cac-ink'
+        }`}
         value={value ?? ''}
         onChange={(e) => onChange(e.target.value)}
       >
-        <option value="">{empty.label}</option>
+        <option value="">{label}</option>
         {options.map((opt) => (
           <option key={opt.value} value={opt.value}>
             {opt.label}

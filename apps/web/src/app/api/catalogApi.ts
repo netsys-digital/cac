@@ -117,6 +117,11 @@ export const catalogApi = {
     token: string,
     id: string,
     body: {
+      name?: string;
+      summary?: string | null;
+      country?: string | null;
+      region?: string | null;
+      website?: string | null;
       publishKinds?: Array<'TECHNOLOGY' | 'CHALLENGE' | 'FUNDING_OFFER' | 'SUCCESS_CASE'>;
       verificationStatus?: string;
     },
@@ -126,6 +131,15 @@ export const catalogApi = {
       accessToken: token,
       body: JSON.stringify(body),
     }),
+  uploadOrganizationLogo: (token: string, id: string, logo: File) => {
+    const body = new FormData();
+    body.append('logo', logo);
+    return api<{ organization: Organization }>(`/api/admin/organizations/${id}/logo`, {
+      method: 'POST',
+      accessToken: token,
+      body,
+    });
+  },
   verifyOrganization: (token: string, id: string) =>
     api<{ organization: Organization }>(`/api/admin/organizations/${id}/verify`, {
       method: 'POST',

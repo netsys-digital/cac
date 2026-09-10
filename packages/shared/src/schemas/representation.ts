@@ -22,6 +22,11 @@ export const approveRepresentationBodySchema = z.object({
 });
 
 export const updateOrganizationAdminBodySchema = z.object({
+  name: z.string().min(2).max(200).optional(),
+  summary: z.string().min(10).max(2000).optional().nullable(),
+  country: z.string().length(2).optional().nullable(),
+  region: z.string().min(2).max(64).optional().nullable(),
+  website: z.string().url().optional().or(z.literal('')).nullable(),
   publishKinds: z
     .array(
       z.enum([

@@ -1,3 +1,5 @@
+import { FONT_SCALE_DEFAULTS } from '@cac/ui';
+
 export const brand = {
   name: import.meta.env.VITE_APP_BRAND_NAME ?? 'Climate Action Connect',
   short: import.meta.env.VITE_APP_BRAND_SHORT ?? 'CAC',
@@ -15,10 +17,19 @@ export const urls = {
   www: import.meta.env.VITE_WWW_URL ?? 'http://localhost:5179',
 };
 
+const sharedFont = {
+  extraGrande: import.meta.env.VITE_FONT_EXTRA_GRANDE?.trim() || FONT_SCALE_DEFAULTS.extraGrande,
+  grande: import.meta.env.VITE_FONT_GRANDE?.trim() || FONT_SCALE_DEFAULTS.grande,
+  media: import.meta.env.VITE_FONT_MEDIA?.trim() || FONT_SCALE_DEFAULTS.media,
+  pequena: import.meta.env.VITE_FONT_PEQUENA?.trim() || FONT_SCALE_DEFAULTS.pequena,
+  mini: import.meta.env.VITE_FONT_MINI?.trim() || FONT_SCALE_DEFAULTS.mini,
+};
+
+/** Painel: um nível abaixo da escala compartilhada (ex.: grande → média). */
 export const fontEnv = {
-  VITE_FONT_EXTRA_GRANDE: import.meta.env.VITE_FONT_EXTRA_GRANDE,
-  VITE_FONT_GRANDE: import.meta.env.VITE_FONT_GRANDE,
-  VITE_FONT_MEDIA: import.meta.env.VITE_FONT_MEDIA,
-  VITE_FONT_PEQUENA: import.meta.env.VITE_FONT_PEQUENA,
-  VITE_FONT_MINI: import.meta.env.VITE_FONT_MINI,
+  VITE_FONT_EXTRA_GRANDE: sharedFont.grande,
+  VITE_FONT_GRANDE: sharedFont.media,
+  VITE_FONT_MEDIA: sharedFont.pequena,
+  VITE_FONT_PEQUENA: sharedFont.mini,
+  VITE_FONT_MINI: sharedFont.mini,
 };

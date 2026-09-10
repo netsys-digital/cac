@@ -4,11 +4,33 @@ import { ORG_PUBLISH_KINDS, type OrgPublishKind } from '@cac/shared';
 import { Button } from '@cac/ui';
 import { useAuth } from '../../auth/AuthContext';
 import { catalogApi, type AdminOrganization } from '../../api/catalogApi';
+import { OrganizationLogoField } from '../../components/forms/OrganizationLogoField';
 import { PublishKindsPicker } from '../../components/forms/PublishKindsPicker';
+import { RegionCountryFields } from '../../components/forms/RegionCountryFields';
 import { resolveMediaUrl } from '../../components/forms/RepresentativeImageField';
 
 type StatusFilter = 'ALL' | 'PENDING' | 'VERIFIED' | 'REJECTED';
 type KindFilter = 'ALL' | OrgPublishKind;
+
+type ProfileDraft = {
+  name: string;
+  summary: string;
+  website: string;
+  region: string;
+  country: string;
+  logoFile: File | null;
+};
+
+function profileFromOrg(org: AdminOrganization): ProfileDraft {
+  return {
+    name: org.name ?? '',
+    summary: org.summary ?? '',
+    website: org.website ?? '',
+    region: org.region ?? '',
+    country: org.country ?? '',
+    logoFile: null,
+  };
+}
 
 export function AdminOrganizationsPage() {
   const { t } = useTranslation();
@@ -19,6 +41,7 @@ export function AdminOrganizationsPage() {
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
   const [draftKinds, setDraftKinds] = useState<Record<string, OrgPublishKind[]>>({});
+  const [draftProfiles, setDraftProfiles] = useState<Record<string, ProfileDraft>>({});
 
   const [q, setQ] = useState('');
   const [status, setStatus] = useState<StatusFilter>('ALL');
@@ -35,11 +58,22 @@ export function AdminOrganizationsPage() {
     setError('');
     try {
       const res = await catalogApi.adminOrganizations(accessToken);
-      setItems(res.items ?? []);
+      const list = res.items ?? [];
+      setItems(list);
       setDraftKinds((prev) => {
         const next = { ...prev };
-        for (const o of res.items ?? []) {
+        for (const o of list) {
           if (!next[o.id]) next[o.id] = [...(o.publishKinds ?? [])];
+        }
+        return next;
+      });
+      setDraftProfiles((prev) => {
+        const next: Record<string, ProfileDraft> = {};
+        for (const o of list) {
+          const existing = prev[o.id];
+          next[o.id] = existing?.logoFile
+            ? { ...profileFromOrg(o), logoFile: existing.logoFile }
+            : profileFromOrg(o);
         }
         return next;
       });
@@ -64,8 +98,7 @@ export function AdminOrganizationsPage() {
   );
 
   const countries = useMemo(() => {
-    const pool =
-      region === 'ALL' ? items : items.filter((o) => (o.region ?? '') === region);
+    const pool = region === 'ALL' ? items : items.filter((o) => (o.region ?? '') === region);
     return [
       ...new Set(pool.map((o) => o.country).filter((v): v is string => Boolean(v))),
     ].sort((a, b) => a.localeCompare(b));
@@ -105,7 +138,48 @@ export function AdminOrganizationsPage() {
     setKind('ALL');
   }
 
-  async function save(org: AdminOrganization) {
+  function patchProfile(orgId: string, patch: Partial<ProfileDraft>) {
+    setDraftProfiles((prev) => ({
+      ...prev,
+      [orgId]: { ...(prev[orgId] ?? profileFromOrg(items.find((o) => o.id === orgId)!)), ...patch },
+    }));
+  }
+
+  async function saveProfile(org: AdminOrganization) {
+    if (!accessToken) return;
+    const draft = draftProfiles[org.id] ?? profileFromOrg(org);
+    if (!draft.name.trim() || draft.name.trim().length < 2) {
+      setError(t('admin.orgsProfileNameRequired'));
+      return;
+    }
+    if (!draft.region || !draft.country) {
+      setError(t('admin.orgsProfileRegionRequired'));
+      return;
+    }
+    setBusyId(org.id);
+    setMessage('');
+    setError('');
+    try {
+      await catalogApi.updateOrganization(accessToken, org.id, {
+        name: draft.name.trim(),
+        summary: draft.summary.trim() || null,
+        website: draft.website.trim() || null,
+        region: draft.region,
+        country: draft.country,
+      });
+      if (draft.logoFile) {
+        await catalogApi.uploadOrganizationLogo(accessToken, org.id, draft.logoFile);
+      }
+      setMessage(t('admin.orgsProfileSaved', { name: draft.name.trim() }));
+      await load();
+    } catch (e) {
+      setError(e instanceof Error ? e.message : t('admin.orgsError'));
+    } finally {
+      setBusyId(null);
+    }
+  }
+
+  async function saveKinds(org: AdminOrganization) {
     if (!accessToken) return;
     setBusyId(org.id);
     setMessage('');
@@ -269,6 +343,7 @@ export function AdminOrganizationsPage() {
       ) : (
         <ul className="space-y-3">
           {filtered.map((org) => {
+            const draft = draftProfiles[org.id] ?? profileFromOrg(org);
             const logo = resolveMediaUrl(org.logoUrl);
             return (
               <li key={org.id} className="rounded-2xl border border-cac-line bg-white p-4 shadow-cac">
@@ -316,6 +391,72 @@ export function AdminOrganizationsPage() {
                   </span>
                 </div>
 
+                <div className="mt-4 space-y-3 rounded-xl border border-cac-line bg-[#fbfcfb] p-4">
+                  <div>
+                    <p className="text-mini font-extrabold tracking-[0.12em] text-cac-navy uppercase">
+                      {t('admin.orgsProfileTitle')}
+                    </p>
+                    <p className="mt-1 text-mini text-cac-muted">{t('admin.orgsProfileHint')}</p>
+                  </div>
+
+                  <OrganizationLogoField
+                    file={draft.logoFile}
+                    currentUrl={org.logoUrl}
+                    onChange={(file) => patchProfile(org.id, { logoFile: file })}
+                  />
+
+                  <div className="grid gap-3 sm:grid-cols-2">
+                    <label className="block sm:col-span-2">
+                      <span className="mb-1 block text-mini font-extrabold uppercase tracking-[0.4px] text-cac-muted">
+                        {t('admin.orgsProfileName')}
+                      </span>
+                      <input
+                        value={draft.name}
+                        onChange={(e) => patchProfile(org.id, { name: e.target.value })}
+                        className="w-full rounded-xl border border-cac-line bg-white px-3.5 py-2.5 text-media text-cac-navy outline-none focus:border-cac-green"
+                      />
+                    </label>
+                    <label className="block sm:col-span-2">
+                      <span className="mb-1 block text-mini font-extrabold uppercase tracking-[0.4px] text-cac-muted">
+                        {t('admin.orgsProfileSummary')}
+                      </span>
+                      <textarea
+                        value={draft.summary}
+                        onChange={(e) => patchProfile(org.id, { summary: e.target.value })}
+                        rows={3}
+                        className="w-full rounded-xl border border-cac-line bg-white px-3.5 py-2.5 text-media text-cac-navy outline-none focus:border-cac-green"
+                      />
+                    </label>
+                    <label className="block sm:col-span-2">
+                      <span className="mb-1 block text-mini font-extrabold uppercase tracking-[0.4px] text-cac-muted">
+                        {t('admin.orgsProfileWebsite')}
+                      </span>
+                      <input
+                        type="url"
+                        value={draft.website}
+                        onChange={(e) => patchProfile(org.id, { website: e.target.value })}
+                        placeholder="https://"
+                        className="w-full rounded-xl border border-cac-line bg-white px-3.5 py-2.5 text-media text-cac-navy outline-none focus:border-cac-green"
+                      />
+                    </label>
+                    <div className="grid gap-3 sm:col-span-2 sm:grid-cols-2">
+                      <RegionCountryFields
+                        regionName={`region-${org.id}`}
+                        countryName={`country-${org.id}`}
+                        region={draft.region}
+                        country={draft.country}
+                        onRegionChange={(value) => patchProfile(org.id, { region: value })}
+                        onCountryChange={(value) => patchProfile(org.id, { country: value })}
+                        required
+                      />
+                    </div>
+                  </div>
+
+                  <Button disabled={busyId === org.id} onClick={() => void saveProfile(org)}>
+                    {busyId === org.id ? t('admin.working') : t('admin.orgsProfileSave')}
+                  </Button>
+                </div>
+
                 <div className="mt-4">
                   <PublishKindsPicker
                     idPrefix={`org-${org.id}`}
@@ -325,7 +466,7 @@ export function AdminOrganizationsPage() {
                 </div>
 
                 <div className="mt-4 flex flex-wrap gap-2">
-                  <Button disabled={busyId === org.id} onClick={() => void save(org)}>
+                  <Button disabled={busyId === org.id} onClick={() => void saveKinds(org)}>
                     {busyId === org.id ? t('admin.working') : t('admin.orgsSave')}
                   </Button>
                   {org.verificationStatus !== 'VERIFIED' ? (

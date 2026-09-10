@@ -1,14 +1,8 @@
-import { type FormEvent, useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { type FormEvent, useEffect, useState } from 'react';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Trans, useTranslation } from 'react-i18next';
-import { brand, urls } from '../../config';
-import {
-  IconCases,
-  IconChallenge,
-  IconFunding,
-  IconOffer,
-  IconSearch,
-} from '../components/PathIcons';
+import { urls } from '../../config';
+import { IconSearch } from '../components/PathIcons';
 import { searchParamsFromState } from '../search/searchReturn';
 import { pushRecentSearch } from '../search/recentSearches';
 
@@ -35,9 +29,27 @@ const CONTENT_TYPES = [
 
 const LOCATIONS = [
   { value: '', labelKey: 'home.locationAll' },
-  { value: 'south_america', labelKey: 'home.locationSouthAmerica' },
   { value: 'africa', labelKey: 'home.locationAfrica' },
+  { value: 'asia', labelKey: 'home.locationAsia' },
   { value: 'europe', labelKey: 'home.locationEurope' },
+  { value: 'north_america', labelKey: 'home.locationNorthAmerica' },
+  { value: 'south_america', labelKey: 'home.locationSouthAmerica' },
+  { value: 'oceania', labelKey: 'home.locationOceania' },
+] as const;
+
+const STAT_ICONS = [
+  'fa-solid fa-seedling',
+  'fa-solid fa-coins',
+  'fa-solid fa-bullhorn',
+  'fa-solid fa-users',
+  'fa-solid fa-globe',
+] as const;
+
+const PILLAR_ICONS = [
+  'fa-solid fa-share-nodes',
+  'fa-solid fa-users',
+  'fa-solid fa-book-open',
+  'fa-solid fa-chart-line',
 ] as const;
 
 function ArrowCircle({ className = '' }: { className?: string }) {
@@ -62,9 +74,20 @@ function ArrowCircle({ className = '' }: { className?: string }) {
 export function HomePage() {
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const location = useLocation();
   const [query, setQuery] = useState('');
   const [contentType, setContentType] = useState('');
   const [region, setRegion] = useState('');
+
+  useEffect(() => {
+    if (location.hash !== '#sobre') return;
+    const el = document.getElementById('sobre');
+    if (!el) return;
+    // Aguarda o layout (header sticky) antes de rolar até a dobra.
+    requestAnimationFrame(() => {
+      el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+  }, [location.hash]);
 
   const tags = t('home.tags', { returnObjects: true }) as string[];
   const stats = t('home.stats', { returnObjects: true }) as Array<{ value: string; label: string }>;
@@ -84,7 +107,8 @@ export function HomePage() {
       to: '/search?contentType=SOLUTION',
       external: false,
       iconBg: 'bg-[#dff3e9]',
-      icon: <IconSearch className="h-[22px] w-[22px]" />,
+      iconClass: 'fa-solid fa-magnifying-glass',
+      iconColor: 'text-[#13865a]',
       title: t('home.path01'),
       body: t('home.path01Body'),
     },
@@ -92,7 +116,8 @@ export function HomePage() {
       to: '/funding',
       external: false,
       iconBg: 'bg-[#fff1ca]',
-      icon: <IconFunding className="h-[22px] w-[22px]" />,
+      iconClass: 'fa-solid fa-coins',
+      iconColor: 'text-[#d59c28]',
       title: t('home.path02'),
       body: t('home.path02Body'),
     },
@@ -100,7 +125,8 @@ export function HomePage() {
       to: `${urls.web}/catalog/challenges/new`,
       external: true,
       iconBg: 'bg-[#e4eff8]',
-      icon: <IconChallenge className="h-[22px] w-[22px]" />,
+      iconClass: 'fa-solid fa-bullhorn',
+      iconColor: 'text-[#2d6e9f]',
       title: t('home.path03'),
       body: t('home.path03Body'),
     },
@@ -108,7 +134,8 @@ export function HomePage() {
       to: `${urls.web}/catalog/technologies/new`,
       external: true,
       iconBg: 'bg-[#e8f6ee]',
-      icon: <IconOffer className="h-[22px] w-[22px]" />,
+      iconClass: 'fa-solid fa-seedling',
+      iconColor: 'text-[#13865a]',
       title: t('home.path04'),
       body: t('home.path04Body'),
     },
@@ -116,7 +143,8 @@ export function HomePage() {
       to: '/cases',
       external: false,
       iconBg: 'bg-[#dff3e9]',
-      icon: <IconCases className="h-[22px] w-[22px]" />,
+      iconClass: 'fa-solid fa-book-open',
+      iconColor: 'text-[#13865a]',
       title: t('home.path05'),
       body: t('home.path05Body'),
     },
@@ -157,10 +185,7 @@ export function HomePage() {
           aria-hidden
         />
         <div className={`${shell} relative flex flex-col items-center pb-[6.5rem] pt-16 text-center sm:pt-20 md:pt-24`}>
-          <p className="text-mini font-extrabold tracking-[1.5px] text-[#8ce4cc] uppercase">
-            {brand.name}
-          </p>
-          <h1 className="mt-3 mb-0 max-w-[800px] text-extra-grande leading-[1.02] font-bold tracking-[-2px]">
+          <h1 className="mb-0 max-w-[800px] text-extra-grande leading-[1.02] font-bold tracking-[-2px]">
             <span className="block">{t('home.headlineLine1')}</span>
             <span className="block">
               {t('home.headlineLine2Lead')}{' '}
@@ -194,13 +219,11 @@ export function HomePage() {
 
               <span className="hidden w-px self-stretch bg-cac-line lg:block" aria-hidden />
 
-              <label className="flex min-w-[9.5rem] flex-col justify-center gap-0.5 rounded-[14px] px-3.5 py-2 text-left hover:bg-[#f7faf8] lg:py-1.5">
-                <span className="text-mini font-bold tracking-wide text-cac-muted uppercase">
-                  {t('home.resourceType')}
-                </span>
+              <label className="flex min-w-[9.5rem] items-center rounded-[14px] px-3.5 py-2 text-left hover:bg-[#f7faf8] lg:py-1.5">
                 <select
                   value={contentType}
                   onChange={(e) => setContentType(e.target.value)}
+                  aria-label={t('home.resourceType')}
                   className="w-full cursor-pointer appearance-none border-0 bg-transparent pr-4 text-pequena font-bold text-cac-navy outline-none"
                 >
                   {CONTENT_TYPES.map((opt) => (
@@ -213,13 +236,11 @@ export function HomePage() {
 
               <span className="hidden w-px self-stretch bg-cac-line lg:block" aria-hidden />
 
-              <label className="flex min-w-[8.5rem] flex-col justify-center gap-0.5 rounded-[14px] px-3.5 py-2 text-left hover:bg-[#f7faf8] lg:py-1.5">
-                <span className="text-mini font-bold tracking-wide text-cac-muted uppercase">
-                  {t('home.location')}
-                </span>
+              <label className="flex min-w-[8.5rem] items-center rounded-[14px] px-3.5 py-2 text-left hover:bg-[#f7faf8] lg:py-1.5">
                 <select
                   value={region}
                   onChange={(e) => setRegion(e.target.value)}
+                  aria-label={t('home.location')}
                   className="w-full cursor-pointer appearance-none border-0 bg-transparent pr-4 text-pequena font-bold text-cac-navy outline-none"
                 >
                   {LOCATIONS.map((opt) => (
@@ -232,7 +253,7 @@ export function HomePage() {
 
               <button
                 type="submit"
-                className="shrink-0 rounded-[14px] bg-cac-green2 px-6 py-3.5 text-pequena font-extrabold text-white transition hover:brightness-105 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cac-green lg:ml-1"
+                className="shrink-0 rounded-[14px] bg-cac-green2 px-6 py-3.5 text-pequena !font-bold text-white transition hover:brightness-105 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cac-green lg:ml-1"
               >
                 {t('home.searchCta')}
               </button>
@@ -240,9 +261,6 @@ export function HomePage() {
           </form>
 
           <div className="mt-5 flex max-w-[960px] flex-wrap items-center justify-center gap-2">
-            <span className="text-mini font-bold tracking-wide text-[#a7ddc5] uppercase">
-              {t('home.examplesLabel')}
-            </span>
             {Array.isArray(tags)
               ? tags.map((tag) => (
                   <button
@@ -266,7 +284,7 @@ export function HomePage() {
             const card = (
               <span className="group flex h-full min-h-[180px] flex-col rounded-[16px] border border-cac-line bg-white p-5 shadow-[0_14px_38px_rgba(10,36,64,.10)] transition duration-200 hover:-translate-y-[3px]">
                 <span className={`mb-3 grid h-11 w-11 place-items-center rounded-full ${path.iconBg}`}>
-                  {path.icon}
+                  <i className={`${path.iconClass} text-[1.15rem] ${path.iconColor}`} aria-hidden />
                 </span>
                 <span className="text-media leading-snug font-bold text-cac-navy">{path.title}</span>
                 <span className="mt-2 flex-1 text-pequena leading-[1.35] text-cac-muted">{path.body}</span>
@@ -289,20 +307,32 @@ export function HomePage() {
 
       {/* Stats */}
       <section className="w-full bg-[linear-gradient(90deg,#0a2440,#0f5b49_55%,#13865a)] py-7 text-white">
-        <div className={`${shell} grid grid-cols-2 gap-5 md:grid-cols-5 md:gap-3`}>
+        <div className={`${shell} grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-5 lg:gap-0`}>
           {Array.isArray(stats)
-            ? stats.map((stat) => (
-                <div key={stat.label} className="text-center md:text-left">
-                  <p className="text-grande font-bold leading-none text-[#63d9b8]">{stat.value}</p>
-                  <p className="mt-1.5 text-mini leading-snug text-[#e0efed]">{stat.label}</p>
-                </div>
-              ))
+            ? stats.map((stat, index) => {
+                const iconClass = STAT_ICONS[index] ?? 'fa-solid fa-circle';
+                const isLast = index === stats.length - 1;
+                return (
+                  <div
+                    key={stat.label}
+                    className={`flex min-w-0 items-center gap-3 px-1 sm:px-2 lg:px-5 ${
+                      isLast ? '' : 'lg:border-r lg:border-white/25'
+                    }`}
+                  >
+                    <i className={`${iconClass} shrink-0 text-[1.85rem] text-[#8ce4cc]`} aria-hidden />
+                    <div className="min-w-0 text-left">
+                      <p className="text-grande font-bold leading-none text-white">{stat.value}</p>
+                      <p className="mt-1.5 text-mini leading-snug text-[#8ce4cc]">{stat.label}</p>
+                    </div>
+                  </div>
+                );
+              })
             : null}
         </div>
       </section>
 
       {/* About CAC */}
-      <section className="bg-white py-16">
+      <section id="sobre" className="scroll-mt-[74px] bg-white py-16">
         <div className={`${shell} grid items-center gap-10 lg:grid-cols-[1.05fr_.95fr]`}>
           <div>
             <p className="text-mini font-extrabold tracking-[1.4px] text-[#167f70] uppercase">
@@ -324,15 +354,26 @@ export function HomePage() {
           </div>
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             {Array.isArray(pillars)
-              ? pillars.map((pillar) => (
-                  <div
-                    key={pillar.title}
-                    className="rounded-[16px] border border-cac-line bg-[#f7faf8] p-5"
-                  >
-                    <p className="text-media font-bold text-cac-navy">{pillar.title}</p>
-                    <p className="mt-2 text-pequena leading-[1.35] text-cac-muted">{pillar.body}</p>
-                  </div>
-                ))
+              ? pillars.map((pillar, index) => {
+                  const iconClass = PILLAR_ICONS[index] ?? 'fa-solid fa-circle';
+                  return (
+                    <div
+                      key={pillar.title}
+                      className="flex items-center gap-4 rounded-[16px] p-4"
+                    >
+                      <span className="grid size-14 shrink-0 place-items-center rounded-full bg-[#dff3e9]">
+                        <i
+                          className={`${iconClass} text-[1.65rem] text-[#13865a]`}
+                          aria-hidden
+                        />
+                      </span>
+                      <div className="min-w-0">
+                        <p className="text-media font-bold text-cac-navy">{pillar.title}</p>
+                        <p className="mt-1.5 text-pequena leading-[1.35] text-cac-muted">{pillar.body}</p>
+                      </div>
+                    </div>
+                  );
+                })
               : null}
           </div>
         </div>

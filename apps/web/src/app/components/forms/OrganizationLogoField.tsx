@@ -1,29 +1,36 @@
 import { useEffect, useId, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { resolveMediaUrl } from './RepresentativeImageField';
 
 type OrganizationLogoFieldProps = {
   file: File | null;
   onChange: (file: File | null) => void;
+  currentUrl?: string | null;
   required?: boolean;
 };
 
 const ACCEPT = 'image/jpeg,image/png,image/webp';
 
-export function OrganizationLogoField({ file, onChange, required }: OrganizationLogoFieldProps) {
+export function OrganizationLogoField({
+  file,
+  onChange,
+  currentUrl,
+  required,
+}: OrganizationLogoFieldProps) {
   const { t } = useTranslation();
   const inputId = useId();
-  const [preview, setPreview] = useState<string | null>(null);
+  const [preview, setPreview] = useState<string | null>(resolveMediaUrl(currentUrl));
   const [tooLarge, setTooLarge] = useState(false);
 
   useEffect(() => {
-    if (!file) {
-      setPreview(null);
-      return;
+    if (file) {
+      const url = URL.createObjectURL(file);
+      setPreview(url);
+      return () => URL.revokeObjectURL(url);
     }
-    const url = URL.createObjectURL(file);
-    setPreview(url);
-    return () => URL.revokeObjectURL(url);
-  }, [file]);
+    setPreview(resolveMediaUrl(currentUrl));
+    return undefined;
+  }, [file, currentUrl]);
 
   return (
     <div className="space-y-2">

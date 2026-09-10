@@ -57,9 +57,12 @@ const STATIC_OPTIONS = {
     { value: 'NE', label: 'Níger' },
   ],
   regions: [
-    { value: 'south_america', label: 'América do Sul' },
     { value: 'africa', label: 'África' },
+    { value: 'asia', label: 'Ásia' },
     { value: 'europe', label: 'Europa' },
+    { value: 'north_america', label: 'América do Norte' },
+    { value: 'south_america', label: 'América do Sul' },
+    { value: 'oceania', label: 'Oceania' },
   ],
 };
 

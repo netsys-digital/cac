@@ -1,4 +1,8 @@
 import { Router } from 'express';
+import { randomUUID } from 'node:crypto';
+import fs from 'node:fs';
+import path from 'node:path';
+import multer from 'multer';
 import {
   approveRepresentationBodySchema,
   createDomainBodySchema,
@@ -14,6 +18,42 @@ import { param } from '../../lib/params.js';
 export const adminRouter = Router();
 
 adminRouter.use(requireAuth, requireRole(UserRole.ADMIN, UserRole.CURADOR));
+
+const uploadDir = process.env.UPLOAD_DIR || 'uploads';
+fs.mkdirSync(uploadDir, { recursive: true });
+
+const logoAllowed = new Set(['image/jpeg', 'image/png', 'image/webp']);
+const logoUpload = multer({
+  storage: multer.diskStorage({
+    destination: (_req, _file, cb) => cb(null, uploadDir),
+    filename: (_req, file, cb) => {
+      const ext = path.extname(file.originalname).toLowerCase() || '.bin';
+      cb(null, `${randomUUID()}${ext}`);
+    },
+  }),
+  limits: { fileSize: 8 * 1024 * 1024 },
+  fileFilter: (_req, file, cb) => {
+    if (!logoAllowed.has(file.mimetype)) {
+      cb(new Error('invalid_mime'));
+      return;
+    }
+    cb(null, true);
+  },
+});
+
+function withOrgLogoUpload(
+  req: Parameters<typeof requireAuth>[0],
+  res: Parameters<typeof requireAuth>[1],
+  next: Parameters<typeof requireAuth>[2],
+) {
+  logoUpload.single('logo')(req, res, (err: unknown) => {
+    if (err) {
+      res.status(400).json({ error: 'invalid_upload', detail: String(err) });
+      return;
+    }
+    next();
+  });
+}
 
 adminRouter.get('/representation-requests', async (req, res, next) => {
   try {
@@ -127,9 +167,21 @@ adminRouter.patch(
   async (req, res, next) => {
     try {
       const data: {
+        name?: string;
+        summary?: string | null;
+        country?: string | null;
+        region?: string | null;
+        website?: string | null;
         publishKinds?: Array<'TECHNOLOGY' | 'CHALLENGE' | 'FUNDING_OFFER' | 'SUCCESS_CASE'>;
         verificationStatus?: 'PENDING' | 'VERIFIED' | 'REJECTED';
       } = {};
+      if (req.body.name !== undefined) data.name = req.body.name;
+      if (req.body.summary !== undefined) data.summary = req.body.summary;
+      if (req.body.country !== undefined) data.country = req.body.country;
+      if (req.body.region !== undefined) data.region = req.body.region;
+      if (req.body.website !== undefined) {
+        data.website = req.body.website === '' ? null : req.body.website;
+      }
       if (req.body.publishKinds !== undefined) {
         data.publishKinds = [...new Set(req.body.publishKinds as string[])] as Array<
           'TECHNOLOGY' | 'CHALLENGE' | 'FUNDING_OFFER' | 'SUCCESS_CASE'
@@ -148,6 +200,22 @@ adminRouter.patch(
     }
   },
 );
+
+adminRouter.post('/organizations/:id/logo', withOrgLogoUpload, async (req, res, next) => {
+  try {
+    if (!req.file) {
+      res.status(400).json({ error: 'logo_required' });
+      return;
+    }
+    const organization = await prisma.organization.update({
+      where: { id: param(req.params.id) },
+      data: { logoUrl: `/uploads/${req.file.filename}` },
+    });
+    res.json({ organization });
+  } catch (error) {
+    next(error);
+  }
+});
 
 adminRouter.post('/organizations/:id/verify', async (req, res, next) => {
   try {

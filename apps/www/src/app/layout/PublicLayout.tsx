@@ -1,4 +1,4 @@
-import { NavLink, Outlet } from 'react-router-dom';
+import { Link, NavLink, Outlet, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { BrandMark } from '@cac/ui';
 import { brand, urls } from '../../config';
@@ -12,6 +12,9 @@ const shell = 'mx-auto w-full max-w-[1220px] px-[22px]';
 const btnBase =
   'inline-flex items-center justify-center rounded-[10px] px-[14px] py-[11px] text-pequena font-extrabold whitespace-nowrap transition';
 
+const navLinkClass =
+  'rounded-lg px-2.5 py-[9px] text-pequena whitespace-nowrap text-[#dbe8ec] hover:bg-white/[0.08]';
+
 function displayName(name: string) {
   const parts = name.trim().split(/\s+/).filter(Boolean);
   if (parts.length === 0) return '';
@@ -22,6 +25,7 @@ function displayName(name: string) {
 export function PublicLayout() {
   const { t } = useTranslation();
   const { user, loading } = usePortalAuth();
+  const location = useLocation();
 
   const desktopLinks = [
     { to: '/search', label: t('nav.search') },
@@ -30,6 +34,8 @@ export function PublicLayout() {
     { to: '/offer', label: t('nav.offer') },
     { to: '/cases', label: t('nav.cases') },
   ];
+
+  const aboutActive = location.pathname === '/' && location.hash === '#sobre';
 
   const mobileLinks = [
     { to: '/', label: t('nav.home'), icon: '⌂' },
@@ -62,14 +68,18 @@ export function PublicLayout() {
                 key={link.to}
                 to={link.to}
                 className={({ isActive }) =>
-                  `rounded-lg px-2.5 py-[9px] text-pequena whitespace-nowrap text-[#dbe8ec] hover:bg-white/[0.08] ${
-                    isActive ? 'bg-white/[0.08]' : ''
-                  }`
+                  `${navLinkClass} ${isActive ? 'bg-white/[0.08]' : ''}`
                 }
               >
                 {link.label}
               </NavLink>
             ))}
+            <Link
+              to="/#sobre"
+              className={`${navLinkClass} ${aboutActive ? 'bg-white/[0.08]' : ''}`}
+            >
+              {t('nav.about')}
+            </Link>
           </nav>
 
           <div className="ml-auto flex shrink-0 items-center gap-[10px]">
