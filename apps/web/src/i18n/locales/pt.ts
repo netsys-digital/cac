@@ -1,4 +1,20 @@
 export const pt = {
+  common: {
+    close: 'Fechar',
+    cancel: 'Cancelar',
+    save: 'Salvar',
+    create: 'Criar',
+    view: 'Ver',
+    edit: 'Editar',
+    add: 'Adicionar',
+    delete: 'Excluir',
+    working: 'Aguarde…',
+    mode: {
+      view: 'Visualizar',
+      edit: 'Editar',
+      create: 'Adicionar',
+    },
+  },
   auth: {
     signInTitle: 'Entrar',
     signUpTitle: 'Criar conta',
