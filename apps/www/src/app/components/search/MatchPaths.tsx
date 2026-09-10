@@ -18,7 +18,7 @@ type Props = {
 export function MatchPaths({ paths, labels }: Props) {
   return (
     <section className="mt-8">
-      <h2 className="mb-3 text-media font-bold text-cac-navy">{labels.title}</h2>
+      <h2 className="mb-3 text-grande font-bold text-cac-navy">{labels.title}</h2>
       <div className="grid gap-3 md:grid-cols-3">
         <PathColumn title={labels.solve}>
           {paths.whoCanSolve.length ? (
@@ -28,7 +28,7 @@ export function MatchPaths({ paths, labels }: Props) {
                 to={item.slug ? `/organizations/${item.slug}` : '/search'}
                 className="block rounded-[10px] border border-cac-line bg-white px-3 py-2"
               >
-                <span className="block text-pequena font-bold text-cac-navy">{item.name}</span>
+                <span className="block text-media font-bold text-cac-navy">{item.name}</span>
                 <span className="text-mini text-cac-green">{item.score}%</span>
               </Link>
             ))
@@ -41,7 +41,7 @@ export function MatchPaths({ paths, labels }: Props) {
             paths.whoCanFund.map((item) => {
               const body = (
                 <>
-                  <span className="block text-pequena font-bold text-cac-navy">{item.name}</span>
+                  <span className="block text-media font-bold text-cac-navy">{item.name}</span>
                   <span className="text-mini text-cac-muted">
                     {item.kind === 'ACTIVE_OFFER' ? labels.active : labels.directory} · {item.score}%
                   </span>
@@ -73,7 +73,7 @@ export function MatchPaths({ paths, labels }: Props) {
                 to={item.slug ? `/projects/${item.slug}` : '/search'}
                 className="block rounded-[10px] border border-cac-line bg-white px-3 py-2"
               >
-                <span className="block text-pequena font-bold text-cac-navy">{item.title}</span>
+                <span className="block text-media font-bold text-cac-navy">{item.title}</span>
                 <span className="text-mini text-cac-green">
                   {item.type} · {item.score}%
                 </span>

@@ -7,7 +7,7 @@ export function PublishChallengeLandingPage() {
   const { t } = useTranslation();
   return (
     <PageShell eyebrow={t('nav.challenge')} title={t('home.path03')}>
-      <p className="mb-6 max-w-[760px] text-pequena text-cac-muted">{t('home.path03Body')}</p>
+      <p className="mb-6 max-w-[760px] text-media text-cac-muted">{t('home.path03Body')}</p>
       <a
         href={`${urls.web}/catalog/challenges/new`}
         className="inline-flex rounded-[10px] bg-cac-green2 px-3.5 py-2.5 text-pequena font-bold text-white"
@@ -22,7 +22,7 @@ export function PublishOfferLandingPage() {
   const { t } = useTranslation();
   return (
     <PageShell eyebrow={t('nav.offer')} title={t('home.path04')}>
-      <p className="mb-6 max-w-[760px] text-pequena text-cac-muted">{t('home.path04Body')}</p>
+      <p className="mb-6 max-w-[760px] text-media text-cac-muted">{t('home.path04Body')}</p>
       <div className="flex flex-wrap gap-2">
         <a
           href={`${urls.web}/catalog/technologies/new`}

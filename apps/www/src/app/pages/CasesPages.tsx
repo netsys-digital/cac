@@ -52,7 +52,7 @@ export function CasesPage() {
         </a>
       }
     >
-      <p className="mb-4 max-w-[760px] text-pequena leading-relaxed text-cac-muted">{t('cases.support')}</p>
+      <p className="mb-4 max-w-[760px] text-media leading-relaxed text-cac-muted">{t('cases.support')}</p>
       {error ? <p className="text-pequena text-red-700">{error}</p> : null}
       <div className="grid gap-3 md:grid-cols-2">
         {items.map((item) => (
@@ -77,7 +77,7 @@ export function CasesPage() {
               ) : null}
             </div>
             <h2 className="mt-3 text-media font-bold text-cac-navy">{item.title}</h2>
-            <p className="mt-2 text-mini leading-relaxed text-cac-muted">{item.summary}</p>
+            <p className="mt-2 text-pequena leading-relaxed text-cac-muted">{item.summary}</p>
             <div className="mt-2 flex flex-wrap gap-1">
               <Chip>{item.country}</Chip>
               {item.needs.slice(0, 3).map((n) => (
@@ -118,7 +118,7 @@ export function CaseDetailPage() {
   if (error) {
     return (
       <div className={`${shell} py-12`}>
-        <h1 className="text-grande font-bold text-cac-navy">{t('detail.notFound')}</h1>
+        <h1 className="text-extra-grande font-bold text-cac-navy">{t('detail.notFound')}</h1>
         <div className="mt-4">
           <BackToSearchLink className="inline-flex items-center gap-2 rounded-[10px] border border-cac-line bg-white px-3.5 py-2.5 text-pequena font-bold text-cac-navy" />
         </div>

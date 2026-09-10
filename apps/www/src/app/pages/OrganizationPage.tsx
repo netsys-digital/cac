@@ -43,7 +43,7 @@ export function OrganizationPage() {
     >
       <div className="mb-6 rounded-[16px] border border-cac-line bg-white p-4 shadow-[0_14px_38px_rgba(10,36,64,.10)]">
         <div className="h-[145px] rounded-[12px] bg-gradient-to-br from-[#b7d4c0] to-[#dfe9d3]" />
-        <p className="mt-4 text-pequena leading-relaxed text-cac-muted">{org.summary}</p>
+        <p className="mt-4 text-media leading-relaxed text-cac-muted">{org.summary}</p>
         <div className="mt-3 flex flex-wrap gap-1.5">
           {org.country ? <Chip>{org.country}</Chip> : null}
           {org.region ? <Chip>{org.region}</Chip> : null}
@@ -54,7 +54,7 @@ export function OrganizationPage() {
           ) : null}
         </div>
       </div>
-      <h2 className="mb-3 text-media font-bold text-cac-navy">{t('detail.orgSolutions')}</h2>
+      <h2 className="mb-3 text-grande font-bold text-cac-navy">{t('detail.orgSolutions')}</h2>
       <div className="space-y-2">
         {techs.map((tech) => (
           <ResultCard

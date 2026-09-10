@@ -269,7 +269,7 @@ export function HomePage() {
                   {path.icon}
                 </span>
                 <span className="text-media leading-snug font-bold text-cac-navy">{path.title}</span>
-                <span className="mt-2 flex-1 text-mini leading-[1.35] text-cac-muted">{path.body}</span>
+                <span className="mt-2 flex-1 text-pequena leading-[1.35] text-cac-muted">{path.body}</span>
                 <ArrowCircle className="mt-4 self-end" />
               </span>
             );
@@ -330,7 +330,7 @@ export function HomePage() {
                     className="rounded-[16px] border border-cac-line bg-[#f7faf8] p-5"
                   >
                     <p className="text-media font-bold text-cac-navy">{pillar.title}</p>
-                    <p className="mt-2 text-mini leading-[1.35] text-cac-muted">{pillar.body}</p>
+                    <p className="mt-2 text-pequena leading-[1.35] text-cac-muted">{pillar.body}</p>
                   </div>
                 ))
               : null}
@@ -371,7 +371,7 @@ export function HomePage() {
                     <div className="flex items-start justify-between gap-3 p-4">
                       <div>
                         <p className="text-media font-bold text-cac-navy">{item.title}</p>
-                        <p className="mt-1.5 text-mini leading-[1.35] text-cac-muted">{item.body}</p>
+                        <p className="mt-1.5 text-pequena leading-[1.35] text-cac-muted">{item.body}</p>
                       </div>
                       <ArrowCircle className="shrink-0" />
                     </div>

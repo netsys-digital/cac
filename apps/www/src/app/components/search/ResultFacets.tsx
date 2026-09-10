@@ -106,7 +106,7 @@ export function ResultFacets({ total, facets, labels, activeContentType, onSelec
               {item.value}
             </b>
             <span
-              className={`mt-1 block truncate text-mini leading-tight sm:text-pequena ${
+              className={`mt-1 block truncate text-pequena leading-tight ${
                 isActive ? 'font-bold text-cac-navy' : 'text-cac-muted'
               }`}
             >

@@ -17,7 +17,7 @@ export function PageShell({
           {eyebrow ? (
             <p className="text-mini font-bold tracking-[1.7px] text-cac-green uppercase">{eyebrow}</p>
           ) : null}
-          <h1 className="mt-2 text-grande leading-[1.08] font-bold tracking-[-0.7px] text-cac-navy">{title}</h1>
+          <h1 className="mt-2 text-extra-grande leading-[1.08] font-bold tracking-[-0.7px] text-cac-navy">{title}</h1>
         </div>
         {actions}
       </div>

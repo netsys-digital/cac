@@ -44,7 +44,7 @@ export function FundingPage() {
         </a>
       }
     >
-      <p className="mb-4 max-w-[760px] text-pequena leading-relaxed text-cac-muted">{t('funding.support')}</p>
+      <p className="mb-4 max-w-[760px] text-media leading-relaxed text-cac-muted">{t('funding.support')}</p>
 
       <div className="mb-4 flex gap-2">
         <button

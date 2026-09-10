@@ -213,14 +213,14 @@ export function SearchPage() {
 
   return (
     <PageShell eyebrow={t('search.badge')} title={t('search.title')}>
-      <p className="mb-4 max-w-[760px] text-pequena leading-relaxed text-cac-muted">{t('search.support')}</p>
+      <p className="mb-4 max-w-[760px] text-media leading-relaxed text-cac-muted">{t('search.support')}</p>
 
       <form onSubmit={onSubmit} className="mb-3 flex flex-col gap-2 sm:flex-row">
         <input
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           placeholder={t('home.searchPlaceholder')}
-          className="flex-1 rounded-[10px] border border-cac-line bg-white px-3 py-3 text-pequena text-cac-ink"
+          className="flex-1 rounded-[10px] border border-cac-line bg-white px-3 py-3 text-media text-cac-ink"
         />
         <button
           type="submit"
@@ -277,7 +277,7 @@ export function SearchPage() {
           <div className="mt-5">
             <div className="mb-3 flex flex-wrap items-end justify-between gap-2">
               <div>
-                <h2 className="text-media font-bold text-cac-navy">{t('search.resultsTitle')}</h2>
+                <h2 className="text-grande font-bold text-cac-navy">{t('search.resultsTitle')}</h2>
                 <p className="mt-0.5 text-pequena text-cac-muted">
                   {t('search.resultsHint', { count: data.results.length, total: data.total })}
                 </p>

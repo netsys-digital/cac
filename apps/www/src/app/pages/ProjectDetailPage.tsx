@@ -37,7 +37,7 @@ export function ProjectDetailPage() {
   if (error) {
     return (
       <div className={`${shell} py-12`}>
-        <h1 className="text-grande font-bold text-cac-navy">{t('detail.notFound')}</h1>
+        <h1 className="text-extra-grande font-bold text-cac-navy">{t('detail.notFound')}</h1>
         <div className="mt-4">
           <BackToSearchLink className="inline-flex items-center gap-2 rounded-[10px] border border-cac-line bg-white px-3.5 py-2.5 text-pequena font-bold text-cac-navy" />
         </div>
