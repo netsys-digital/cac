@@ -96,18 +96,21 @@ ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON SEQUENCES TO ${APP_DB_USE
 SQL
 
 echo "==> Resolve migrações falhas / marca applied quando DDL já existe"
+# --entrypoint '' evita o entrypoint antigo (migrate+seed+node) que nunca sai.
+# Com entrypoint novo (args → exec), ainda funciona e é mais seguro.
 resolve_applied() {
   local name="$1"
-  "${COMPOSE[@]}" run --rm --no-deps api \
-    npx prisma migrate resolve --rolled-back "$name" >/dev/null 2>&1 || true
-  "${COMPOSE[@]}" run --rm --no-deps api \
-    npx prisma migrate resolve --applied "$name" >/dev/null 2>&1 || true
+  echo "  resolve ${name}…"
+  "${COMPOSE[@]}" run --rm --no-deps --entrypoint '' api \
+    npx prisma migrate resolve --rolled-back "$name" || true
+  "${COMPOSE[@]}" run --rm --no-deps --entrypoint '' api \
+    npx prisma migrate resolve --applied "$name" || true
   echo "  resolved: $name"
 }
 
 # Só resolve se a imagem/api existir; senão o deploy sobe a api depois.
 if "${COMPOSE[@]}" images api 2>/dev/null | grep -q api \
-  || docker image ls --format '{{.Repository}}' | grep -q 'cac-api\|cac_api'; then
+  || docker image ls --format '{{.Repository}}' | grep -qE 'cac[-_]api'; then
   resolve_applied "20260908200000_curation_notes"
   resolve_applied "20260909010000_technology_video_url"
   resolve_applied "20260909230000_org_publish_kinds"

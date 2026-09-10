@@ -2,8 +2,15 @@
 # Entrypoint da API em produção: migrate sem deixar P3009 eterno.
 # Se migrate falhar, imprime diagnóstico e sai (restart policy tenta de novo
 # depois que prod-db-prepare.sh no deploy corrigir ownership).
+#
+# Com args (ex.: compose run --rm api npx prisma …) executa só o comando
+# sem subir o servidor — usado por prod-db-prepare / recover.
 set -euo pipefail
 cd /app/apps/api
+
+if [[ $# -gt 0 ]]; then
+  exec "$@"
+fi
 
 echo "[cac-api] prisma migrate deploy…"
 if ! npx prisma migrate deploy; then
