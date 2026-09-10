@@ -388,6 +388,9 @@ export const en = {
     orgsSaved: 'Types updated for {{name}}.',
     orgsVerified: '{{name}} marked as verified.',
     orgsError: 'Could not save. Try again.',
+    orgsLoadHint:
+      'If the API fails after the publishKinds deploy, run the migration on the server (prisma migrate deploy) and restart the api.',
+    orgsRetry: 'Try again',
     orgsEmpty: 'No organizations registered.',
     orgsCounts:
       '{{members}} members · {{tech}} solutions · {{challenges}} challenges · {{offers}} offers · {{cases}} cases',

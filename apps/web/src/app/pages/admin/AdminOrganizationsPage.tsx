@@ -27,22 +27,29 @@ export function AdminOrganizationsPage() {
   const [kind, setKind] = useState<KindFilter>('ALL');
 
   const load = useCallback(async () => {
-    if (!accessToken) return;
+    if (!accessToken) {
+      setLoading(false);
+      return;
+    }
     setLoading(true);
+    setError('');
     try {
       const res = await catalogApi.adminOrganizations(accessToken);
-      setItems(res.items);
+      setItems(res.items ?? []);
       setDraftKinds((prev) => {
         const next = { ...prev };
-        for (const o of res.items) {
+        for (const o of res.items ?? []) {
           if (!next[o.id]) next[o.id] = [...(o.publishKinds ?? [])];
         }
         return next;
       });
+    } catch (e) {
+      setItems([]);
+      setError(e instanceof Error ? e.message : t('admin.orgsError'));
     } finally {
       setLoading(false);
     }
-  }, [accessToken]);
+  }, [accessToken, t]);
 
   useEffect(() => {
     void load();
@@ -248,9 +255,13 @@ export function AdminOrganizationsPage() {
         </p>
       ) : null}
       {error ? (
-        <p className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-media font-semibold text-red-800">
-          {error}
-        </p>
+        <div className="space-y-3 rounded-xl border border-red-200 bg-red-50 px-4 py-3">
+          <p className="text-media font-semibold text-red-800">{error}</p>
+          <p className="text-pequena text-red-800/80">{t('admin.orgsLoadHint')}</p>
+          <Button type="button" variant="secondary" onClick={() => void load()}>
+            {t('admin.orgsRetry')}
+          </Button>
+        </div>
       ) : null}
 
       {loading ? (

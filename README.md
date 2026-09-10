@@ -99,24 +99,41 @@ bash scripts/smoke-marco1.sh
 > **Postgres compartilhado:** tabelas do banco `cac` devem ser **OWNER `cac`**.  
 > `deploy.sh` / `install-prod.sh` rodam `scripts/prod-db-prepare.sh` antes de recrear a API.
 
-## 3) Deploy contínuo
+## 3) Publicação em produção (fluxo simples)
+
+**Local (WSL):**
 
 ```bash
-bash deploy.sh          # incremental conforme diff
-bash deploy.sh --full   # rebuild api + worker + web + www + gateway (sem cache nos fronts)
+git add .
+git commit -m "..."
+git push
 ```
+
+**No servidor:**
+
+```bash
+ssh netsys@servidor
+cd /app/cac
+bash publish.sh
+```
+
+`publish.sh` faz **tudo** em um comando, sempre no modo completo:
+
+1. `git fetch` + `git reset --hard origin/main` (código limpo, sem conflito)
+2. Garante infra netsys (postgres/redis)
+3. `prod-db-prepare.sh` — corrige ownership + aplica DDL idempotente crítico
+4. Build de `api`, `api-worker`, `web`, `www` (fronts sem cache)
+5. `up -d --force-recreate` — API roda `prisma migrate deploy` no start
+6. Espera API healthy → recria worker, www, web, gateway
+7. Smoke test (health, portal, gestor)
+
+Se qualquer passo falhar, o script **para** com mensagem clara e mantém os containers antigos no ar.
 
 ### GitHub Actions
 
-| Item | Valor |
-|---|---|
-| CI | `.github/workflows/ci.yml` — push/PR |
-| Deploy | `.github/workflows/deploy.yml` — **manual** (`workflow_dispatch`) |
-| Path no servidor | `/app/cac` |
-| Environment | `DEPLOY_HETZNER` |
-| Secrets | `DEPLOY_HOST` · `DEPLOY_USER` · `DEPLOY_SSH_KEY` |
+O deploy automático foi removido temporariamente para reduzir dor de cabeça em produção — apenas o CI (`.github/workflows/ci.yml`) continua rodando em push/PR. Quando estabilizar, o workflow de deploy pode voltar chamando `bash publish.sh` no servidor.
 
-O deploy remoto executa `bash deploy.sh --full` em `/app/cac`.
+> `deploy.sh` legado permanece no repositório para referência histórica, mas o comando oficial é **`bash publish.sh`**.
 
 ## Variáveis críticas (prod)
 

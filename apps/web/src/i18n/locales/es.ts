@@ -388,6 +388,9 @@ export const es = {
     orgsSaved: 'Tipos actualizados para {{name}}.',
     orgsVerified: '{{name}} marcada como verificada.',
     orgsError: 'No fue posible guardar. Inténtalo de nuevo.',
+    orgsLoadHint:
+      'Si la API falla tras el deploy de publishKinds, ejecuta la migration en el servidor (prisma migrate deploy) y reinicia la api.',
+    orgsRetry: 'Reintentar',
     orgsEmpty: 'Ninguna organización registrada.',
     orgsCounts:
       '{{members}} miembros · {{tech}} soluciones · {{challenges}} desafíos · {{offers}} ofertas · {{cases}} casos',

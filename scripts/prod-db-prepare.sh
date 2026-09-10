@@ -41,6 +41,21 @@ ALTER TABLE "SuccessCase" ADD COLUMN IF NOT EXISTS "reviewedAt" TIMESTAMP(3);
 
 -- video URL (20260909010000)
 ALTER TABLE "Technology" ADD COLUMN IF NOT EXISTS "videoUrl" TEXT;
+
+-- org publish kinds (20260909230000)
+DO $$ BEGIN
+  CREATE TYPE "OrgPublishKind" AS ENUM ('TECHNOLOGY', 'CHALLENGE', 'FUNDING_OFFER', 'SUCCESS_CASE');
+EXCEPTION
+  WHEN duplicate_object THEN NULL;
+END $$;
+
+ALTER TABLE "Organization"
+  ADD COLUMN IF NOT EXISTS "publishKinds" "OrgPublishKind"[]
+  DEFAULT ARRAY[]::"OrgPublishKind"[];
+
+UPDATE "Organization"
+SET "publishKinds" = ARRAY['TECHNOLOGY', 'CHALLENGE', 'FUNDING_OFFER', 'SUCCESS_CASE']::"OrgPublishKind"[]
+WHERE "publishKinds" IS NULL OR cardinality("publishKinds") = 0;
 SQL
 
 echo "==> Ownership → ${APP_DB_USER} (para prisma migrate deploy não falhar de novo)"
@@ -95,6 +110,7 @@ if "${COMPOSE[@]}" images api 2>/dev/null | grep -q api \
   || docker image ls --format '{{.Repository}}' | grep -q 'cac-api\|cac_api'; then
   resolve_applied "20260908200000_curation_notes"
   resolve_applied "20260909010000_technology_video_url"
+  resolve_applied "20260909230000_org_publish_kinds"
 else
   echo "  (skip resolve — imagem api ainda não existe; migrate deploy cuidará após o build)"
 fi
@@ -102,5 +118,9 @@ fi
 echo "==> Verifica colunas críticas"
 docker exec -i "$PG_CONTAINER" psql -U "$PG_USER" -d "$PG_DB" -c \
   "SELECT column_name FROM information_schema.columns WHERE table_name='Technology' AND column_name IN ('curationNote','videoUrl','reviewedAt') ORDER BY 1;"
+docker exec -i "$PG_CONTAINER" psql -U "$PG_USER" -d "$PG_DB" -c \
+  "SELECT column_name FROM information_schema.columns WHERE table_name='Organization' AND column_name='publishKinds';"
+docker exec -i "$PG_CONTAINER" psql -U "$PG_USER" -d "$PG_DB" -c \
+  "SELECT COUNT(*) AS organizations FROM \"Organization\";"
 
 echo "OK — schema preparado para user ${APP_DB_USER}"
