@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { createConnectionBodySchema } from '@cac/shared';
+import { createConnectionBodySchema, declineConnectionBodySchema } from '@cac/shared';
 import { requireAuth } from '../../middleware/auth.js';
 import { validateBody } from '../../middleware/validate.js';
 import { param } from '../../lib/params.js';
@@ -42,14 +42,23 @@ connectionsRouter.patch('/:id/accept', async (req, res, next) => {
   }
 });
 
-connectionsRouter.patch('/:id/decline', async (req, res, next) => {
-  try {
-    const connection = await declineConnection(param(req.params.id), req.auth!.sub, req.auth!.role);
-    res.json({ connection });
-  } catch (error) {
-    next(error);
-  }
-});
+connectionsRouter.patch(
+  '/:id/decline',
+  validateBody(declineConnectionBodySchema),
+  async (req, res, next) => {
+    try {
+      const connection = await declineConnection(
+        param(req.params.id),
+        req.auth!.sub,
+        req.auth!.role,
+        req.body,
+      );
+      res.json({ connection });
+    } catch (error) {
+      next(error);
+    }
+  },
+);
 
 connectionsRouter.patch('/:id/close', async (req, res, next) => {
   try {

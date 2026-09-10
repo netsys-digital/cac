@@ -17,8 +17,14 @@ export function pickCoverFile(form: FormData): File | null {
 
 export function resolveMediaUrl(path?: string | null): string | null {
   if (!path) return null;
-  if (path.startsWith('http://') || path.startsWith('https://')) return path;
-  return `${urls.api}${path.startsWith('/') ? path : `/${path}`}`;
+  if (path.startsWith('http://') || path.startsWith('https://') || path.startsWith('blob:')) {
+    return path;
+  }
+  const normalized = path.startsWith('/') ? path : `/${path}`;
+  // Em DEV, `urls.api` é '' (proxy same-origin). Garantir caminho absoluto no host atual
+  // só funciona se /uploads estiver no proxy do Vite — ver vite.config.ts.
+  const base = urls.api || (typeof window !== 'undefined' ? window.location.origin : '');
+  return `${base}${normalized}`;
 }
 
 type Props = {

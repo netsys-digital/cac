@@ -15,6 +15,10 @@ export type Connection = {
   targetOrg?: { id: string; name: string; slug: string; logoUrl?: string | null };
   requesterUser?: { id: string; name: string; email: string };
   requesterRole?: { unit: string; linkRole: string } | null;
+  declineReason?: string | null;
+  /** Afiliado real da org destino (staff não conta). */
+  viewerCanAcceptDecline?: boolean;
+  viewerCanClose?: boolean;
 };
 
 export type PendingItem = {
@@ -44,10 +48,11 @@ export const connectionsApi = {
       method: 'PATCH',
       accessToken: token,
     }),
-  decline: (token: string, id: string) =>
+  decline: (token: string, id: string, reason: string) =>
     api<{ connection: Connection }>(`/api/connections/${id}/decline`, {
       method: 'PATCH',
       accessToken: token,
+      body: JSON.stringify({ reason }),
     }),
   close: (token: string, id: string) =>
     api<{ connection: Connection }>(`/api/connections/${id}/close`, {

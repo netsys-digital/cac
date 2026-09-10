@@ -1,10 +1,8 @@
 import {
-  useCallback,
   useEffect,
   useId,
   useRef,
   type ReactNode,
-  type MouseEvent,
 } from 'react';
 import { createPortal } from 'react-dom';
 import { useTranslation } from 'react-i18next';
@@ -22,6 +20,7 @@ type ModalProps = {
   size?: 'md' | 'lg' | 'xl';
   children: ReactNode;
   footer?: ReactNode;
+  /** Permite fechar com ESC (não fecha ao clicar no fundo). */
   dismissible?: boolean;
 };
 
@@ -62,20 +61,11 @@ export function Modal({
     };
   }, [open, onClose, dismissible]);
 
-  const onBackdrop = useCallback(
-    (e: MouseEvent<HTMLDivElement>) => {
-      if (!dismissible) return;
-      if (e.target === e.currentTarget) onClose();
-    },
-    [dismissible, onClose],
-  );
-
   if (!open || typeof document === 'undefined') return null;
 
   return createPortal(
     <div
       className="fixed inset-0 z-[80] flex items-end justify-center bg-[rgba(10,36,64,.45)] p-3 sm:items-center sm:p-6"
-      onClick={onBackdrop}
       role="presentation"
     >
       <div

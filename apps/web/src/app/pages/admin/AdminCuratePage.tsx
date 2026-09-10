@@ -5,6 +5,8 @@ import { formatDateTime } from '@cac/shared';
 import { useAuth } from '../../auth/AuthContext';
 import { useStaffTasks } from '../../auth/StaffTasksContext';
 import { connectionsApi, type PendingItem } from '../../api/connectionsApi';
+import { Modal } from '../../components/Modal';
+import { useModalState } from '../../components/useModalState';
 
 type Decision = 'approve' | 'return' | 'reject';
 
@@ -23,13 +25,13 @@ export function AdminCuratePage() {
   const { t, i18n } = useTranslation();
   const { accessToken } = useAuth();
   const { refresh } = useStaffTasks();
+  const modal = useModalState<PendingItem>();
   const [items, setItems] = useState<PendingItem[]>([]);
-  const [busyId, setBusyId] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(true);
-  const [notes, setNotes] = useState<Record<string, string>>({});
-  const [expanded, setExpanded] = useState<string | null>(null);
+  const [note, setNote] = useState('');
 
   const load = useCallback(async () => {
     if (!accessToken) return;
@@ -37,11 +39,6 @@ export function AdminCuratePage() {
     try {
       const pending = await connectionsApi.adminPending(accessToken);
       setItems(pending.items);
-      setExpanded((prev) => {
-        if (prev || !pending.items.length) return prev;
-        const first = pending.items[0];
-        return `${first.kind}-${first.id}`;
-      });
     } finally {
       setLoading(false);
     }
@@ -51,6 +48,10 @@ export function AdminCuratePage() {
     void load();
   }, [load]);
 
+  useEffect(() => {
+    if (modal.open) setNote('');
+  }, [modal.open, modal.item]);
+
   const byKind = useMemo(() => {
     const counts: Record<string, number> = {};
     for (const item of items) {
@@ -59,43 +60,45 @@ export function AdminCuratePage() {
     return counts;
   }, [items]);
 
-  async function decide(item: PendingItem, decision: Decision) {
-    if (!accessToken) return;
-    const key = `${item.kind}-${item.id}`;
-    const note = (notes[key] ?? '').trim();
-    if ((decision === 'return' || decision === 'reject') && !note) {
+  async function decide(decision: Decision) {
+    if (!accessToken || !modal.item) return;
+    const trimmed = note.trim();
+    if ((decision === 'return' || decision === 'reject') && !trimmed) {
       setError(t('admin.noteRequired'));
-      setExpanded(key);
       return;
     }
 
-    setBusyId(key);
+    setBusy(true);
     setMessage('');
     setError('');
     try {
       if (decision === 'approve') {
-        await connectionsApi.publishPending(accessToken, item.kind, item.id, note || undefined);
+        await connectionsApi.publishPending(
+          accessToken,
+          modal.item.kind,
+          modal.item.id,
+          trimmed || undefined,
+        );
         setMessage(t('admin.published'));
       } else if (decision === 'return') {
-        await connectionsApi.returnPending(accessToken, item.kind, item.id, note);
+        await connectionsApi.returnPending(accessToken, modal.item.kind, modal.item.id, trimmed);
         setMessage(t('admin.returned'));
       } else {
-        await connectionsApi.rejectPending(accessToken, item.kind, item.id, note);
+        await connectionsApi.rejectPending(accessToken, modal.item.kind, modal.item.id, trimmed);
         setMessage(t('admin.contentRejected'));
       }
-      setNotes((prev) => {
-        const next = { ...prev };
-        delete next[key];
-        return next;
-      });
+      modal.close();
       await load();
       await refresh();
     } catch {
       setError(t('admin.decisionError'));
     } finally {
-      setBusyId(null);
+      setBusy(false);
     }
   }
+
+  const item = modal.item;
+  const isView = modal.mode === 'view';
 
   return (
     <div className="space-y-5">
@@ -139,7 +142,7 @@ export function AdminCuratePage() {
           {message}
         </p>
       ) : null}
-      {error ? (
+      {error && !modal.open ? (
         <p className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-media font-semibold text-red-900">
           {error}
         </p>
@@ -149,94 +152,36 @@ export function AdminCuratePage() {
         <p className="text-media text-cac-muted">{t('dash.loading')}</p>
       ) : (
         <ul className="space-y-3">
-          {items.map((item) => {
-            const key = `${item.kind}-${item.id}`;
-            const isOpen = expanded === key;
-            const noteValue = notes[key] ?? '';
+          {items.map((row) => {
+            const key = `${row.kind}-${row.id}`;
             return (
-              <li key={key} className="rounded-2xl border border-cac-line bg-white p-4 shadow-cac">
-                <button
-                  type="button"
-                  className="flex w-full items-start justify-between gap-3 text-left"
-                  onClick={() => setExpanded(isOpen ? null : key)}
-                >
-                  <div className="min-w-0">
-                    <p className="text-pequena font-bold uppercase tracking-wide text-cac-green">
-                      {kindLabel(item.kind, t)} · {t('admin.submittedForReview')}
-                    </p>
-                    <p className="mt-1 text-media font-bold text-cac-navy">{item.title}</p>
-                    <p className="text-media text-cac-muted">
-                      {item.organization?.name ?? '—'}
-                      {item.country ? ` · ${item.country}` : ''}
-                      {item.region ? ` · ${item.region}` : ''} ·{' '}
-                      {formatDateTime(item.updatedAt, i18n.language)}
-                    </p>
-                  </div>
-                  <span className="shrink-0 rounded-full bg-amber-100 px-2.5 py-1 text-mini font-bold uppercase tracking-wide text-amber-900">
+              <li
+                key={key}
+                className="flex flex-col gap-3 rounded-2xl border border-cac-line bg-white p-4 shadow-cac sm:flex-row sm:items-start sm:justify-between"
+              >
+                <div className="min-w-0">
+                  <p className="text-pequena font-bold uppercase tracking-wide text-cac-green">
+                    {kindLabel(row.kind, t)} · {t('admin.submittedForReview')}
+                  </p>
+                  <p className="mt-1 text-media font-bold text-cac-navy">{row.title}</p>
+                  <p className="text-media text-cac-muted">
+                    {row.organization?.name ?? '—'}
+                    {row.country ? ` · ${row.country}` : ''}
+                    {row.region ? ` · ${row.region}` : ''} ·{' '}
+                    {formatDateTime(row.updatedAt, i18n.language)}
+                  </p>
+                  <span className="mt-2 inline-flex rounded-full bg-amber-100 px-2.5 py-1 text-mini font-bold uppercase tracking-wide text-amber-900">
                     {t('mine.status.IN_REVIEW')}
                   </span>
-                </button>
-
-                {item.summary ? (
-                  <p className="mt-3 text-media leading-relaxed text-cac-navy/90">{item.summary}</p>
-                ) : null}
-
-                {item.curationNote ? (
-                  <p className="mt-3 rounded-xl border border-cac-line bg-[#fbfcfb] px-3 py-2 text-pequena text-cac-muted">
-                    <span className="font-bold text-cac-navy">{t('admin.previousNote')}: </span>
-                    {item.curationNote}
-                  </p>
-                ) : null}
-
-                {isOpen ? (
-                  <div className="mt-4 space-y-3 border-t border-cac-line pt-4">
-                    <label className="block">
-                      <span className="text-pequena font-bold tracking-wide text-cac-navy uppercase">
-                        {t('admin.noteLabel')}
-                      </span>
-                      <textarea
-                        className="mt-1.5 min-h-[96px] w-full rounded-xl border border-cac-line bg-[#fbfcfb] px-3 py-2 text-media text-cac-navy outline-none ring-cac-green focus:ring-2"
-                        placeholder={t('admin.notePlaceholder')}
-                        value={noteValue}
-                        onChange={(e) =>
-                          setNotes((prev) => ({ ...prev, [key]: e.target.value }))
-                        }
-                      />
-                      <span className="mt-1 block text-pequena text-cac-muted">{t('admin.noteHint')}</span>
-                    </label>
-
-                    <div className="flex flex-wrap gap-2">
-                      <Button
-                        disabled={busyId === key}
-                        onClick={() => void decide(item, 'approve')}
-                      >
-                        {busyId === key ? t('admin.working') : t('admin.decisionApprove')}
-                      </Button>
-                      <Button
-                        variant="secondary"
-                        disabled={busyId === key}
-                        onClick={() => void decide(item, 'return')}
-                      >
-                        {t('admin.decisionReturn')}
-                      </Button>
-                      <Button
-                        variant="outline"
-                        disabled={busyId === key}
-                        onClick={() => void decide(item, 'reject')}
-                      >
-                        {t('admin.decisionReject')}
-                      </Button>
-                    </div>
-                  </div>
-                ) : (
-                  <button
-                    type="button"
-                    className="mt-3 text-media font-bold text-cac-green hover:underline"
-                    onClick={() => setExpanded(key)}
-                  >
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  <Button type="button" variant="secondary" onClick={() => modal.openView(row)}>
+                    {t('common.view')}
+                  </Button>
+                  <Button type="button" onClick={() => modal.openEdit(row)}>
                     {t('admin.openDecision')}
-                  </button>
-                )}
+                  </Button>
+                </div>
               </li>
             );
           })}
@@ -247,6 +192,96 @@ export function AdminCuratePage() {
           ) : null}
         </ul>
       )}
+
+      <Modal
+        open={modal.open}
+        onClose={modal.close}
+        mode={isView ? 'view' : 'edit'}
+        badge={t('curator.queueContent')}
+        title={item?.title ?? t('admin.curateTitle')}
+        description={
+          item
+            ? `${kindLabel(item.kind, t)} · ${item.organization?.name ?? '—'} · ${formatDateTime(item.updatedAt, i18n.language)}`
+            : undefined
+        }
+        size="lg"
+        dismissible={!busy}
+        footer={
+          isView ? (
+            <>
+              <Button type="button" variant="secondary" onClick={modal.close}>
+                {t('common.close')}
+              </Button>
+              <Button type="button" onClick={() => modal.setMode('edit')}>
+                {t('admin.openDecision')}
+              </Button>
+            </>
+          ) : (
+            <>
+              <Button type="button" variant="secondary" disabled={busy} onClick={modal.close}>
+                {t('common.cancel')}
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                disabled={busy}
+                onClick={() => void decide('reject')}
+              >
+                {t('admin.decisionReject')}
+              </Button>
+              <Button
+                type="button"
+                variant="secondary"
+                disabled={busy}
+                onClick={() => void decide('return')}
+              >
+                {t('admin.decisionReturn')}
+              </Button>
+              <Button type="button" disabled={busy} onClick={() => void decide('approve')}>
+                {busy ? t('common.working') : t('admin.decisionApprove')}
+              </Button>
+            </>
+          )
+        }
+      >
+        {error && modal.open ? (
+          <p className="mb-3 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-pequena text-red-800">
+            {error}
+          </p>
+        ) : null}
+
+        {item ? (
+          <div className="space-y-4">
+            {item.summary ? (
+              <p className="rounded-xl border border-cac-line bg-white px-3 py-2 text-media leading-relaxed text-cac-navy/90">
+                {item.summary}
+              </p>
+            ) : null}
+            {item.curationNote ? (
+              <p className="rounded-xl border border-cac-line bg-white px-3 py-2 text-pequena text-cac-muted">
+                <span className="font-bold text-cac-navy">{t('admin.previousNote')}: </span>
+                {item.curationNote}
+              </p>
+            ) : null}
+
+            {!isView ? (
+              <label className="block">
+                <span className="text-pequena font-bold tracking-wide text-cac-navy uppercase">
+                  {t('admin.noteLabel')}
+                </span>
+                <textarea
+                  className="mt-1.5 min-h-[96px] w-full rounded-xl border border-cac-line bg-white px-3 py-2 text-media text-cac-navy outline-none ring-cac-green focus:ring-2"
+                  placeholder={t('admin.notePlaceholder')}
+                  value={note}
+                  onChange={(e) => setNote(e.target.value)}
+                  disabled={busy}
+                />
+                <span className="mt-1 block text-pequena text-cac-muted">{t('admin.noteHint')}</span>
+              </label>
+            ) : null}
+          </div>
+        ) : null}
+      </Modal>
     </div>
   );
 }

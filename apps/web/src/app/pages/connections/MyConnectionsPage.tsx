@@ -3,8 +3,18 @@ import { useTranslation } from 'react-i18next';
 import { Button } from '@cac/ui';
 import { useAuth } from '../../auth/AuthContext';
 import { connectionsApi, type Connection } from '../../api/connectionsApi';
-import { useMyOrganizations } from '../../hooks/useMyOrganizations';
+import { Modal } from '../../components/Modal';
 import { resolveMediaUrl } from '../../components/forms/RepresentativeImageField';
+
+const DECLINE_SUGGESTION_KEYS = [
+  'declineSuggestNotAligned',
+  'declineSuggestCapacity',
+  'declineSuggestIncomplete',
+  'declineSuggestTiming',
+  'declineSuggestDuplicate',
+] as const;
+
+const MIN_DECLINE_REASON = 10;
 
 function orgInitials(name: string) {
   return name
@@ -89,15 +99,13 @@ function PassiveActionIcon({ label, children }: { label: string; children: React
 
 function ConnectionRow({
   item,
-  myOrgIds,
   onAccept,
   onDecline,
   onClose,
 }: {
   item: Connection;
-  myOrgIds: Set<string>;
   onAccept: (id: string) => void;
-  onDecline: (id: string) => void;
+  onDecline: (item: Connection) => void;
   onClose: (id: string) => void;
 }) {
   const { t } = useTranslation();
@@ -107,12 +115,8 @@ function ConnectionRow({
   const contactRole =
     [item.requesterRole?.linkRole, item.requesterRole?.unit].filter(Boolean).join(' · ') ||
     t('conn.roleUnknown');
-  const canActAsTarget = myOrgIds.has(item.targetOrgId);
-  const canActAsRequester = myOrgIds.has(item.requesterOrgId);
-  const showAcceptDecline = item.status === 'PENDING' && canActAsTarget;
-  const showClose =
-    (item.status === 'ACCEPTED' || item.status === 'CONTACT_SHARED') &&
-    (canActAsTarget || canActAsRequester);
+  const showAcceptDecline = Boolean(item.viewerCanAcceptDecline);
+  const showClose = Boolean(item.viewerCanClose);
 
   const objectiveLabel = useMemo(() => {
     if (item.objective === 'KNOW_MORE') return t('conn.objKnow');
@@ -169,12 +173,18 @@ function ConnectionRow({
           {item.message ? (
             <p className="mt-2 line-clamp-3 text-mini leading-snug text-cac-navy">{item.message}</p>
           ) : null}
+          {item.status === 'DECLINED' && item.declineReason ? (
+            <p className="mt-2 rounded-lg border border-red-200 bg-red-50/80 px-2.5 py-2 text-mini leading-snug text-red-900">
+              <span className="font-bold">{t('conn.declineReasonLabel')}: </span>
+              {item.declineReason}
+            </p>
+          ) : null}
           {(showAcceptDecline || showClose) && (
             <div className="mt-2 flex flex-wrap gap-1.5">
               {showAcceptDecline ? (
                 <>
                   <Button onClick={() => onAccept(item.id)}>{t('conn.accept')}</Button>
-                  <Button variant="secondary" onClick={() => onDecline(item.id)}>
+                  <Button variant="secondary" onClick={() => onDecline(item)}>
                     {t('conn.decline')}
                   </Button>
                 </>
@@ -215,12 +225,13 @@ function ConnectionRow({
 export function MyConnectionsPage() {
   const { t } = useTranslation();
   const { accessToken } = useAuth();
-  const { orgs, loading: loadingOrgs } = useMyOrganizations(accessToken);
   const [items, setItems] = useState<Connection[]>([]);
   const [loading, setLoading] = useState(true);
   const [message, setMessage] = useState('');
-
-  const myOrgIds = useMemo(() => new Set(orgs.map((o) => o.id)), [orgs]);
+  const [declineItem, setDeclineItem] = useState<Connection | null>(null);
+  const [declineReason, setDeclineReason] = useState('');
+  const [declineError, setDeclineError] = useState('');
+  const [declineBusy, setDeclineBusy] = useState(false);
 
   const load = useCallback(async () => {
     if (!accessToken) return;
@@ -237,6 +248,19 @@ export function MyConnectionsPage() {
     void load();
   }, [load]);
 
+  function openDecline(item: Connection) {
+    setDeclineItem(item);
+    setDeclineReason('');
+    setDeclineError('');
+  }
+
+  function closeDecline() {
+    if (declineBusy) return;
+    setDeclineItem(null);
+    setDeclineReason('');
+    setDeclineError('');
+  }
+
   async function accept(id: string) {
     if (!accessToken) return;
     await connectionsApi.accept(accessToken, id);
@@ -244,11 +268,26 @@ export function MyConnectionsPage() {
     await load();
   }
 
-  async function decline(id: string) {
-    if (!accessToken) return;
-    await connectionsApi.decline(accessToken, id);
-    setMessage(t('conn.declined'));
-    await load();
+  async function confirmDecline() {
+    if (!accessToken || !declineItem) return;
+    const reason = declineReason.trim();
+    if (reason.length < MIN_DECLINE_REASON) {
+      setDeclineError(t('conn.declineReasonRequired'));
+      return;
+    }
+    setDeclineBusy(true);
+    setDeclineError('');
+    try {
+      await connectionsApi.decline(accessToken, declineItem.id, reason);
+      setDeclineItem(null);
+      setDeclineReason('');
+      setMessage(t('conn.declined'));
+      await load();
+    } catch {
+      setDeclineError(t('conn.error'));
+    } finally {
+      setDeclineBusy(false);
+    }
   }
 
   async function close(id: string) {
@@ -257,6 +296,11 @@ export function MyConnectionsPage() {
     setMessage(t('conn.closed'));
     await load();
   }
+
+  const declineContact = declineItem?.requesterUser?.name ?? '—';
+  const declineOrgs = declineItem
+    ? `${declineItem.requesterOrg?.name ?? '—'} → ${declineItem.targetOrg?.name ?? '—'}`
+    : '';
 
   return (
     <div className="space-y-5">
@@ -274,7 +318,7 @@ export function MyConnectionsPage() {
         </p>
       ) : null}
 
-      {loading || loadingOrgs ? (
+      {loading ? (
         <p className="rounded-2xl border border-cac-line bg-white p-5 text-media text-cac-muted shadow-cac">
           {t('dash.loading')}
         </p>
@@ -284,9 +328,8 @@ export function MyConnectionsPage() {
             <ConnectionRow
               key={item.id}
               item={item}
-              myOrgIds={myOrgIds}
               onAccept={(id) => void accept(id)}
-              onDecline={(id) => void decline(id)}
+              onDecline={openDecline}
               onClose={(id) => void close(id)}
             />
           ))}
@@ -297,6 +340,91 @@ export function MyConnectionsPage() {
           ) : null}
         </ul>
       )}
+
+      <Modal
+        open={Boolean(declineItem)}
+        onClose={closeDecline}
+        mode="edit"
+        size="md"
+        badge={t('conn.declineModalBadge')}
+        title={t('conn.declineModalTitle')}
+        description={t('conn.declineModalDesc')}
+        dismissible={!declineBusy}
+        footer={
+          <>
+            <Button type="button" variant="secondary" disabled={declineBusy} onClick={closeDecline}>
+              {t('common.cancel')}
+            </Button>
+            <Button type="button" disabled={declineBusy} onClick={() => void confirmDecline()}>
+              {declineBusy ? t('common.working') : t('conn.declineConfirm')}
+            </Button>
+          </>
+        }
+      >
+        {declineItem ? (
+          <div className="space-y-4">
+            <p className="rounded-xl border border-cac-line bg-[#fbfcfb] px-3 py-2 text-pequena text-cac-navy">
+              <span className="font-bold">{declineContact}</span>
+              <span className="text-cac-muted"> · {declineOrgs}</span>
+            </p>
+
+            <div>
+              <p className="text-mini font-extrabold uppercase tracking-[0.4px] text-cac-muted">
+                {t('conn.declineSuggestions')}
+              </p>
+              <div className="mt-2 flex flex-col gap-1.5">
+                {DECLINE_SUGGESTION_KEYS.map((key) => {
+                  const text = t(`conn.${key}`);
+                  const selected = declineReason.trim() === text;
+                  return (
+                    <button
+                      key={key}
+                      type="button"
+                      disabled={declineBusy}
+                      onClick={() => {
+                        setDeclineReason(text);
+                        setDeclineError('');
+                      }}
+                      className={`rounded-[12px] border px-3 py-2 text-left text-pequena leading-snug transition ${
+                        selected
+                          ? 'border-cac-green bg-cac-green3/50 text-cac-navy'
+                          : 'border-cac-line bg-white text-cac-navy hover:border-cac-green/50 hover:bg-[#f7faf8]'
+                      }`}
+                    >
+                      {text}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            <label className="block">
+              <span className="text-pequena font-bold tracking-wide text-cac-navy uppercase">
+                {t('conn.declineReason')}
+              </span>
+              <textarea
+                value={declineReason}
+                onChange={(e) => {
+                  setDeclineReason(e.target.value);
+                  if (declineError) setDeclineError('');
+                }}
+                rows={4}
+                maxLength={1000}
+                disabled={declineBusy}
+                className="mt-1.5 w-full resize-y rounded-[12px] border border-cac-line bg-white px-3 py-2 text-media text-cac-navy outline-none focus:border-cac-green"
+                placeholder={t('conn.declineReasonHint')}
+              />
+              <span className="mt-1 block text-mini text-cac-muted">{t('conn.declineReasonHint')}</span>
+            </label>
+
+            {declineError ? (
+              <p className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-pequena text-red-800">
+                {declineError}
+              </p>
+            ) : null}
+          </div>
+        ) : null}
+      </Modal>
     </div>
   );
 }

@@ -14,6 +14,7 @@ export default defineConfig({
     strictPort: true,
     proxy: {
       '/api': 'http://localhost:3003',
+      '/uploads': 'http://localhost:3003',
       '/health': 'http://localhost:3003',
       '/ready': 'http://localhost:3003',
     },

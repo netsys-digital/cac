@@ -131,6 +131,61 @@ describe('E4 connections + governance', () => {
     expect(accept.body.connection.status).toBe('ACCEPTED');
   });
 
+  it('staff cannot accept connection as third party', async () => {
+    const create = await request(app)
+      .post('/api/connections')
+      .set('Authorization', `Bearer ${requesterToken}`)
+      .send({
+        requesterOrgId,
+        targetType: 'TECHNOLOGY',
+        targetId: techId,
+        objective: 'KNOW_MORE',
+        message: 'Pedido para testar bloqueio de staff.',
+      });
+    expect(create.status).toBe(201);
+    const pendingId = create.body.connection.id as string;
+
+    const adminAccept = await request(app)
+      .patch(`/api/connections/${pendingId}/accept`)
+      .set('Authorization', `Bearer ${adminToken}`);
+    expect(adminAccept.status).toBe(403);
+
+    const decline = await request(app)
+      .patch(`/api/connections/${pendingId}/decline`)
+      .set('Authorization', `Bearer ${targetToken}`)
+      .send({ reason: 'Fora do escopo das prioridades atuais da organização.' });
+    expect(decline.status).toBe(200);
+    expect(decline.body.connection.status).toBe('DECLINED');
+    expect(decline.body.connection.declineReason).toContain('Fora do escopo');
+  });
+
+  it('decline without reason is rejected', async () => {
+    const create = await request(app)
+      .post('/api/connections')
+      .set('Authorization', `Bearer ${requesterToken}`)
+      .send({
+        requesterOrgId,
+        targetType: 'TECHNOLOGY',
+        targetId: techId,
+        objective: 'KNOW_MORE',
+        message: 'Pedido sem justificativa no decline.',
+      });
+    expect(create.status).toBe(201);
+    const pendingId = create.body.connection.id as string;
+
+    const bad = await request(app)
+      .patch(`/api/connections/${pendingId}/decline`)
+      .set('Authorization', `Bearer ${targetToken}`)
+      .send({});
+    expect(bad.status).toBe(400);
+
+    const stillPending = await request(app)
+      .patch(`/api/connections/${pendingId}/decline`)
+      .set('Authorization', `Bearer ${targetToken}`)
+      .send({ reason: 'Informações insuficientes para avaliar a solicitação neste momento.' });
+    expect(stillPending.status).toBe(200);
+  });
+
   it('saves item and follows organization', async () => {
     const saved = await request(app)
       .post('/api/saved-items')

@@ -3,7 +3,9 @@ import { useTranslation } from 'react-i18next';
 import { ORG_PUBLISH_KINDS, type OrgPublishKind } from '@cac/shared';
 import { Button } from '@cac/ui';
 import { useAuth } from '../../auth/AuthContext';
-import { catalogApi, type AdminOrganization } from '../../api/catalogApi';
+import { catalogApi, type AdminOrganization, type OrganizationLink } from '../../api/catalogApi';
+import { Modal } from '../../components/Modal';
+import { useModalState } from '../../components/useModalState';
 import { OrganizationLogoField } from '../../components/forms/OrganizationLogoField';
 import { PublishKindsPicker } from '../../components/forms/PublishKindsPicker';
 import { RegionCountryFields } from '../../components/forms/RegionCountryFields';
@@ -11,6 +13,7 @@ import { resolveMediaUrl } from '../../components/forms/RepresentativeImageField
 
 type StatusFilter = 'ALL' | 'PENDING' | 'VERIFIED' | 'REJECTED';
 type KindFilter = 'ALL' | OrgPublishKind;
+type OrgModalTab = 'profile' | 'links';
 
 type ProfileDraft = {
   name: string;
@@ -19,6 +22,7 @@ type ProfileDraft = {
   region: string;
   country: string;
   logoFile: File | null;
+  publishKinds: OrgPublishKind[];
 };
 
 function profileFromOrg(org: AdminOrganization): ProfileDraft {
@@ -29,19 +33,68 @@ function profileFromOrg(org: AdminOrganization): ProfileDraft {
     region: org.region ?? '',
     country: org.country ?? '',
     logoFile: null,
+    publishKinds: [...(org.publishKinds ?? [])],
   };
+}
+
+function statusClass(status: string) {
+  if (status === 'VERIFIED') return 'bg-cac-green3 text-cac-green';
+  if (status === 'REJECTED') return 'bg-red-100 text-red-800';
+  return 'bg-amber-100 text-amber-900';
+}
+
+function linkStatusClass(status: string) {
+  if (status === 'APPROVED') return 'bg-cac-green3 text-cac-navy';
+  if (status === 'REJECTED') return 'bg-red-100 text-red-800';
+  return 'bg-amber-100 text-amber-900';
+}
+
+function linksFromOrganization(org: AdminOrganization): OrganizationLink[] {
+  const reps = org.representationRequests ?? [];
+  const members = org.members ?? [];
+  const covered = new Set(reps.map((r) => r.userId));
+  return [
+    ...reps.map((r) => ({
+      id: r.id,
+      source: 'REPRESENTATION' as const,
+      representationId: r.id,
+      memberId: members.find((m) => m.userId === r.userId)?.id ?? null,
+      status: r.status,
+      unit: r.unit,
+      linkRole: r.linkRole,
+      interest: r.interest,
+      user: r.user,
+    })),
+    ...members
+      .filter((m) => !covered.has(m.userId))
+      .map((m) => ({
+        id: m.id,
+        source: 'MEMBER' as const,
+        representationId: null,
+        memberId: m.id,
+        status: 'APPROVED',
+        unit: null,
+        linkRole: m.role,
+        interest: null,
+        user: m.user,
+      })),
+  ];
 }
 
 export function AdminOrganizationsPage() {
   const { t } = useTranslation();
   const { accessToken } = useAuth();
+  const modal = useModalState<AdminOrganization>();
   const [items, setItems] = useState<AdminOrganization[]>([]);
   const [loading, setLoading] = useState(true);
-  const [busyId, setBusyId] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
-  const [draftKinds, setDraftKinds] = useState<Record<string, OrgPublishKind[]>>({});
-  const [draftProfiles, setDraftProfiles] = useState<Record<string, ProfileDraft>>({});
+  const [draft, setDraft] = useState<ProfileDraft | null>(null);
+  const [modalTab, setModalTab] = useState<OrgModalTab>('profile');
+  const [links, setLinks] = useState<OrganizationLink[]>([]);
+  const [linksLoading, setLinksLoading] = useState(false);
+  const [deletingLinkId, setDeletingLinkId] = useState<string | null>(null);
 
   const [q, setQ] = useState('');
   const [status, setStatus] = useState<StatusFilter>('ALL');
@@ -58,25 +111,7 @@ export function AdminOrganizationsPage() {
     setError('');
     try {
       const res = await catalogApi.adminOrganizations(accessToken);
-      const list = res.items ?? [];
-      setItems(list);
-      setDraftKinds((prev) => {
-        const next = { ...prev };
-        for (const o of list) {
-          if (!next[o.id]) next[o.id] = [...(o.publishKinds ?? [])];
-        }
-        return next;
-      });
-      setDraftProfiles((prev) => {
-        const next: Record<string, ProfileDraft> = {};
-        for (const o of list) {
-          const existing = prev[o.id];
-          next[o.id] = existing?.logoFile
-            ? { ...profileFromOrg(o), logoFile: existing.logoFile }
-            : profileFromOrg(o);
-        }
-        return next;
-      });
+      setItems(res.items ?? []);
     } catch (e) {
       setItems([]);
       setError(e instanceof Error ? e.message : t('admin.orgsError'));
@@ -85,9 +120,53 @@ export function AdminOrganizationsPage() {
     }
   }, [accessToken, t]);
 
+  const loadLinks = useCallback(
+    async (org: AdminOrganization) => {
+      // Preferência: dados já vindos da listagem admin (membros + representações).
+      const embedded = linksFromOrganization(org);
+      if (embedded.length) {
+        setLinks(embedded);
+        return;
+      }
+      if (!accessToken) {
+        setLinks([]);
+        return;
+      }
+      setLinksLoading(true);
+      setError('');
+      try {
+        const res = await catalogApi.organizationRepresentations(accessToken, org.id);
+        setLinks(res.items ?? []);
+      } catch (e) {
+        setLinks([]);
+        setError(e instanceof Error ? e.message : t('admin.orgsLinksLoadError'));
+      } finally {
+        setLinksLoading(false);
+      }
+    },
+    [accessToken, t],
+  );
+
   useEffect(() => {
     void load();
   }, [load]);
+
+  useEffect(() => {
+    if (modal.open && modal.item && modal.mode !== 'create') {
+      setDraft(profileFromOrg(modal.item));
+    } else if (!modal.open) {
+      setDraft(null);
+      setLinks([]);
+      setModalTab('profile');
+      setDeletingLinkId(null);
+    }
+  }, [modal.open, modal.item, modal.mode]);
+
+  useEffect(() => {
+    if (!modal.open || !modal.item || modal.mode === 'create') return;
+    const fresh = items.find((o) => o.id === modal.item!.id) ?? modal.item;
+    void loadLinks(fresh);
+  }, [modal.open, modal.item, modal.mode, items, loadLinks]);
 
   const regions = useMemo(
     () =>
@@ -130,24 +209,21 @@ export function AdminOrganizationsPage() {
   const hasActiveFilters =
     q.trim().length > 0 || status !== 'ALL' || region !== 'ALL' || country !== 'ALL' || kind !== 'ALL';
 
-  function clearFilters() {
-    setQ('');
-    setStatus('ALL');
-    setRegion('ALL');
-    setCountry('ALL');
-    setKind('ALL');
+  const authorizedLinks = useMemo(
+    () => links.filter((l) => l.status === 'APPROVED'),
+    [links],
+  );
+  const requestedLinks = useMemo(
+    () => links.filter((l) => l.status === 'REQUESTED' || l.status === 'UNDER_REVIEW'),
+    [links],
+  );
+
+  function patchDraft(patch: Partial<ProfileDraft>) {
+    setDraft((prev) => (prev ? { ...prev, ...patch } : prev));
   }
 
-  function patchProfile(orgId: string, patch: Partial<ProfileDraft>) {
-    setDraftProfiles((prev) => ({
-      ...prev,
-      [orgId]: { ...(prev[orgId] ?? profileFromOrg(items.find((o) => o.id === orgId)!)), ...patch },
-    }));
-  }
-
-  async function saveProfile(org: AdminOrganization) {
-    if (!accessToken) return;
-    const draft = draftProfiles[org.id] ?? profileFromOrg(org);
+  async function saveAll() {
+    if (!accessToken || !modal.item || !draft) return;
     if (!draft.name.trim() || draft.name.trim().length < 2) {
       setError(t('admin.orgsProfileNameRequired'));
       return;
@@ -156,61 +232,124 @@ export function AdminOrganizationsPage() {
       setError(t('admin.orgsProfileRegionRequired'));
       return;
     }
-    setBusyId(org.id);
+    setBusy(true);
     setMessage('');
     setError('');
     try {
-      await catalogApi.updateOrganization(accessToken, org.id, {
+      await catalogApi.updateOrganization(accessToken, modal.item.id, {
         name: draft.name.trim(),
         summary: draft.summary.trim() || null,
         website: draft.website.trim() || null,
         region: draft.region,
         country: draft.country,
+        publishKinds: draft.publishKinds,
       });
       if (draft.logoFile) {
-        await catalogApi.uploadOrganizationLogo(accessToken, org.id, draft.logoFile);
+        await catalogApi.uploadOrganizationLogo(accessToken, modal.item.id, draft.logoFile);
       }
       setMessage(t('admin.orgsProfileSaved', { name: draft.name.trim() }));
+      modal.close();
       await load();
     } catch (e) {
       setError(e instanceof Error ? e.message : t('admin.orgsError'));
     } finally {
-      setBusyId(null);
+      setBusy(false);
     }
   }
 
-  async function saveKinds(org: AdminOrganization) {
-    if (!accessToken) return;
-    setBusyId(org.id);
-    setMessage('');
+  async function verify() {
+    if (!accessToken || !modal.item) return;
+    setBusy(true);
     setError('');
     try {
-      await catalogApi.updateOrganization(accessToken, org.id, {
-        publishKinds: draftKinds[org.id] ?? [],
-      });
-      setMessage(t('admin.orgsSaved', { name: org.name }));
+      await catalogApi.verifyOrganization(accessToken, modal.item.id);
+      setMessage(t('admin.orgsVerified', { name: modal.item.name }));
+      modal.close();
       await load();
     } catch {
       setError(t('admin.orgsError'));
     } finally {
-      setBusyId(null);
+      setBusy(false);
     }
   }
 
-  async function verify(org: AdminOrganization) {
-    if (!accessToken) return;
-    setBusyId(org.id);
+  async function deleteLink(link: OrganizationLink) {
+    if (!accessToken || !modal.item) return;
+    const name = link.user?.name ?? link.user?.email ?? '—';
+    const ok = window.confirm(t('admin.orgsLinkDeleteConfirm', { name }));
+    if (!ok) return;
+    setDeletingLinkId(link.id);
     setError('');
     try {
-      await catalogApi.verifyOrganization(accessToken, org.id);
-      setMessage(t('admin.orgsVerified', { name: org.name }));
+      if (link.source === 'REPRESENTATION' && link.representationId) {
+        await catalogApi.deleteRepresentation(accessToken, link.representationId);
+      } else if (link.memberId) {
+        await catalogApi.deleteOrganizationMember(accessToken, modal.item.id, link.memberId);
+      } else {
+        throw new Error('invalid_link');
+      }
+      setMessage(t('admin.orgsLinkDeleted'));
       await load();
-    } catch {
-      setError(t('admin.orgsError'));
+    } catch (e) {
+      setError(e instanceof Error ? e.message : t('admin.orgsError'));
     } finally {
-      setBusyId(null);
+      setDeletingLinkId(null);
     }
   }
+
+  function linkStatusLabel(status: string) {
+    const key = `admin.orgsLinkStatus.${status}`;
+    const label = t(key);
+    return label === key ? status : label;
+  }
+
+  function renderLinkGroup(title: string, group: OrganizationLink[]) {
+    if (!group.length) return null;
+    return (
+      <div className="space-y-2">
+        <p className="text-mini font-extrabold uppercase tracking-[0.4px] text-cac-muted">
+          {title} ({group.length})
+        </p>
+        <ul className="space-y-2">
+          {group.map((link) => (
+            <li
+              key={`${link.source}-${link.id}`}
+              className="flex flex-col gap-2 rounded-[12px] border border-cac-line bg-white px-3 py-3 sm:flex-row sm:items-center sm:justify-between"
+            >
+              <div className="min-w-0">
+                <p className="truncate text-media font-bold text-cac-navy">
+                  {link.user?.name ?? '—'}
+                </p>
+                <p className="truncate text-pequena text-cac-muted">{link.user?.email ?? '—'}</p>
+                <p className="mt-1 text-mini text-cac-muted">
+                  {[link.linkRole, link.unit].filter(Boolean).join(' · ') ||
+                    (link.source === 'MEMBER' ? t('admin.orgsLinkMemberOnly') : '—')}
+                </p>
+              </div>
+              <div className="flex flex-wrap items-center gap-2">
+                <span
+                  className={`inline-flex rounded-full px-2.5 py-1 text-mini font-bold uppercase tracking-wide ${linkStatusClass(link.status)}`}
+                >
+                  {linkStatusLabel(link.status)}
+                </span>
+                <Button
+                  type="button"
+                  variant="secondary"
+                  disabled={busy || deletingLinkId === link.id}
+                  onClick={() => void deleteLink(link)}
+                >
+                  {deletingLinkId === link.id ? t('common.working') : t('admin.orgsLinkDelete')}
+                </Button>
+              </div>
+            </li>
+          ))}
+        </ul>
+      </div>
+    );
+  }
+
+  const org = modal.item;
+  const isView = modal.mode === 'view';
 
   return (
     <div className="space-y-5">
@@ -313,7 +452,17 @@ export function AdminOrganizationsPage() {
             </select>
           </label>
           {hasActiveFilters ? (
-            <Button type="button" variant="secondary" onClick={clearFilters}>
+            <Button
+              type="button"
+              variant="secondary"
+              onClick={() => {
+                setQ('');
+                setStatus('ALL');
+                setRegion('ALL');
+                setCountry('ALL');
+                setKind('ALL');
+              }}
+            >
               {t('admin.orgsFilterClear')}
             </Button>
           ) : null}
@@ -328,10 +477,9 @@ export function AdminOrganizationsPage() {
           {message}
         </p>
       ) : null}
-      {error ? (
+      {error && !modal.open ? (
         <div className="space-y-3 rounded-xl border border-red-200 bg-red-50 px-4 py-3">
           <p className="text-media font-semibold text-red-800">{error}</p>
-          <p className="text-pequena text-red-800/80">{t('admin.orgsLoadHint')}</p>
           <Button type="button" variant="secondary" onClick={() => void load()}>
             {t('admin.orgsRetry')}
           </Button>
@@ -342,11 +490,10 @@ export function AdminOrganizationsPage() {
         <p className="text-media text-cac-muted">{t('dash.loading')}</p>
       ) : (
         <ul className="space-y-3">
-          {filtered.map((org) => {
-            const draft = draftProfiles[org.id] ?? profileFromOrg(org);
-            const logo = resolveMediaUrl(org.logoUrl);
+          {filtered.map((item) => {
+            const logo = resolveMediaUrl(item.logoUrl);
             return (
-              <li key={org.id} className="rounded-2xl border border-cac-line bg-white p-4 shadow-cac">
+              <li key={item.id} className="rounded-2xl border border-cac-line bg-white p-4 shadow-cac">
                 <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                   <div className="flex min-w-0 items-start gap-3">
                     {logo ? (
@@ -357,127 +504,40 @@ export function AdminOrganizationsPage() {
                       />
                     ) : (
                       <span className="grid size-12 shrink-0 place-items-center rounded-xl bg-[linear-gradient(145deg,#0a2440,#1a4d4a)] text-pequena font-bold text-[#90d6b6]">
-                        {org.name.slice(0, 2).toUpperCase()}
+                        {item.name.slice(0, 2).toUpperCase()}
                       </span>
                     )}
                     <div className="min-w-0">
-                      <p className="truncate text-media font-bold text-cac-navy">{org.name}</p>
+                      <p className="truncate text-media font-bold text-cac-navy">{item.name}</p>
                       <p className="text-pequena text-cac-muted">
-                        {org.slug}
-                        {org.country ? ` · ${org.country}` : ''}
-                        {org.region ? ` · ${org.region}` : ''}
+                        {item.slug}
+                        {item.country ? ` · ${item.country}` : ''}
+                        {item.region ? ` · ${item.region}` : ''}
                       </p>
                       <p className="mt-1 text-mini text-cac-muted">
                         {t('admin.orgsCounts', {
-                          members: org._count?.members ?? 0,
-                          tech: org._count?.technologies ?? 0,
-                          challenges: org._count?.challenges ?? 0,
-                          offers: org._count?.fundingOffers ?? 0,
-                          cases: org._count?.successCases ?? 0,
+                          members: item._count?.members ?? 0,
+                          tech: item._count?.technologies ?? 0,
+                          challenges: item._count?.challenges ?? 0,
+                          offers: item._count?.fundingOffers ?? 0,
+                          cases: item._count?.successCases ?? 0,
                         })}
                       </p>
                     </div>
                   </div>
-                  <span
-                    className={`inline-flex w-fit rounded-full px-2.5 py-1 text-mini font-bold uppercase tracking-wide ${
-                      org.verificationStatus === 'VERIFIED'
-                        ? 'bg-cac-green3 text-cac-green'
-                        : org.verificationStatus === 'REJECTED'
-                          ? 'bg-red-100 text-red-800'
-                          : 'bg-amber-100 text-amber-900'
-                    }`}
-                  >
-                    {t(`admin.orgStatus.${org.verificationStatus}`)}
-                  </span>
-                </div>
-
-                <div className="mt-4 space-y-3 rounded-xl border border-cac-line bg-[#fbfcfb] p-4">
-                  <div>
-                    <p className="text-mini font-extrabold tracking-[0.12em] text-cac-navy uppercase">
-                      {t('admin.orgsProfileTitle')}
-                    </p>
-                    <p className="mt-1 text-mini text-cac-muted">{t('admin.orgsProfileHint')}</p>
-                  </div>
-
-                  <OrganizationLogoField
-                    file={draft.logoFile}
-                    currentUrl={org.logoUrl}
-                    onChange={(file) => patchProfile(org.id, { logoFile: file })}
-                  />
-
-                  <div className="grid gap-3 sm:grid-cols-2">
-                    <label className="block sm:col-span-2">
-                      <span className="mb-1 block text-mini font-extrabold uppercase tracking-[0.4px] text-cac-muted">
-                        {t('admin.orgsProfileName')}
-                      </span>
-                      <input
-                        value={draft.name}
-                        onChange={(e) => patchProfile(org.id, { name: e.target.value })}
-                        className="w-full rounded-xl border border-cac-line bg-white px-3.5 py-2.5 text-media text-cac-navy outline-none focus:border-cac-green"
-                      />
-                    </label>
-                    <label className="block sm:col-span-2">
-                      <span className="mb-1 block text-mini font-extrabold uppercase tracking-[0.4px] text-cac-muted">
-                        {t('admin.orgsProfileSummary')}
-                      </span>
-                      <textarea
-                        value={draft.summary}
-                        onChange={(e) => patchProfile(org.id, { summary: e.target.value })}
-                        rows={3}
-                        className="w-full rounded-xl border border-cac-line bg-white px-3.5 py-2.5 text-media text-cac-navy outline-none focus:border-cac-green"
-                      />
-                    </label>
-                    <label className="block sm:col-span-2">
-                      <span className="mb-1 block text-mini font-extrabold uppercase tracking-[0.4px] text-cac-muted">
-                        {t('admin.orgsProfileWebsite')}
-                      </span>
-                      <input
-                        type="url"
-                        value={draft.website}
-                        onChange={(e) => patchProfile(org.id, { website: e.target.value })}
-                        placeholder="https://"
-                        className="w-full rounded-xl border border-cac-line bg-white px-3.5 py-2.5 text-media text-cac-navy outline-none focus:border-cac-green"
-                      />
-                    </label>
-                    <div className="grid gap-3 sm:col-span-2 sm:grid-cols-2">
-                      <RegionCountryFields
-                        regionName={`region-${org.id}`}
-                        countryName={`country-${org.id}`}
-                        region={draft.region}
-                        country={draft.country}
-                        onRegionChange={(value) => patchProfile(org.id, { region: value })}
-                        onCountryChange={(value) => patchProfile(org.id, { country: value })}
-                        required
-                      />
-                    </div>
-                  </div>
-
-                  <Button disabled={busyId === org.id} onClick={() => void saveProfile(org)}>
-                    {busyId === org.id ? t('admin.working') : t('admin.orgsProfileSave')}
-                  </Button>
-                </div>
-
-                <div className="mt-4">
-                  <PublishKindsPicker
-                    idPrefix={`org-${org.id}`}
-                    value={draftKinds[org.id] ?? []}
-                    onChange={(next) => setDraftKinds((prev) => ({ ...prev, [org.id]: next }))}
-                  />
-                </div>
-
-                <div className="mt-4 flex flex-wrap gap-2">
-                  <Button disabled={busyId === org.id} onClick={() => void saveKinds(org)}>
-                    {busyId === org.id ? t('admin.working') : t('admin.orgsSave')}
-                  </Button>
-                  {org.verificationStatus !== 'VERIFIED' ? (
-                    <Button
-                      variant="secondary"
-                      disabled={busyId === org.id}
-                      onClick={() => void verify(org)}
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span
+                      className={`inline-flex rounded-full px-2.5 py-1 text-mini font-bold uppercase tracking-wide ${statusClass(item.verificationStatus)}`}
                     >
-                      {t('admin.verifyOrg')}
+                      {t(`admin.orgStatus.${item.verificationStatus}`)}
+                    </span>
+                    <Button type="button" variant="secondary" onClick={() => modal.openView(item)}>
+                      {t('common.view')}
                     </Button>
-                  ) : null}
+                    <Button type="button" onClick={() => modal.openEdit(item)}>
+                      {t('common.edit')}
+                    </Button>
+                  </div>
                 </div>
               </li>
             );
@@ -489,6 +549,217 @@ export function AdminOrganizationsPage() {
           ) : null}
         </ul>
       )}
+
+      <Modal
+        open={modal.open}
+        onClose={modal.close}
+        mode={modal.mode}
+        badge={t('admin.orgsEyebrow')}
+        title={org?.name ?? t('admin.orgsTitle')}
+        description={
+          modalTab === 'links' ? t('admin.orgsLinksHint') : t('admin.orgsProfileHint')
+        }
+        size="xl"
+        dismissible={!busy && !deletingLinkId}
+        footer={
+          <>
+            {isView ? (
+              <>
+                <Button type="button" variant="secondary" onClick={modal.close}>
+                  {t('common.close')}
+                </Button>
+                {org && org.verificationStatus !== 'VERIFIED' ? (
+                  <Button type="button" variant="outline" disabled={busy} onClick={() => void verify()}>
+                    {busy ? t('common.working') : t('admin.verifyOrg')}
+                  </Button>
+                ) : null}
+                <Button type="button" disabled={busy} onClick={() => org && modal.setMode('edit')}>
+                  {t('common.edit')}
+                </Button>
+              </>
+            ) : (
+              <>
+                <Button type="button" variant="secondary" disabled={busy} onClick={modal.close}>
+                  {t('common.cancel')}
+                </Button>
+                {modalTab === 'profile' ? (
+                  <Button type="button" disabled={busy} onClick={() => void saveAll()}>
+                    {busy ? t('common.working') : t('common.save')}
+                  </Button>
+                ) : null}
+              </>
+            )}
+          </>
+        }
+      >
+        {error && modal.open ? (
+          <p className="mb-3 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-pequena text-red-800">
+            {error}
+          </p>
+        ) : null}
+
+        {org && draft ? (
+          <div className="space-y-4">
+            <div className="flex gap-1 border-b border-cac-line pb-0">
+              {(
+                [
+                  ['profile', t('admin.orgsTabProfile')],
+                  ['links', `${t('admin.orgsTabLinks')}${links.length ? ` (${links.length})` : ''}`],
+                ] as const
+              ).map(([key, label]) => (
+                <button
+                  key={key}
+                  type="button"
+                  onClick={() => setModalTab(key)}
+                  className={`-mb-px border-b-2 px-3 py-2 text-pequena font-bold transition ${
+                    modalTab === key
+                      ? 'border-cac-green text-cac-navy'
+                      : 'border-transparent text-cac-muted hover:text-cac-navy'
+                  }`}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+
+            {modalTab === 'profile' ? (
+              isView ? (
+                <>
+                  <div className="flex items-start gap-3 rounded-xl border border-cac-line bg-white p-4">
+                    {resolveMediaUrl(org.logoUrl) ? (
+                      <img
+                        src={resolveMediaUrl(org.logoUrl)!}
+                        alt=""
+                        className="size-16 rounded-xl border border-cac-line object-cover"
+                      />
+                    ) : (
+                      <span className="grid size-16 place-items-center rounded-xl bg-cac-navy text-media font-bold text-[#90d6b6]">
+                        {org.name.slice(0, 2).toUpperCase()}
+                      </span>
+                    )}
+                    <div className="min-w-0">
+                      <p className="text-media font-bold text-cac-navy">{org.name}</p>
+                      <p className="text-pequena text-cac-muted">
+                        {org.slug}
+                        {org.country ? ` · ${org.country}` : ''}
+                        {org.region ? ` · ${org.region}` : ''}
+                      </p>
+                      {org.website ? (
+                        <a
+                          href={org.website}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="mt-1 inline-block text-pequena font-bold text-cac-green hover:underline"
+                        >
+                          {org.website}
+                        </a>
+                      ) : null}
+                      {org.summary ? (
+                        <p className="mt-2 text-pequena leading-relaxed text-cac-navy/90">{org.summary}</p>
+                      ) : null}
+                    </div>
+                  </div>
+                  <div className="rounded-xl border border-cac-line bg-white p-4">
+                    <p className="text-mini font-extrabold uppercase tracking-[0.4px] text-cac-muted">
+                      {t('admin.publishKindsLabel')}
+                    </p>
+                    <div className="mt-2 flex flex-wrap gap-2">
+                      {(org.publishKinds ?? []).length ? (
+                        (org.publishKinds ?? []).map((k) => (
+                          <span
+                            key={k}
+                            className="rounded-full bg-cac-green3 px-2.5 py-1 text-mini font-bold text-cac-navy"
+                          >
+                            {t(`admin.publishKind.${k}`)}
+                          </span>
+                        ))
+                      ) : (
+                        <span className="text-pequena text-cac-muted">—</span>
+                      )}
+                    </div>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <OrganizationLogoField
+                    file={draft.logoFile}
+                    currentUrl={org.logoUrl}
+                    onChange={(file) => patchDraft({ logoFile: file })}
+                  />
+                  <div className="grid gap-3 sm:grid-cols-2">
+                    <label className="block sm:col-span-2">
+                      <span className="mb-1 block text-mini font-extrabold uppercase tracking-[0.4px] text-cac-muted">
+                        {t('admin.orgsProfileName')}
+                      </span>
+                      <input
+                        value={draft.name}
+                        onChange={(e) => patchDraft({ name: e.target.value })}
+                        className="w-full rounded-xl border border-cac-line bg-white px-3.5 py-2.5 text-media text-cac-navy outline-none focus:border-cac-green"
+                      />
+                    </label>
+                    <label className="block sm:col-span-2">
+                      <span className="mb-1 block text-mini font-extrabold uppercase tracking-[0.4px] text-cac-muted">
+                        {t('admin.orgsProfileSummary')}
+                      </span>
+                      <textarea
+                        value={draft.summary}
+                        onChange={(e) => patchDraft({ summary: e.target.value })}
+                        rows={3}
+                        className="w-full rounded-xl border border-cac-line bg-white px-3.5 py-2.5 text-media text-cac-navy outline-none focus:border-cac-green"
+                      />
+                    </label>
+                    <label className="block sm:col-span-2">
+                      <span className="mb-1 block text-mini font-extrabold uppercase tracking-[0.4px] text-cac-muted">
+                        {t('admin.orgsProfileWebsite')}
+                      </span>
+                      <input
+                        type="url"
+                        value={draft.website}
+                        onChange={(e) => patchDraft({ website: e.target.value })}
+                        placeholder="https://"
+                        className="w-full rounded-xl border border-cac-line bg-white px-3.5 py-2.5 text-media text-cac-navy outline-none focus:border-cac-green"
+                      />
+                    </label>
+                    <div className="grid gap-3 sm:col-span-2 sm:grid-cols-2">
+                      <RegionCountryFields
+                        regionName={`org-region-${org.id}`}
+                        countryName={`org-country-${org.id}`}
+                        region={draft.region}
+                        country={draft.country}
+                        onRegionChange={(value) => patchDraft({ region: value })}
+                        onCountryChange={(value) => patchDraft({ country: value })}
+                        required
+                      />
+                    </div>
+                  </div>
+                  <PublishKindsPicker
+                    idPrefix={`org-modal-${org.id}`}
+                    value={draft.publishKinds}
+                    onChange={(next) => patchDraft({ publishKinds: next })}
+                  />
+                </>
+              )
+            ) : (
+              <div className="space-y-4">
+                {linksLoading ? (
+                  <p className="rounded-xl border border-cac-line bg-white px-4 py-6 text-center text-media text-cac-muted">
+                    {t('admin.orgsLinksLoading')}
+                  </p>
+                ) : !links.length ? (
+                  <p className="rounded-xl border border-dashed border-cac-line bg-white px-4 py-8 text-center text-media text-cac-muted">
+                    {t('admin.orgsLinksEmpty')}
+                  </p>
+                ) : (
+                  <>
+                    {renderLinkGroup(t('admin.orgsLinkStatus.APPROVED'), authorizedLinks)}
+                    {renderLinkGroup(t('admin.orgsLinkStatus.REQUESTED'), requestedLinks)}
+                  </>
+                )}
+              </div>
+            )}
+          </div>
+        ) : null}
+      </Modal>
     </div>
   );
 }

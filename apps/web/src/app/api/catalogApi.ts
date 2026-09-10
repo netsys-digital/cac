@@ -22,6 +22,21 @@ export type AdminOrganization = Organization & {
     fundingOffers: number;
     successCases: number;
   };
+  members?: Array<{
+    id: string;
+    userId: string;
+    role: string;
+    user?: Pick<AuthUser, 'id' | 'email' | 'name'>;
+  }>;
+  representationRequests?: Array<{
+    id: string;
+    status: string;
+    unit: string;
+    linkRole: string;
+    interest?: string | null;
+    userId: string;
+    user?: Pick<AuthUser, 'id' | 'email' | 'name'>;
+  }>;
 };
 
 export type RepresentationRequest = {
@@ -34,6 +49,20 @@ export type RepresentationRequest = {
   proofDocument2Url?: string | null;
   organizationId: string;
   organization?: Organization;
+  user?: Pick<AuthUser, 'id' | 'email' | 'name'>;
+};
+
+/** Vínculo unificado (representação e/ou membership) na aba da organização. */
+export type OrganizationLink = {
+  id: string;
+  source: 'REPRESENTATION' | 'MEMBER';
+  representationId?: string | null;
+  memberId?: string | null;
+  status: string;
+  unit?: string | null;
+  linkRole?: string | null;
+  interest?: string | null;
+  createdAt?: string;
   user?: Pick<AuthUser, 'id' | 'email' | 'name'>;
 };
 
@@ -145,10 +174,30 @@ export const catalogApi = {
       method: 'POST',
       accessToken: token,
     }),
+  organizationRepresentations: (token: string, orgId: string) =>
+    api<{ items: OrganizationLink[] }>(`/api/admin/organizations/${orgId}/representation-requests`, {
+      accessToken: token,
+    }),
+  deleteRepresentation: (token: string, id: string) =>
+    api<void>(`/api/admin/representation-requests/${id}`, {
+      method: 'DELETE',
+      accessToken: token,
+    }),
+  deleteOrganizationMember: (token: string, orgId: string, memberId: string) =>
+    api<void>(`/api/admin/organizations/${orgId}/members/${memberId}`, {
+      method: 'DELETE',
+      accessToken: token,
+    }),
   listDomains: (grouping: string) => api<{ items: Array<{ id: string; key: string; labelPt: string; labelEn: string; sortOrder: number }> }>(`/api/domains/${grouping}`),
   createDomain: (token: string, body: Record<string, unknown>) =>
     api<{ domain: { id: string } }>('/api/admin/domains', {
       method: 'POST',
+      accessToken: token,
+      body: JSON.stringify(body),
+    }),
+  updateDomain: (token: string, id: string, body: Record<string, unknown>) =>
+    api<{ domain: { id: string } }>(`/api/admin/domains/${id}`, {
+      method: 'PATCH',
       accessToken: token,
       body: JSON.stringify(body),
     }),

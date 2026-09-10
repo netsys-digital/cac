@@ -1,23 +1,68 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ORG_PUBLISH_KINDS, type OrgPublishKind } from '@cac/shared';
 import { Button } from '@cac/ui';
 import { useAuth } from '../../auth/AuthContext';
 import { useStaffTasks } from '../../auth/StaffTasksContext';
 import { catalogApi, type RepresentationRequest } from '../../api/catalogApi';
+import { Modal } from '../../components/Modal';
+import { MediaViewer, type MediaViewerItem } from '../../components/MediaViewer';
+import { useModalState } from '../../components/useModalState';
 import { resolveMediaUrl } from '../../components/forms/RepresentativeImageField';
 import { PublishKindsPicker } from '../../components/forms/PublishKindsPicker';
+
+function isPdf(url: string) {
+  return /\.pdf($|\?)/i.test(url);
+}
+
+function ProofDocButton({
+  url,
+  label,
+  onOpen,
+}: {
+  url: string;
+  label: string;
+  onOpen: () => void;
+}) {
+  const resolved = resolveMediaUrl(url);
+  if (!resolved) return null;
+  const pdf = isPdf(url);
+
+  return (
+    <button
+      type="button"
+      onClick={onOpen}
+      title={label}
+      className="group flex min-w-[9rem] max-w-[11rem] flex-col overflow-hidden rounded-[12px] border border-cac-line bg-[#fbfcfb] text-left transition hover:border-cac-green/40 hover:bg-white"
+    >
+      <span className="grid h-28 w-full place-items-center bg-[#edf1f3]">
+        {pdf ? (
+          <span className="rounded-md bg-cac-navy px-2.5 py-1 text-mini font-extrabold tracking-wide text-white">
+            PDF
+          </span>
+        ) : (
+          <img src={resolved} alt="" className="h-full w-full object-cover" loading="lazy" />
+        )}
+      </span>
+      <span className="px-2.5 py-2 text-pequena font-bold text-cac-navy group-hover:text-cac-green">
+        {label}
+      </span>
+    </button>
+  );
+}
 
 export function AdminRepresentationPage() {
   const { t } = useTranslation();
   const { accessToken } = useAuth();
   const { refresh } = useStaffTasks();
+  const modal = useModalState<RepresentationRequest>();
   const [items, setItems] = useState<RepresentationRequest[]>([]);
-  const [busyId, setBusyId] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(true);
-  const [kindsById, setKindsById] = useState<Record<string, OrgPublishKind[]>>({});
+  const [publishKinds, setPublishKinds] = useState<OrgPublishKind[]>([]);
+  const [viewerIndex, setViewerIndex] = useState<number | null>(null);
 
   const load = useCallback(async () => {
     if (!accessToken) return;
@@ -25,18 +70,6 @@ export function AdminRepresentationPage() {
     try {
       const res = await catalogApi.adminRepresentations(accessToken);
       setItems(res.items);
-      setKindsById((prev) => {
-        const next = { ...prev };
-        for (const item of res.items) {
-          if (!next[item.id]) {
-            const existing = (item.organization as { publishKinds?: OrgPublishKind[] } | undefined)
-              ?.publishKinds;
-            next[item.id] =
-              existing && existing.length > 0 ? existing : [...ORG_PUBLISH_KINDS];
-          }
-        }
-        return next;
-      });
     } finally {
       setLoading(false);
     }
@@ -46,45 +79,71 @@ export function AdminRepresentationPage() {
     void load();
   }, [load]);
 
-  async function approve(item: RepresentationRequest) {
-    if (!accessToken) return;
-    const publishKinds = kindsById[item.id] ?? [];
+  useEffect(() => {
+    if (!modal.open || !modal.item) {
+      setPublishKinds([]);
+      setViewerIndex(null);
+      return;
+    }
+    const existing = (modal.item.organization as { publishKinds?: OrgPublishKind[] } | undefined)
+      ?.publishKinds;
+    setPublishKinds(existing && existing.length > 0 ? existing : [...ORG_PUBLISH_KINDS]);
+  }, [modal.open, modal.item]);
+
+  async function approve() {
+    if (!accessToken || !modal.item) return;
     if (!publishKinds.length) {
       setError(t('admin.publishKindsRequired'));
       return;
     }
-    setBusyId(item.id);
+    setBusy(true);
     setMessage('');
     setError('');
     try {
-      await catalogApi.approveRepresentation(accessToken, item.id, { publishKinds });
+      await catalogApi.approveRepresentation(accessToken, modal.item.id, { publishKinds });
       setMessage(t('admin.repApproved'));
+      modal.close();
       await load();
       await refresh();
     } catch {
-      setMessage('');
       setError(t('admin.repError'));
     } finally {
-      setBusyId(null);
+      setBusy(false);
     }
   }
 
-  async function reject(id: string) {
-    if (!accessToken) return;
-    setBusyId(id);
+  async function reject() {
+    if (!accessToken || !modal.item) return;
+    setBusy(true);
     setMessage('');
     setError('');
     try {
-      await catalogApi.rejectRepresentation(accessToken, id);
+      await catalogApi.rejectRepresentation(accessToken, modal.item.id);
       setMessage(t('admin.repRejected'));
+      modal.close();
       await load();
       await refresh();
     } catch {
       setError(t('admin.repError'));
     } finally {
-      setBusyId(null);
+      setBusy(false);
     }
   }
+
+  const item = modal.item;
+  const isView = modal.mode === 'view';
+
+  const mediaItems = useMemo((): MediaViewerItem[] => {
+    if (!item) return [];
+    const list: MediaViewerItem[] = [];
+    if (item.proofDocument1Url) {
+      list.push({ url: item.proofDocument1Url, label: t('admin.repDoc1') });
+    }
+    if (item.proofDocument2Url) {
+      list.push({ url: item.proofDocument2Url, label: t('admin.repDoc2') });
+    }
+    return list;
+  }, [item, t]);
 
   return (
     <div className="space-y-5">
@@ -104,7 +163,7 @@ export function AdminRepresentationPage() {
           {message}
         </p>
       ) : null}
-      {error ? (
+      {error && !modal.open ? (
         <p className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-media font-semibold text-red-800">
           {error}
         </p>
@@ -114,92 +173,33 @@ export function AdminRepresentationPage() {
         <p className="text-media text-cac-muted">{t('dash.loading')}</p>
       ) : (
         <ul className="space-y-3">
-          {items.map((item) => {
-            const doc1 = resolveMediaUrl(item.proofDocument1Url);
-            const doc2 = resolveMediaUrl(item.proofDocument2Url);
-            return (
-              <li key={item.id} className="rounded-2xl border border-cac-line bg-white p-4 shadow-cac">
-                <div className="flex flex-col gap-1 sm:flex-row sm:items-start sm:justify-between">
-                  <div>
-                    <p className="text-media font-bold text-cac-navy">
-                      {item.user?.name ?? '—'} · {item.organization?.name ?? '—'}
-                    </p>
-                    <p className="text-media text-cac-muted">
-                      {item.unit} · {item.linkRole}
-                      {item.user?.email ? ` · ${item.user.email}` : ''}
-                    </p>
-                  </div>
-                  <span className="mt-2 inline-flex w-fit rounded-full bg-amber-100 px-2.5 py-1 text-mini font-bold uppercase tracking-wide text-amber-900 sm:mt-0">
-                    {t('admin.repStatusRequested')}
-                  </span>
-                </div>
-                {item.interest ? (
-                  <p className="mt-3 rounded-xl border border-cac-line bg-[#fbfcfb] px-3 py-2 text-media text-cac-navy">
-                    {item.interest}
-                  </p>
-                ) : null}
-                <div className="mt-3 rounded-xl border border-cac-line bg-[#fbfcfb] px-3 py-2">
-                  <p className="text-mini font-extrabold uppercase tracking-[0.4px] text-cac-muted">
-                    {t('admin.repDocs')}
-                  </p>
-                  <div className="mt-2 flex flex-wrap gap-2">
-                    {doc1 ? (
-                      <a
-                        href={doc1}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="inline-flex rounded-[10px] border border-cac-line bg-white px-3 py-1.5 text-pequena font-bold text-cac-navy transition hover:bg-cac-green3"
-                      >
-                        {t('admin.repDoc1')}
-                      </a>
-                    ) : (
-                      <span className="text-pequena text-cac-muted">
-                        {t('admin.repDoc1')}: {t('admin.repDocMissing')}
-                      </span>
-                    )}
-                    {doc2 ? (
-                      <a
-                        href={doc2}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="inline-flex rounded-[10px] border border-cac-line bg-white px-3 py-1.5 text-pequena font-bold text-cac-navy transition hover:bg-cac-green3"
-                      >
-                        {t('admin.repDoc2')}
-                      </a>
-                    ) : (
-                      <span className="text-pequena text-cac-muted">
-                        {t('admin.repDoc2')}: {t('admin.repDocMissing')}
-                      </span>
-                    )}
-                  </div>
-                </div>
-
-                <div className="mt-4">
-                  <PublishKindsPicker
-                    idPrefix={`rep-${item.id}`}
-                    value={kindsById[item.id] ?? []}
-                    onChange={(next) => setKindsById((prev) => ({ ...prev, [item.id]: next }))}
-                  />
-                </div>
-
-                <div className="mt-4 flex flex-wrap gap-2">
-                  <Button
-                    disabled={busyId === item.id || !(kindsById[item.id]?.length)}
-                    onClick={() => void approve(item)}
-                  >
-                    {busyId === item.id ? t('admin.working') : t('admin.approve')}
-                  </Button>
-                  <Button
-                    variant="secondary"
-                    disabled={busyId === item.id}
-                    onClick={() => void reject(item.id)}
-                  >
-                    {t('admin.reject')}
-                  </Button>
-                </div>
-              </li>
-            );
-          })}
+          {items.map((row) => (
+            <li
+              key={row.id}
+              className="flex flex-col gap-3 rounded-2xl border border-cac-line bg-white p-4 shadow-cac sm:flex-row sm:items-start sm:justify-between"
+            >
+              <div className="min-w-0">
+                <p className="text-media font-bold text-cac-navy">
+                  {row.user?.name ?? '—'} · {row.organization?.name ?? '—'}
+                </p>
+                <p className="text-media text-cac-muted">
+                  {row.unit} · {row.linkRole}
+                  {row.user?.email ? ` · ${row.user.email}` : ''}
+                </p>
+                <span className="mt-2 inline-flex rounded-full bg-amber-100 px-2.5 py-1 text-mini font-bold uppercase tracking-wide text-amber-900">
+                  {t('admin.repStatusRequested')}
+                </span>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                <Button type="button" variant="secondary" onClick={() => modal.openView(row)}>
+                  {t('common.view')}
+                </Button>
+                <Button type="button" onClick={() => modal.openEdit(row)}>
+                  {t('admin.openDecision')}
+                </Button>
+              </div>
+            </li>
+          ))}
           {!items.length ? (
             <li className="rounded-2xl border border-dashed border-cac-line bg-white px-4 py-8 text-center text-media text-cac-muted">
               {t('admin.empty')}
@@ -207,6 +207,123 @@ export function AdminRepresentationPage() {
           ) : null}
         </ul>
       )}
+
+      <Modal
+        open={modal.open}
+        onClose={modal.close}
+        mode={isView ? 'view' : 'edit'}
+        badge={t('curator.queueRep')}
+        title={item ? `${item.user?.name ?? '—'} · ${item.organization?.name ?? '—'}` : t('admin.repTitle')}
+        description={item ? `${item.unit} · ${item.linkRole}` : undefined}
+        size="lg"
+        dismissible={!busy}
+        footer={
+          isView ? (
+            <>
+              <Button type="button" variant="secondary" onClick={modal.close}>
+                {t('common.close')}
+              </Button>
+              <Button type="button" onClick={() => modal.setMode('edit')}>
+                {t('admin.openDecision')}
+              </Button>
+            </>
+          ) : (
+            <>
+              <Button type="button" variant="secondary" disabled={busy} onClick={modal.close}>
+                {t('common.cancel')}
+              </Button>
+              <Button type="button" variant="outline" disabled={busy} onClick={() => void reject()}>
+                {t('admin.reject')}
+              </Button>
+              <Button
+                type="button"
+                disabled={busy || !publishKinds.length}
+                onClick={() => void approve()}
+              >
+                {busy ? t('common.working') : t('admin.approve')}
+              </Button>
+            </>
+          )
+        }
+      >
+        {error && modal.open ? (
+          <p className="mb-3 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-pequena text-red-800">
+            {error}
+          </p>
+        ) : null}
+
+        {item ? (
+          <div className="space-y-4">
+            {item.user?.email ? (
+              <p className="text-pequena text-cac-muted">{item.user.email}</p>
+            ) : null}
+            {item.interest ? (
+              <p className="rounded-xl border border-cac-line bg-white px-3 py-2 text-media text-cac-navy">
+                {item.interest}
+              </p>
+            ) : null}
+            <div className="rounded-xl border border-cac-line bg-white px-3 py-3">
+              <p className="text-mini font-extrabold uppercase tracking-[0.4px] text-cac-muted">
+                {t('admin.repDocs')}
+              </p>
+              <div className="mt-3 flex flex-wrap gap-3">
+                {item.proofDocument1Url ? (
+                  <ProofDocButton
+                    url={item.proofDocument1Url}
+                    label={t('admin.repDoc1')}
+                    onOpen={() => {
+                      const idx = mediaItems.findIndex((m) => m.url === item.proofDocument1Url);
+                      setViewerIndex(idx >= 0 ? idx : 0);
+                    }}
+                  />
+                ) : (
+                  <span className="text-pequena text-cac-muted">
+                    {t('admin.repDoc1')}: {t('admin.repDocMissing')}
+                  </span>
+                )}
+                {item.proofDocument2Url ? (
+                  <ProofDocButton
+                    url={item.proofDocument2Url}
+                    label={t('admin.repDoc2')}
+                    onOpen={() => {
+                      const idx = mediaItems.findIndex((m) => m.url === item.proofDocument2Url);
+                      setViewerIndex(idx >= 0 ? idx : 0);
+                    }}
+                  />
+                ) : (
+                  <span className="text-pequena text-cac-muted">
+                    {t('admin.repDoc2')}: {t('admin.repDocMissing')}
+                  </span>
+                )}
+              </div>
+            </div>
+
+            {!isView ? (
+              <PublishKindsPicker
+                idPrefix={`rep-modal-${item.id}`}
+                value={publishKinds}
+                onChange={setPublishKinds}
+              />
+            ) : (
+              <div className="rounded-xl border border-cac-line bg-white p-4">
+                <p className="text-mini font-extrabold uppercase tracking-[0.4px] text-cac-muted">
+                  {t('admin.publishKindsLabel')}
+                </p>
+                <p className="mt-1 text-pequena text-cac-muted">{t('admin.repViewKindsHint')}</p>
+              </div>
+            )}
+          </div>
+        ) : null}
+      </Modal>
+
+      {viewerIndex !== null && mediaItems.length > 0 ? (
+        <MediaViewer
+          items={mediaItems}
+          index={viewerIndex}
+          onClose={() => setViewerIndex(null)}
+          onChangeIndex={setViewerIndex}
+        />
+      ) : null}
     </div>
   );
 }

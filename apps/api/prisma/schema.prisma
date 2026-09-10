@@ -459,6 +459,7 @@ model Connection {
   reminderSentAt   DateTime?
   acceptedAt       DateTime?
   declinedAt       DateTime?
+  declineReason    String?
   closedAt         DateTime?
   createdAt        DateTime              @default(now())
   updatedAt        DateTime              @updatedAt

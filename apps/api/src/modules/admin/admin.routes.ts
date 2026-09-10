@@ -139,8 +139,39 @@ adminRouter.post('/representation-requests/:id/reject', async (req, res, next) =
   }
 });
 
+/** Remove vínculo (solicitado ou aprovado) e membership associado, se houver. */
+adminRouter.delete('/representation-requests/:id', async (req, res, next) => {
+  try {
+    const id = param(req.params.id);
+    const existing = await prisma.orgRepresentationRequest.findUnique({ where: { id } });
+    if (!existing) {
+      res.status(404).json({ error: 'not_found' });
+      return;
+    }
+    if (existing.status === 'REJECTED') {
+      res.status(400).json({ error: 'invalid_status' });
+      return;
+    }
+
+    await prisma.$transaction(async (tx) => {
+      await tx.organizationMember.deleteMany({
+        where: {
+          userId: existing.userId,
+          organizationId: existing.organizationId,
+        },
+      });
+      await tx.orgRepresentationRequest.delete({ where: { id: existing.id } });
+    });
+
+    res.status(204).send();
+  } catch (error) {
+    next(error);
+  }
+});
+
 adminRouter.get('/organizations', async (_req, res, next) => {
   try {
+    const userSelect = { id: true, email: true, name: true, role: true } as const;
     const items = await prisma.organization.findMany({
       orderBy: { name: 'asc' },
       include: {
@@ -153,9 +184,113 @@ adminRouter.get('/organizations', async (_req, res, next) => {
             successCases: true,
           },
         },
+        members: {
+          include: { user: { select: userSelect } },
+          orderBy: { createdAt: 'asc' },
+        },
+        representationRequests: {
+          where: { status: { in: ['REQUESTED', 'UNDER_REVIEW', 'APPROVED'] } },
+          include: { user: { select: userSelect } },
+          orderBy: [{ status: 'asc' }, { createdAt: 'desc' }],
+        },
       },
     });
     res.json({ items });
+  } catch (error) {
+    next(error);
+  }
+});
+
+adminRouter.get('/organizations/:id/representation-requests', async (req, res, next) => {
+  try {
+    const organizationId = param(req.params.id);
+    const org = await prisma.organization.findUnique({
+      where: { id: organizationId },
+      select: { id: true },
+    });
+    if (!org) {
+      res.status(404).json({ error: 'not_found' });
+      return;
+    }
+
+    const userSelect = { id: true, email: true, name: true, role: true } as const;
+
+    const [reps, members] = await Promise.all([
+      prisma.orgRepresentationRequest.findMany({
+        where: {
+          organizationId,
+          status: { in: ['REQUESTED', 'UNDER_REVIEW', 'APPROVED'] },
+        },
+        include: { user: { select: userSelect } },
+        orderBy: [{ status: 'asc' }, { createdAt: 'desc' }],
+      }),
+      prisma.organizationMember.findMany({
+        where: { organizationId },
+        include: { user: { select: userSelect } },
+        orderBy: { createdAt: 'asc' },
+      }),
+    ]);
+
+    const coveredUserIds = new Set(reps.map((r) => r.userId));
+    const items = [
+      ...reps.map((r) => ({
+        id: r.id,
+        source: 'REPRESENTATION' as const,
+        representationId: r.id,
+        memberId: members.find((m) => m.userId === r.userId)?.id ?? null,
+        status: r.status,
+        unit: r.unit,
+        linkRole: r.linkRole,
+        interest: r.interest,
+        createdAt: r.createdAt,
+        user: r.user,
+      })),
+      ...members
+        .filter((m) => !coveredUserIds.has(m.userId))
+        .map((m) => ({
+          id: m.id,
+          source: 'MEMBER' as const,
+          representationId: null,
+          memberId: m.id,
+          status: 'APPROVED' as const,
+          unit: null as string | null,
+          linkRole: m.role,
+          interest: null as string | null,
+          createdAt: m.createdAt,
+          user: m.user,
+        })),
+    ];
+
+    res.json({ items });
+  } catch (error) {
+    next(error);
+  }
+});
+
+adminRouter.delete('/organizations/:orgId/members/:memberId', async (req, res, next) => {
+  try {
+    const organizationId = param(req.params.orgId);
+    const memberId = param(req.params.memberId);
+    const member = await prisma.organizationMember.findFirst({
+      where: { id: memberId, organizationId },
+    });
+    if (!member) {
+      res.status(404).json({ error: 'not_found' });
+      return;
+    }
+
+    await prisma.$transaction(async (tx) => {
+      await tx.orgRepresentationRequest.deleteMany({
+        where: {
+          userId: member.userId,
+          organizationId,
+          status: { in: ['REQUESTED', 'UNDER_REVIEW', 'APPROVED'] },
+        },
+      });
+      await tx.organizationMember.delete({ where: { id: member.id } });
+    });
+
+    res.status(204).send();
   } catch (error) {
     next(error);
   }

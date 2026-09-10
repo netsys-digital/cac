@@ -55,7 +55,7 @@ export function connectionMailTemplates(kind: string, ctx: Record<string, string
     case 'declined':
       return {
         subject: `[${brand}] Conexão recusada`,
-        text: `Olá,\n\nSua solicitação sobre "${ctx.targetLabel}" foi recusada por ${ctx.targetOrg}.\n`,
+        text: `Olá,\n\nSua solicitação sobre "${ctx.targetLabel}" foi recusada por ${ctx.targetOrg}.\n\nJustificativa: ${ctx.reason || '(não informada)'}\n`,
       };
     case 'reminder':
       return {

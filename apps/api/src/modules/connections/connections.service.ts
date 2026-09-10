@@ -2,9 +2,15 @@ import {
   ConnectionStatus,
   ConnectionTargetType,
   type CreateConnectionBody,
+  type DeclineConnectionBody,
 } from '@cac/shared';
 import { env } from '../../config/env.js';
-import { assertCanActForOrganization, canActForOrganization } from '../../lib/org-access.js';
+import {
+  assertCanActForOrganization,
+  assertCanActForOrganizationAsAffiliate,
+  canActForOrganization,
+  organizationIdsAsAffiliate,
+} from '../../lib/org-access.js';
 import { enqueueEmail } from '../../lib/queue/email-queue.js';
 import { prisma } from '../../lib/prisma.js';
 
@@ -220,21 +226,31 @@ export async function listConnectionsForUser(userId: string, userRole: string) {
     orderBy: { createdAt: 'desc' },
     take: 100,
   });
-  return withRequesterRoles(items);
+  const withRoles = await withRequesterRoles(items);
+  const affiliateIds = new Set(await organizationIdsAsAffiliate(userId));
+  return withRoles.map((item) => ({
+    ...item,
+    viewerCanAcceptDecline:
+      item.status === ConnectionStatus.PENDING && affiliateIds.has(item.targetOrgId),
+    viewerCanClose:
+      (item.status === ConnectionStatus.ACCEPTED || item.status === ConnectionStatus.CONTACT_SHARED) &&
+      (affiliateIds.has(item.targetOrgId) || affiliateIds.has(item.requesterOrgId) || isStaff),
+  }));
 }
 
-async function loadForTargetAction(id: string, userId: string, userRole: string) {
+async function loadForTargetAction(id: string, userId: string) {
   const connection = await prisma.connection.findUnique({
     where: { id },
     include: includeConnection(),
   });
   if (!connection) throw notFound();
-  await assertCanActForOrganization(userId, connection.targetOrgId, userRole);
+  // Staff (ADMIN/CURADOR) não aceita/recusa em nome de terceiros — só afiliado da org destino.
+  await assertCanActForOrganizationAsAffiliate(userId, connection.targetOrgId);
   return connection;
 }
 
-export async function acceptConnection(id: string, userId: string, userRole: string) {
-  const current = await loadForTargetAction(id, userId, userRole);
+export async function acceptConnection(id: string, userId: string, _userRole: string) {
+  const current = await loadForTargetAction(id, userId);
   if (current.status !== ConnectionStatus.PENDING) {
     throw Object.assign(new Error('invalid_status'), { status: 400 });
   }
@@ -256,14 +272,24 @@ export async function acceptConnection(id: string, userId: string, userRole: str
   return connection;
 }
 
-export async function declineConnection(id: string, userId: string, userRole: string) {
-  const current = await loadForTargetAction(id, userId, userRole);
+export async function declineConnection(
+  id: string,
+  userId: string,
+  _userRole: string,
+  body: DeclineConnectionBody,
+) {
+  const current = await loadForTargetAction(id, userId);
   if (current.status !== ConnectionStatus.PENDING) {
     throw Object.assign(new Error('invalid_status'), { status: 400 });
   }
+  const reason = body.reason.trim();
   const connection = await prisma.connection.update({
     where: { id: current.id },
-    data: { status: ConnectionStatus.DECLINED, declinedAt: new Date() },
+    data: {
+      status: ConnectionStatus.DECLINED,
+      declinedAt: new Date(),
+      declineReason: reason,
+    },
     include: includeConnection(),
   });
   await enqueueEmail({
@@ -273,6 +299,7 @@ export async function declineConnection(id: string, userId: string, userRole: st
     ctx: {
       targetLabel: `${connection.targetType}:${connection.targetId}`,
       targetOrg: connection.targetOrg.name,
+      reason,
     },
   });
   return connection;

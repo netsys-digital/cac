@@ -21,6 +21,10 @@ export const createConnectionBodySchema = z.object({
   message: z.string().max(2000).optional(),
 });
 
+export const declineConnectionBodySchema = z.object({
+  reason: z.string().trim().min(10).max(1000),
+});
+
 export const savedItemBodySchema = z.object({
   targetType: z.enum([
     ConnectionTargetType.TECHNOLOGY,
@@ -38,5 +42,6 @@ export const followBodySchema = z.object({
 });
 
 export type CreateConnectionBody = z.infer<typeof createConnectionBodySchema>;
+export type DeclineConnectionBody = z.infer<typeof declineConnectionBodySchema>;
 export type SavedItemBody = z.infer<typeof savedItemBodySchema>;
 export type FollowBody = z.infer<typeof followBodySchema>;
