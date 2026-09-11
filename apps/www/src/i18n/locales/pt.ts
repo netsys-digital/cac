@@ -1,4 +1,14 @@
 export const pt = {
+  dialog: {
+    ok: 'OK',
+    cancel: 'Cancelar',
+    confirm: 'Confirmar',
+    alertBadge: 'Aviso',
+    confirmBadge: 'Confirmação',
+    dangerBadge: 'Atenção',
+    promptBadge: 'Informe',
+    promptLabel: 'Resposta',
+  },
   nav: {
     search: 'Buscar',
     funding: 'Financiamento',

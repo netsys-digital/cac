@@ -4,6 +4,7 @@ import { BrowserRouter } from 'react-router-dom';
 import { applyFontScale } from '@cac/ui';
 import App from './app/App';
 import { PortalAuthProvider } from './app/auth/PortalAuthContext';
+import { AppDialogProvider } from './app/components/AppDialogProvider';
 import { fontEnv } from './config';
 import './i18n';
 import '@cac/ui/styles.css';
@@ -14,9 +15,11 @@ applyFontScale(fontEnv);
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <BrowserRouter>
-      <PortalAuthProvider>
-        <App />
-      </PortalAuthProvider>
+      <AppDialogProvider>
+        <PortalAuthProvider>
+          <App />
+        </PortalAuthProvider>
+      </AppDialogProvider>
     </BrowserRouter>
   </StrictMode>,
 );

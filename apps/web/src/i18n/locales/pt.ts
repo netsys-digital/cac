@@ -15,6 +15,16 @@ export const pt = {
       create: 'Adicionar',
     },
   },
+  dialog: {
+    ok: 'OK',
+    cancel: 'Cancelar',
+    confirm: 'Confirmar',
+    alertBadge: 'Aviso',
+    confirmBadge: 'Confirmação',
+    dangerBadge: 'Atenção',
+    promptBadge: 'Informe',
+    promptLabel: 'Resposta',
+  },
   mediaViewer: {
     openOriginal: 'Abrir original',
     closeAria: 'Fechar visualização',

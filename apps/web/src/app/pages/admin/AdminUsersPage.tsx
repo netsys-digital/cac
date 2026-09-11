@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { UserRole, UserStatus, formatDateTime } from '@cac/shared';
-import { Button, Input } from '@cac/ui';
+import { Button, Input, useDialog } from '@cac/ui';
 import { useAuth } from '../../auth/AuthContext';
 import { adminUsersApi, type AdminUser } from '../../api/adminUsersApi';
 import { Modal } from '../../components/Modal';
@@ -43,6 +43,7 @@ function initials(name: string) {
 export function AdminUsersPage() {
   const { t, i18n } = useTranslation();
   const { user: me, accessToken } = useAuth();
+  const dialog = useDialog();
   const modal = useModalState<AdminUser>();
   const [items, setItems] = useState<AdminUser[]>([]);
   const [loading, setLoading] = useState(true);
@@ -152,7 +153,12 @@ export function AdminUsersPage() {
   async function toggleStatus(item: AdminUser) {
     if (!accessToken) return;
     if (item.status === UserStatus.ACTIVE) {
-      const ok = window.confirm(t('admin.usersConfirmDisable', { name: item.name }));
+      const ok = await dialog.confirm({
+        title: t('admin.usersDisable'),
+        message: t('admin.usersConfirmDisable', { name: item.name }),
+        confirmLabel: t('admin.usersDisable'),
+        tone: 'danger',
+      });
       if (!ok) return;
     }
     setBusy(true);
@@ -196,7 +202,12 @@ export function AdminUsersPage() {
 
   async function removeUser(item: AdminUser) {
     if (!accessToken) return;
-    const ok = window.confirm(t('admin.usersConfirmDelete', { name: item.name }));
+    const ok = await dialog.confirm({
+      title: t('common.delete'),
+      message: t('admin.usersConfirmDelete', { name: item.name }),
+      confirmLabel: t('common.delete'),
+      tone: 'danger',
+    });
     if (!ok) return;
     setBusy(true);
     setError('');

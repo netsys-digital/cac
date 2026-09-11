@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ORG_PUBLISH_KINDS, type OrgPublishKind } from '@cac/shared';
-import { Button } from '@cac/ui';
+import { Button, useDialog } from '@cac/ui';
 import { useAuth } from '../../auth/AuthContext';
 import { catalogApi, type AdminOrganization, type OrganizationLink } from '../../api/catalogApi';
 import { Modal } from '../../components/Modal';
@@ -84,6 +84,7 @@ function linksFromOrganization(org: AdminOrganization): OrganizationLink[] {
 export function AdminOrganizationsPage() {
   const { t } = useTranslation();
   const { accessToken } = useAuth();
+  const dialog = useDialog();
   const modal = useModalState<AdminOrganization>();
   const [items, setItems] = useState<AdminOrganization[]>([]);
   const [loading, setLoading] = useState(true);
@@ -276,7 +277,12 @@ export function AdminOrganizationsPage() {
   async function deleteLink(link: OrganizationLink) {
     if (!accessToken || !modal.item) return;
     const name = link.user?.name ?? link.user?.email ?? '—';
-    const ok = window.confirm(t('admin.orgsLinkDeleteConfirm', { name }));
+    const ok = await dialog.confirm({
+      title: t('admin.orgsLinkDelete'),
+      message: t('admin.orgsLinkDeleteConfirm', { name }),
+      confirmLabel: t('admin.orgsLinkDelete'),
+      tone: 'danger',
+    });
     if (!ok) return;
     setDeletingLinkId(link.id);
     setError('');

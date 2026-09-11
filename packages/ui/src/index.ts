@@ -7,4 +7,12 @@ export {
   FONT_SCALE_DEFAULTS,
   applyFontScale,
 } from './typography';
-export type { FontScale, FontScaleEnv } from './typography';
+export { DialogProvider, useDialog } from './AppDialog';
+export type {
+  AlertOptions,
+  ConfirmOptions,
+  DialogApi,
+  DialogLabels,
+  DialogTone,
+  PromptOptions,
+} from './AppDialog';

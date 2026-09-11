@@ -15,6 +15,16 @@ export const en = {
       create: 'Add',
     },
   },
+  dialog: {
+    ok: 'OK',
+    cancel: 'Cancel',
+    confirm: 'Confirm',
+    alertBadge: 'Notice',
+    confirmBadge: 'Confirmation',
+    dangerBadge: 'Attention',
+    promptBadge: 'Input',
+    promptLabel: 'Response',
+  },
   mediaViewer: {
     openOriginal: 'Open original',
     closeAria: 'Close viewer',

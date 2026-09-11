@@ -2,7 +2,7 @@ import type { ButtonHTMLAttributes, PropsWithChildren } from 'react';
 
 type ButtonProps = PropsWithChildren<
   ButtonHTMLAttributes<HTMLButtonElement> & {
-    variant?: 'primary' | 'secondary' | 'ghost' | 'ghostDark' | 'outline';
+    variant?: 'primary' | 'secondary' | 'ghost' | 'ghostDark' | 'outline' | 'danger';
   }
 >;
 
@@ -17,6 +17,8 @@ const variants: Record<NonNullable<ButtonProps['variant']>, string> = {
     'rounded-[10px] bg-transparent px-4 py-2.5 text-media font-extrabold text-cac-navy hover:bg-cac-bg focus-visible:outline-cac-navy',
   ghostDark:
     'rounded-[10px] border border-[rgba(255,255,255,.22)] bg-transparent px-4 py-2.5 text-media font-extrabold text-white hover:bg-white/10 focus-visible:outline-white',
+  danger:
+    'rounded-[10px] bg-red-700 px-4 py-2.5 text-media font-extrabold text-white hover:brightness-110 focus-visible:outline-red-700',
 };
 
 export function Button({

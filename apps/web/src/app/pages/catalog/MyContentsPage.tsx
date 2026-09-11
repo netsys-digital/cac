@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Button } from '@cac/ui';
+import { Button, useDialog } from '@cac/ui';
 import { formatDateTime } from '@cac/shared';
 import { useAuth } from '../../auth/AuthContext';
 import {
@@ -60,6 +60,7 @@ function MetricCard({ label, value, hint }: { label: string; value: string | num
 export function MyContentsPage() {
   const { t, i18n } = useTranslation();
   const { accessToken } = useAuth();
+  const dialog = useDialog();
   const [items, setItems] = useState<MyContentItem[]>([]);
   const [counts, setCounts] = useState({ DRAFT: 0, IN_REVIEW: 0, PUBLISHED: 0, ARCHIVED: 0 });
   const [organizations, setOrganizations] = useState<Array<{ id: string; name: string }>>([]);
@@ -142,7 +143,13 @@ export function MyContentsPage() {
 
   async function remove(item: MyContentItem) {
     if (!accessToken) return;
-    if (!window.confirm(t('mine.confirmDelete'))) return;
+    const ok = await dialog.confirm({
+      title: t('mine.delete'),
+      message: t('mine.confirmDelete'),
+      confirmLabel: t('mine.delete'),
+      tone: 'danger',
+    });
+    if (!ok) return;
     setMessage('');
     try {
       await myContentsApi.remove(accessToken, item.kind, item.id);

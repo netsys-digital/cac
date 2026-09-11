@@ -1,4 +1,14 @@
 export const en = {
+  dialog: {
+    ok: 'OK',
+    cancel: 'Cancel',
+    confirm: 'Confirm',
+    alertBadge: 'Notice',
+    confirmBadge: 'Confirmation',
+    dangerBadge: 'Attention',
+    promptBadge: 'Input',
+    promptLabel: 'Response',
+  },
   nav: {
     search: 'Search',
     funding: 'Funding',
