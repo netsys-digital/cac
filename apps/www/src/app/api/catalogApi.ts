@@ -17,6 +17,7 @@ export type OrgSummary = {
   country?: string | null;
   region?: string | null;
   website?: string | null;
+  logoUrl?: string | null;
   verificationStatus: string;
 };
 

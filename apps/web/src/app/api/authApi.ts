@@ -32,7 +32,10 @@ export async function login(input: { email: string; password: string }): Promise
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(input),
   });
-  if (!res.ok) throw new Error('login_failed');
+  if (!res.ok) {
+    const body = (await res.json().catch(() => ({}))) as { error?: string };
+    throw new Error(typeof body.error === 'string' ? body.error : 'login_failed');
+  }
   return parseJson(res);
 }
 

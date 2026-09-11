@@ -68,8 +68,8 @@ services:
         VITE_API_URL: ${PUBLIC_API_URL:-}
         VITE_WEB_URL: ${PUBLIC_WEB_URL:-https://gestorcac.netsys.company}
         VITE_WWW_URL: ${PUBLIC_WWW_URL:-https://portalcac.netsys.company}
-        VITE_APP_BRAND_NAME: ${APP_BRAND_NAME:-Climate Action Connect}
-        VITE_APP_BRAND_SHORT: ${APP_BRAND_SHORT:-CAC}
+        VITE_APP_BRAND_NAME: ${APP_BRAND_NAME:-AgriZone Connect}
+        VITE_APP_BRAND_SHORT: ${APP_BRAND_SHORT:-AZC}
         VITE_APP_BRAND_LOGO: ${APP_BRAND_LOGO:-}
     depends_on:
       api:
@@ -87,8 +87,8 @@ services:
         VITE_WEB_URL: ${PUBLIC_WEB_URL:-https://gestorcac.netsys.company}
         VITE_WWW_URL: ${PUBLIC_WWW_URL:-https://portalcac.netsys.company}
         VITE_BASE: /
-        VITE_APP_BRAND_NAME: ${APP_BRAND_NAME:-Climate Action Connect}
-        VITE_APP_BRAND_SHORT: ${APP_BRAND_SHORT:-CAC}
+        VITE_APP_BRAND_NAME: ${APP_BRAND_NAME:-AgriZone Connect}
+        VITE_APP_BRAND_SHORT: ${APP_BRAND_SHORT:-AZC}
         VITE_APP_BRAND_LOGO: ${APP_BRAND_LOGO:-}
     depends_on:
       api:

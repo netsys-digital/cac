@@ -24,6 +24,7 @@ export type FundingOffer = {
     name: string;
     slug: string;
     summary?: string | null;
+    logoUrl?: string | null;
     verificationStatus?: string;
   };
 };

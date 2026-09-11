@@ -38,6 +38,7 @@ function useBreadcrumbs() {
       { match: /^\/cases/, label: t('nav.newCase') },
       { match: /^\/connections/, label: t('nav.connections') },
       { match: /^\/admin\/curate/, label: t('nav.adminCurate') },
+      { match: /^\/admin\/users/, label: t('nav.adminUsers') },
       { match: /^\/admin\/representation/, label: t('nav.adminRep') },
       { match: /^\/admin\/organizations/, label: t('nav.adminOrgs') },
       { match: /^\/admin\/domains/, label: t('nav.adminDomains') },
@@ -155,6 +156,10 @@ export function AppShell() {
       ]
     : [];
 
+  const adminItems: SideNavItem[] = isAdmin
+    ? [{ to: '/admin/users', label: t('nav.adminUsers'), icon: sideIcons.users }]
+    : [];
+
   const portalItem: SideNavItem = {
     to: urls.www,
     label: t('nav.portal'),
@@ -178,6 +183,7 @@ export function AppShell() {
       ? [
           homeItem,
           portalItem,
+          ...adminItems,
           ...staffItems,
           { to: '/my/connections', label: t('nav.connections'), icon: sideIcons.connections },
           ...publishItems,
@@ -260,7 +266,7 @@ export function AppShell() {
       <div className="sticky top-[92px] z-40 border-b border-cac-line bg-white">
         <div className="flex h-12 items-center gap-2 px-5 text-media md:px-7">
           <nav aria-label="Breadcrumb" className="flex min-w-0 flex-wrap items-center gap-1.5 font-mono text-[#76838a]">
-            <span className="hidden text-cac-muted sm:inline">{t('shell.breadcrumbRoot')}</span>
+            <span className="hidden text-cac-muted sm:inline">{brand.slug}</span>
             <span className="hidden text-cac-line sm:inline">·</span>
             {crumbs.map((c, i) => (
               <span key={`${c.to}-${c.label}`} className="flex items-center gap-1.5">

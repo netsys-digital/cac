@@ -3,6 +3,7 @@ import { Link, useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { catalogApi, type OrgSummary, type Technology } from '../api/catalogApi';
 import { Chip, PageShell, ResultCard, shell } from '../components/PageChrome';
+import { OrgLogo } from '../components/CatalogDetail';
 import { resolveMediaUrl } from '../lib/mediaUrl';
 
 export function OrganizationPage() {
@@ -41,17 +42,21 @@ export function OrganizationPage() {
       eyebrow={org.verificationStatus === 'VERIFIED' ? t('detail.verified') : t('detail.organization')}
       title={org.name}
     >
-      <div className="mb-6 rounded-[16px] border border-cac-line bg-white p-4 shadow-[0_14px_38px_rgba(10,36,64,.10)]">
-        <div className="h-[145px] rounded-[12px] bg-gradient-to-br from-[#b7d4c0] to-[#dfe9d3]" />
-        <p className="mt-4 text-media leading-relaxed text-cac-muted">{org.summary}</p>
-        <div className="mt-3 flex flex-wrap gap-1.5">
-          {org.country ? <Chip>{org.country}</Chip> : null}
-          {org.region ? <Chip>{org.region}</Chip> : null}
-          {org.website ? (
-            <a href={org.website} className="text-mini font-bold text-cac-green" target="_blank" rel="noreferrer">
-              {org.website}
-            </a>
-          ) : null}
+      <div className="mb-6 rounded-[16px] border border-cac-line bg-white p-5 shadow-[0_14px_38px_rgba(10,36,64,.10)]">
+        <div className="flex items-start gap-4">
+          <OrgLogo name={org.name} logoUrl={org.logoUrl} size="lg" />
+          <div className="min-w-0 flex-1">
+            <p className="text-media leading-relaxed text-cac-muted">{org.summary}</p>
+            <div className="mt-3 flex flex-wrap gap-1.5">
+              {org.country ? <Chip>{org.country}</Chip> : null}
+              {org.region ? <Chip>{org.region}</Chip> : null}
+              {org.website ? (
+                <a href={org.website} className="text-mini font-bold text-cac-green" target="_blank" rel="noreferrer">
+                  {org.website}
+                </a>
+              ) : null}
+            </div>
+          </div>
         </div>
       </div>
       <h2 className="mb-3 text-grande font-bold text-cac-navy">{t('detail.orgSolutions')}</h2>

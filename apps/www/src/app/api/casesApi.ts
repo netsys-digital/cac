@@ -21,6 +21,7 @@ export type SuccessCase = {
     name: string;
     slug: string;
     summary?: string | null;
+    logoUrl?: string | null;
     verificationStatus?: string;
   };
   needs: Array<{ id: string; needType: string; detail?: string | null }>;

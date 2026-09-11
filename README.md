@@ -1,6 +1,6 @@
-# Climate Action Connect (CAC)
+# AgriZone Connect (AZC)
 
-Monorepo da plataforma Climate Action Connect — **E0–E6 PASS** (Marco 1 demo hospedada).
+Monorepo da plataforma AgriZone Connect — **E0–E6 PASS** (Marco 1 demo hospedada).
 
 ## Stack
 

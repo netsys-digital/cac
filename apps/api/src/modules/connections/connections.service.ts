@@ -266,7 +266,7 @@ export async function acceptConnection(id: string, userId: string, _userRole: st
     ctx: {
       targetLabel: `${connection.targetType}:${connection.targetId}`,
       targetOrg: connection.targetOrg.name,
-      contactEmail: connection.targetOrg.website || 'via painel CAC',
+      contactEmail: connection.targetOrg.website || 'via painel AgriZone Connect',
     },
   });
   return connection;

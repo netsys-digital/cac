@@ -16,7 +16,7 @@ export function LoginPage({ forcedFrom }: { forcedFrom?: string | null }) {
   const { login, user, loading } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
-  const [error, setError] = useState(false);
+  const [error, setError] = useState<'credentials' | 'disabled' | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
 
@@ -34,12 +34,12 @@ export function LoginPage({ forcedFrom }: { forcedFrom?: string | null }) {
     event.preventDefault();
     const form = new FormData(event.currentTarget);
     setSubmitting(true);
-    setError(false);
+    setError(null);
     try {
       await login(String(form.get('email')), String(form.get('password')));
       navigate(redirectTo);
-    } catch {
-      setError(true);
+    } catch (e) {
+      setError(e instanceof Error && e.message === 'account_disabled' ? 'disabled' : 'credentials');
     } finally {
       setSubmitting(false);
     }
@@ -98,7 +98,7 @@ export function LoginPage({ forcedFrom }: { forcedFrom?: string | null }) {
 
         {error ? (
           <p className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-pequena text-red-800" role="alert">
-            {t('auth.error')}
+            {error === 'disabled' ? t('auth.errorDisabled') : t('auth.error')}
           </p>
         ) : null}
 

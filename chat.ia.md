@@ -1,4 +1,4 @@
-# Chat IA (RAG) — Climate Action Connect
+# Chat IA (RAG) — AgriZone Connect
 
 Documento de referência para implementação futura de um chat em linguagem natural sobre a base do projeto.
 

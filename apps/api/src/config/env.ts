@@ -27,8 +27,8 @@ export const env = {
     .map((origin) => origin.trim())
     .filter(Boolean),
   cookieDomain: process.env.COOKIE_DOMAIN ?? 'localhost',
-  brandName: process.env.APP_BRAND_NAME ?? 'Climate Action Connect',
-  brandShort: process.env.APP_BRAND_SHORT ?? 'CAC',
+  brandName: process.env.APP_BRAND_NAME ?? 'AgriZone Connect',
+  brandShort: process.env.APP_BRAND_SHORT ?? 'AZC',
   brandLogo: process.env.APP_BRAND_LOGO ?? '/assets/brand/logo.svg',
   matchMinScore: Number(process.env.MATCH_MIN_SCORE ?? 5),
   scoreWeights: process.env.SCORE_WEIGHTS ?? 'semantic:40,tags:25,region:15,maturity:10,need:10',

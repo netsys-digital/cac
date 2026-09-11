@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { urls } from '../../config';
+import { brand, urls } from '../../config';
 import { useRepresentation } from '../auth/RepresentationContext';
 
 type PublishGateProps = {
@@ -25,7 +25,7 @@ export function PublishGate({ children }: PublishGateProps) {
     return (
       <div className="mx-auto max-w-2xl overflow-hidden rounded-[19px] border border-cac-line bg-white shadow-cac">
         <div className="border-b border-cac-line bg-[#edf1f3] px-5 py-2 font-mono text-mini text-[#76838a]">
-          climateactionconnect · {t('gate.staffBadge')}
+          {brand.slug} · {t('gate.staffBadge')}
         </div>
         <div className="space-y-4 p-5 md:p-6">
           <p className="text-mini font-extrabold tracking-[1.7px] text-cac-green uppercase">
@@ -59,7 +59,7 @@ export function PublishGate({ children }: PublishGateProps) {
   return (
     <div className="mx-auto max-w-2xl overflow-hidden rounded-[19px] border border-cac-line bg-white shadow-cac">
       <div className="border-b border-cac-line bg-[#edf1f3] px-5 py-2 font-mono text-mini text-[#76838a]">
-        climateactionconnect · {t('gate.badge')}
+        {brand.slug} · {t('gate.badge')}
       </div>
       <div className="space-y-4 p-5 md:p-6">
         <p className="text-mini font-extrabold tracking-[1.7px] text-cac-green uppercase">{t('gate.badge')}</p>

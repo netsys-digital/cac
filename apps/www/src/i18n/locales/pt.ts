@@ -71,11 +71,11 @@ export const pt = {
       { value: '128', label: 'Organizações conectadas' },
       { value: '32', label: 'Países alcançados' },
     ],
-    aboutBadge: 'O que é o CAC?',
+    aboutBadge: 'O que é o AgriZone Connect?',
     aboutTitle: 'Um ecossistema global por soluções climáticas reais',
     aboutBody:
-      'A Climate Action Connect conecta quem enfrenta desafios climáticos a quem oferece soluções, financiamento e evidências — com curadoria e governança.',
-    aboutCta: 'Saiba mais sobre o CAC',
+      'A AgriZone Connect conecta quem enfrenta desafios climáticos a quem oferece soluções, financiamento e evidências — com curadoria e governança.',
+    aboutCta: 'Saiba mais sobre o AgriZone Connect',
     pillars: [
       {
         title: 'Conexão',
@@ -193,6 +193,9 @@ export const pt = {
     amountRange: 'Faixa de valor',
     coverage: 'Cobertura geográfica',
     officialLink: 'Site oficial da chamada',
+    officialLinkBody:
+      'O edital, as regras de inscrição e os prazos oficiais ficam na página da instituição financiadora. Acesse o site da chamada para se candidatar ou obter os documentos completos.',
+    officialCta: 'Acessar a chamada',
     interest: 'Tenho interesse',
     connect: 'Solicitar conexão',
     favorite: 'Favoritar',
@@ -292,7 +295,7 @@ export const pt = {
       funding: 'Financiamento',
       challenges: 'Desafios',
       cases: 'Casos de sucesso',
-      aboutCac: 'O CAC',
+      aboutCac: 'O AgriZone Connect',
       partners: 'Parceiros',
       news: 'Notícias',
       contact: 'Contato',

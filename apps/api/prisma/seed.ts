@@ -81,12 +81,12 @@ async function upsertAdmin() {
     create: {
       email,
       passwordHash,
-      name: 'CAC Admin',
+      name: 'AZC Admin',
       role: UserRole.ADMIN,
     },
     update: {
       passwordHash,
-      name: 'CAC Admin',
+      name: 'AZC Admin',
       role: UserRole.ADMIN,
     },
   });
@@ -98,11 +98,12 @@ async function upsertAdmin() {
     create: {
       email: curatorEmail,
       passwordHash: curatorHash,
-      name: 'CAC Curador',
+      name: 'AZC Curador',
       role: UserRole.CURADOR,
     },
     update: {
       passwordHash: curatorHash,
+      name: 'AZC Curador',
       role: UserRole.CURADOR,
     },
   });

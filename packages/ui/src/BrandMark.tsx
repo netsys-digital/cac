@@ -23,7 +23,7 @@ export function BrandMark({
       {logoSrc ? (
         <img src={logoSrc} alt="" className="h-11 w-11 rounded-[12px] object-contain" />
       ) : (
-        <span className="grid h-11 w-11 place-items-center rounded-[12px] bg-gradient-to-br from-cac-green2 to-[#92dcc0] text-pequena font-bold text-cac-navy">
+        <span className="grid h-11 w-11 place-items-center rounded-[12px] bg-gradient-to-br from-cac-green2 to-[#92dcc0] text-pequena font-bold leading-none tracking-tight text-cac-navy">
           {short.slice(0, 3)}
         </span>
       )}

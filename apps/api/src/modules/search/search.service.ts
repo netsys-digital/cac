@@ -265,6 +265,7 @@ export async function runSearch(body: SearchBody): Promise<SearchResponse> {
       organizationSlug: org.slug,
       textBlob: `${org.name} ${org.summary ?? ''}`,
       href: `/organizations/${org.slug}`,
+      coverImageUrl: org.logoUrl,
     });
   }
 

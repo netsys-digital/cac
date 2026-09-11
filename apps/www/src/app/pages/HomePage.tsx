@@ -286,7 +286,7 @@ export function HomePage() {
                 <span className={`mb-3 grid h-11 w-11 place-items-center rounded-full ${path.iconBg}`}>
                   <i className={`${path.iconClass} text-[1.15rem] ${path.iconColor}`} aria-hidden />
                 </span>
-                <span className="text-media leading-snug font-bold text-cac-navy">{path.title}</span>
+                <span className="text-pequena leading-snug font-bold text-cac-navy">{path.title}</span>
                 <span className="mt-2 flex-1 text-pequena leading-[1.35] text-cac-muted">{path.body}</span>
                 <ArrowCircle className="mt-4 self-end" />
               </span>
@@ -331,14 +331,14 @@ export function HomePage() {
         </div>
       </section>
 
-      {/* About CAC */}
+      {/* About AgriZone Connect */}
       <section id="sobre" className="scroll-mt-[74px] bg-white py-16">
         <div className={`${shell} grid items-center gap-10 lg:grid-cols-[1.05fr_.95fr]`}>
           <div>
             <p className="text-mini font-extrabold tracking-[1.4px] text-[#167f70] uppercase">
               {t('home.aboutBadge')}
             </p>
-            <h2 className="mt-2 max-w-[34rem] text-grande leading-[1.08] font-bold tracking-[-0.7px] text-cac-navy">
+            <h2 className="mt-2 max-w-[34rem] text-media leading-[1.08] font-bold tracking-[-0.7px] text-cac-navy">
               {t('home.aboutTitle')}
             </h2>
             <p className="mt-4 max-w-[36rem] text-media leading-relaxed text-cac-muted">

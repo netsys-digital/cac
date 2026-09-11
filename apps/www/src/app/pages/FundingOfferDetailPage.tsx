@@ -62,19 +62,20 @@ export function FundingOfferDetailPage() {
 
   const conditionCards = [
     item.amountRange
-      ? { label: t('detail.amountRange'), value: item.amountRange }
+      ? { label: t('detail.amountRange'), value: item.amountRange, icon: 'fa-solid fa-coins' }
       : null,
     {
       label: t('funding.deadline'),
       value: deadlineLabel ?? t('funding.noDeadline'),
+      icon: 'fa-solid fa-calendar-days',
     },
     item.country
-      ? { label: t('search.filters.country'), value: item.country }
+      ? { label: t('search.filters.country'), value: item.country, icon: 'fa-solid fa-flag' }
       : null,
     item.region
-      ? { label: t('search.filters.region'), value: item.region }
+      ? { label: t('search.filters.region'), value: item.region, icon: 'fa-solid fa-globe' }
       : null,
-  ].filter((c): c is { label: string; value: string } => Boolean(c));
+  ].filter((c): c is { label: string; value: string; icon: string } => Boolean(c));
 
   return (
     <div className="bg-cac-bg">
@@ -86,7 +87,7 @@ export function FundingOfferDetailPage() {
           conditionCards.length > 0 ? (
             <DetailHeroStatGrid>
               {conditionCards.map((card) => (
-                <DetailHeroStatCard key={card.label} label={card.label} value={card.value} />
+                <DetailHeroStatCard key={card.label} label={card.label} value={card.value} icon={card.icon} />
               ))}
             </DetailHeroStatGrid>
           ) : undefined
@@ -129,6 +130,21 @@ export function FundingOfferDetailPage() {
                 </li>
               </ul>
             </DetailSection>
+
+            {item.officialUrl ? (
+              <DetailSection title={t('detail.officialLink')} index="04">
+                <p className="text-cac-muted">{t('detail.officialLinkBody')}</p>
+                <a
+                  href={item.officialUrl}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="mt-5 inline-flex items-center gap-2 rounded-[12px] bg-cac-green2 px-5 py-3 text-pequena font-extrabold text-white transition hover:brightness-105"
+                >
+                  {t('detail.officialCta')}
+                  <span aria-hidden>→</span>
+                </a>
+              </DetailSection>
+            ) : null}
           </article>
 
           <aside className="cac-fade-up-delay-2 space-y-4">
@@ -137,6 +153,7 @@ export function FundingOfferDetailPage() {
                 to={`/organizations/${item.organization.slug}`}
                 name={item.organization.name}
                 summary={item.organization.summary}
+                logoUrl={item.organization.logoUrl}
                 label={t('detail.organization')}
                 verifiedLabel={t('detail.verified')}
                 verified={item.organization.verificationStatus === 'VERIFIED'}
@@ -150,16 +167,6 @@ export function FundingOfferDetailPage() {
               <DetailPrimaryButton href={connectUrl}>{t('detail.interest')}</DetailPrimaryButton>
               <DetailSecondaryButton href={connectUrl}>{t('detail.connect')}</DetailSecondaryButton>
               <DetailSecondaryButton href={favoriteUrl}>{t('detail.favorite')}</DetailSecondaryButton>
-              {item.officialUrl ? (
-                <a
-                  href={item.officialUrl}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="flex w-full items-center justify-center rounded-[12px] border border-cac-line bg-[#f7faf8] px-4 py-3 text-pequena font-bold text-cac-navy transition hover:border-cac-green/40 hover:bg-white"
-                >
-                  {t('detail.officialLink')}
-                </a>
-              ) : null}
               <DetailSecondaryButton href={`${urls.web}/funding-offers/new`}>
                 {t('funding.publishCta')}
               </DetailSecondaryButton>

@@ -64,6 +64,10 @@ authRouter.post('/login', validateBody(loginBodySchema), async (req, res, next) 
       res.status(401).json({ error: 'invalid_credentials' });
       return;
     }
+    if (user.status === 'DISABLED') {
+      res.status(403).json({ error: 'account_disabled' });
+      return;
+    }
 
     const refreshToken = createRefreshTokenValue();
     await prisma.refreshToken.create({
@@ -104,6 +108,12 @@ authRouter.post('/refresh', async (req, res, next) => {
       }
       clearRefreshCookie(res);
       res.status(401).json({ error: 'unauthorized' });
+      return;
+    }
+    if (stored.user.status === 'DISABLED') {
+      await prisma.refreshToken.delete({ where: { id: stored.id } });
+      clearRefreshCookie(res);
+      res.status(403).json({ error: 'account_disabled' });
       return;
     }
 
@@ -147,6 +157,10 @@ authRouter.get('/me', requireAuth, async (req, res, next) => {
     const user = await prisma.user.findUnique({ where: { id: req.auth!.sub } });
     if (!user) {
       res.status(401).json({ error: 'unauthorized' });
+      return;
+    }
+    if (user.status === 'DISABLED') {
+      res.status(403).json({ error: 'account_disabled' });
       return;
     }
     res.json({ user: toAuthUser(user) });

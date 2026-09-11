@@ -43,6 +43,7 @@ export function ResultCard({
   score,
   factors,
   imageUrl,
+  imageContain,
   onNavigate,
 }: {
   to: string;
@@ -54,6 +55,8 @@ export function ResultCard({
   factors?: Array<{ label: string; weight: number; value: number }>;
   /** Capa resolvida (URL absoluta) — exibida com destaque à esquerda. */
   imageUrl?: string | null;
+  /** Use contain (ex.: logo de organização) em vez de cover. */
+  imageContain?: boolean;
   onNavigate?: () => void;
 }) {
   const { t } = useTranslation();
@@ -65,7 +68,11 @@ export function ResultCard({
   const media = (
     <span className="relative block h-full min-h-[9.5rem] w-full overflow-hidden rounded-[12px] bg-gradient-to-br from-[#d5ebde] to-[#91b58b] sm:min-h-[10.5rem]">
       {imageUrl ? (
-        <img src={imageUrl} alt="" className="absolute inset-0 h-full w-full object-cover" />
+        <img
+          src={imageUrl}
+          alt=""
+          className={`absolute inset-0 h-full w-full ${imageContain ? 'object-contain bg-white p-4' : 'object-cover'}`}
+        />
       ) : (
         <>
           <span className="absolute inset-x-[-10%] bottom-[-8%] h-[46%] -skew-y-[8deg] bg-[rgba(75,122,80,.35)]" />

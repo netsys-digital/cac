@@ -113,7 +113,7 @@ export function AuthCard({
   return (
     <div className="overflow-hidden rounded-[19px] border border-cac-line bg-white shadow-cac">
       <div className="border-b border-cac-line bg-[#edf1f3] px-5 py-2 font-mono text-mini text-[#76838a]">
-        climateactionconnect · {badge ?? 'auth'}
+        {brand.slug} · {badge ?? 'auth'}
       </div>
       <div className="space-y-5 p-5 md:p-6">
         <header>

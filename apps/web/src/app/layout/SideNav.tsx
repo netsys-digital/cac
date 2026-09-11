@@ -125,6 +125,15 @@ function IconBadge() {
   );
 }
 
+function IconShield() {
+  return (
+    <svg viewBox="0 0 24 24" className="size-[22px]" fill="none" stroke="currentColor" strokeWidth="1.8">
+      <path d="M12 3 20 7v5c0 5-3.5 8.5-8 9.5C7.5 20.5 4 17 4 12V7l8-4Z" strokeLinejoin="round" />
+      <path d="M9.5 12.2 11.2 14l3.4-3.6" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
 function IconBuilding() {
   return (
     <svg viewBox="0 0 24 24" className="size-[22px]" fill="none" stroke="currentColor" strokeWidth="1.8">
@@ -145,6 +154,7 @@ export const sideIcons = {
   adminRep: <IconUsers />,
   domains: <IconGrid />,
   orgs: <IconBuilding />,
+  users: <IconShield />,
   portal: <IconGlobe />,
   connections: <IconLink />,
   representation: <IconBadge />,

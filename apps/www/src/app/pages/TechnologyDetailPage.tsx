@@ -147,6 +147,7 @@ export function TechnologyDetailPage() {
                 to={`/organizations/${item.organization.slug}`}
                 name={item.organization.name}
                 summary={item.organization.summary}
+                logoUrl={item.organization.logoUrl}
                 label={t('detail.organization')}
                 verifiedLabel={t('detail.verified')}
                 verified={item.organization.verificationStatus === 'VERIFIED'}

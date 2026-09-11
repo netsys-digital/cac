@@ -112,7 +112,7 @@ export function DashboardPage() {
       ) : null}
 
       {isAdmin ? (
-        <section className="grid gap-3 md:grid-cols-3">
+        <section className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
           <Link
             to="/admin/curate"
             className="rounded-[16px] border border-cac-line bg-white p-4 shadow-cac transition hover:border-cac-green/40"
@@ -132,6 +132,16 @@ export function DashboardPage() {
             </p>
             <p className="mt-2 text-grande font-bold leading-none text-cac-navy">{repCount}</p>
             <p className="mt-3 text-pequena text-cac-muted">{t('dash.adminRepHint')}</p>
+          </Link>
+          <Link
+            to="/admin/users"
+            className="rounded-[16px] border border-cac-line bg-white p-4 shadow-cac transition hover:border-cac-green/40"
+          >
+            <p className="text-mini font-extrabold tracking-[1.2px] text-cac-green uppercase">
+              {t('nav.adminUsers')}
+            </p>
+            <p className="mt-2 text-media font-bold text-cac-navy">{t('admin.usersTitle')}</p>
+            <p className="mt-3 text-pequena text-cac-muted">{t('dash.adminUsersHint')}</p>
           </Link>
           <Link
             to="/admin/domains"
@@ -209,6 +219,12 @@ export function DashboardPage() {
         </Link>
         {isAdmin ? (
           <>
+            <Link
+              to="/admin/users"
+              className="rounded-[10px] border border-cac-green bg-white px-3 py-2 text-pequena font-extrabold text-cac-green"
+            >
+              {t('nav.adminUsers')}
+            </Link>
             <Link
               to="/admin/curate"
               className="rounded-[10px] border border-cac-green bg-white px-3 py-2 text-pequena font-extrabold text-cac-green"

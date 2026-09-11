@@ -14,6 +14,11 @@ enum UserRole {
   ORG_MEMBER
 }
 
+enum UserStatus {
+  ACTIVE
+  DISABLED
+}
+
 enum OrgVerificationStatus {
   PENDING
   VERIFIED
@@ -108,6 +113,7 @@ model User {
   passwordHash          String
   name                  String
   role                  UserRole                   @default(ORG_MEMBER)
+  status                UserStatus                 @default(ACTIVE)
   createdAt             DateTime                   @default(now())
   updatedAt             DateTime                   @updatedAt
   refreshTokens         RefreshToken[]

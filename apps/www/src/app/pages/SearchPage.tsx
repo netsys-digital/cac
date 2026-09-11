@@ -303,6 +303,7 @@ export function SearchPage() {
                   title={item.title}
                   summary={item.summary}
                   imageUrl={resolveMediaUrl(item.coverImageUrl)}
+                  imageContain={item.contentType === 'ORGANIZATION'}
                   meta={[
                     contentLabel(item.contentType, t),
                     item.organizationName,

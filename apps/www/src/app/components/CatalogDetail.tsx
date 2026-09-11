@@ -3,6 +3,47 @@ import { Link } from 'react-router-dom';
 import { Chip, shell } from './PageChrome';
 import { BackToSearchLink } from './BackToSearchLink';
 import { isDirectVideoFile, toVideoEmbedUrl } from '../lib/videoEmbed';
+import { resolveMediaUrl } from '../lib/mediaUrl';
+
+function orgInitials(name: string) {
+  const letters = name
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((w) => w[0]?.toUpperCase() ?? '')
+    .join('');
+  return letters || name.slice(0, 2).toUpperCase();
+}
+
+export function OrgLogo({
+  name,
+  logoUrl,
+  size = 'md',
+}: {
+  name: string;
+  logoUrl?: string | null;
+  size?: 'sm' | 'md' | 'lg';
+}) {
+  const logo = resolveMediaUrl(logoUrl);
+  const box = size === 'lg' ? 'h-20 w-20' : size === 'sm' ? 'h-10 w-10' : 'h-11 w-11';
+  const text = size === 'lg' ? 'text-media' : 'text-pequena';
+  if (logo) {
+    return (
+      <span
+        className={`grid ${box} shrink-0 place-items-center overflow-hidden rounded-xl border border-cac-line bg-white`}
+      >
+        <img src={logo} alt="" className="h-full w-full object-contain p-1" />
+      </span>
+    );
+  }
+  return (
+    <span
+      className={`flex ${box} shrink-0 items-center justify-center rounded-xl bg-[linear-gradient(145deg,#0a2440,#1a4d4a)] font-bold text-[#90d6b6] ${text}`}
+    >
+      {orgInitials(name)}
+    </span>
+  );
+}
 
 /** Placeholder quando não há vídeo nem capa. */
 function AbstractMediaGraphic() {
@@ -98,7 +139,7 @@ export function CatalogDetailHero({
             <p className="text-mini font-bold tracking-[1.8px] text-[#90d6b6] uppercase">
               {eyebrow}
             </p>
-            <h1 className="mt-3 text-extra-grande leading-[1.15] font-bold text-white">
+            <h1 className="mt-3 text-grande leading-[1.15] font-bold text-white">
               {title}
             </h1>
             {summary ? (
@@ -149,11 +190,26 @@ export function CatalogDetailHero({
 }
 
 /** Card de condição / métrica no hero (ex.: faixa de valor, prazo). */
-export function DetailHeroStatCard({ label, value }: { label: string; value: string }) {
+export function DetailHeroStatCard({
+  label,
+  value,
+  icon,
+}: {
+  label: string;
+  value: string;
+  icon?: string;
+}) {
   return (
     <div className="flex min-h-[5.5rem] flex-col justify-between rounded-[16px] border border-white/20 bg-white/[0.14] px-4 py-3.5 shadow-[0_14px_32px_rgba(0,0,0,.22)] backdrop-blur-[6px]">
-      <p className="text-mini font-bold tracking-[1.3px] text-[#90d6b6] uppercase">{label}</p>
-      <p className="mt-2 text-grande font-bold leading-snug text-white">{value}</p>
+      <div className="flex items-center gap-2">
+        {icon ? (
+          <span className="grid size-7 shrink-0 place-items-center rounded-full bg-white/12">
+            <i className={`${icon} text-[0.85rem] text-[#90d6b6]`} aria-hidden />
+          </span>
+        ) : null}
+        <p className="text-mini font-bold tracking-[1.3px] text-[#90d6b6] uppercase">{label}</p>
+      </div>
+      <p className="mt-2 text-media font-bold leading-snug text-white">{value}</p>
     </div>
   );
 }
@@ -175,7 +231,7 @@ export function DetailSection({
     <section className="border-b border-cac-line/80 py-7 last:border-b-0 last:pb-0">
       <div className="mb-3 flex items-baseline gap-3">
         {index ? (
-          <span className="text-mini font-bold tracking-[1.5px] text-cac-green uppercase">
+          <span className="text-pequena font-bold tracking-[1.5px] text-cac-green uppercase">
             {index}
           </span>
         ) : null}
@@ -193,6 +249,7 @@ export function DetailOrgCard({
   label,
   verifiedLabel,
   verified,
+  logoUrl,
 }: {
   to: string;
   name: string;
@@ -200,30 +257,42 @@ export function DetailOrgCard({
   label: string;
   verifiedLabel: string;
   verified?: boolean;
+  logoUrl?: string | null;
 }) {
+  const logo = resolveMediaUrl(logoUrl);
   return (
     <Link
       to={to}
-      className="block rounded-[16px] border border-cac-line bg-white p-5 shadow-[0_10px_28px_rgba(10,36,64,.06)] transition hover:-translate-y-0.5 hover:border-cac-green/35"
+      className="block overflow-hidden rounded-[16px] border border-cac-line bg-white shadow-[0_10px_28px_rgba(10,36,64,.06)] transition hover:-translate-y-0.5 hover:border-cac-green/35"
     >
-      <div className="flex items-start justify-between gap-3">
-        <p className="text-mini font-bold tracking-[1.4px] text-cac-green uppercase">{label}</p>
-        {verified ? (
-          <span className="rounded-md bg-cac-green3 px-2 py-0.5 text-mini font-bold text-cac-green">
-            {verifiedLabel}
+      <div className="relative h-[8.5rem] w-full overflow-hidden bg-[#eef6f1]">
+        {logo ? (
+          <span
+            className="absolute inset-0 bg-cover bg-center"
+            style={{ backgroundImage: `url(${logo})` }}
+            aria-hidden
+          />
+        ) : (
+          <span className="flex h-full items-center justify-center">
+            <span className="flex h-16 w-16 items-center justify-center rounded-2xl bg-[linear-gradient(145deg,#0a2440,#1a4d4a)] text-media font-bold text-[#90d6b6]">
+              {orgInitials(name)}
+            </span>
           </span>
-        ) : null}
+        )}
       </div>
-      <div className="mt-3 flex items-center gap-3">
-        <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-[linear-gradient(145deg,#0a2440,#1a4d4a)] text-pequena font-bold text-[#90d6b6]">
-          {name.slice(0, 2).toUpperCase()}
-        </span>
-        <div className="min-w-0">
-          <h3 className="truncate text-media font-bold text-cac-navy">{name}</h3>
-          {summary ? (
-            <p className="mt-1 line-clamp-3 text-pequena leading-snug text-cac-muted">{summary}</p>
+      <div className="p-5">
+        <div className="flex items-start justify-between gap-3">
+          <p className="text-mini font-bold tracking-[1.4px] text-cac-green uppercase">{label}</p>
+          {verified ? (
+            <span className="rounded-md bg-cac-green3 px-2 py-0.5 text-mini font-bold text-cac-green">
+              {verifiedLabel}
+            </span>
           ) : null}
         </div>
+        <h3 className="mt-2 text-media font-bold text-cac-navy">{name}</h3>
+        {summary ? (
+          <p className="mt-1.5 line-clamp-3 text-pequena leading-snug text-cac-muted">{summary}</p>
+        ) : null}
       </div>
     </Link>
   );

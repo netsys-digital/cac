@@ -14,10 +14,12 @@ import { prisma } from '../../lib/prisma.js';
 import { requireAuth, requireRole } from '../../middleware/auth.js';
 import { validateBody } from '../../middleware/validate.js';
 import { param } from '../../lib/params.js';
+import { adminUsersRouter } from './admin-users.routes.js';
 
 export const adminRouter = Router();
 
 adminRouter.use(requireAuth, requireRole(UserRole.ADMIN, UserRole.CURADOR));
+adminRouter.use('/users', requireRole(UserRole.ADMIN), adminUsersRouter);
 
 const uploadDir = process.env.UPLOAD_DIR || 'uploads';
 fs.mkdirSync(uploadDir, { recursive: true });
