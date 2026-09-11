@@ -27,7 +27,7 @@ export function BrandMark({
           {short.slice(0, 3)}
         </span>
       )}
-      <span className={`leading-tight whitespace-nowrap font-bold text-media ${onDark ? 'uppercase' : ''}`}>
+      <span className="leading-tight whitespace-nowrap font-bold text-media">
         <span className={onDark ? 'text-white' : 'text-cac-navy'}>
           {first}{' '}
           <b className={onDark ? 'text-[#8ed5b5]' : 'text-cac-green'}>{last}</b>

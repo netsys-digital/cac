@@ -331,7 +331,7 @@ export function HomePage() {
         </div>
       </section>
 
-      {/* About AgriZone Connect */}
+      {/* About AgriZONE Connect */}
       <section id="sobre" className="scroll-mt-[74px] bg-white py-16">
         <div className={`${shell} grid items-center gap-10 lg:grid-cols-[1.05fr_.95fr]`}>
           <div>

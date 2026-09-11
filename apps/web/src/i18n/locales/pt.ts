@@ -122,7 +122,7 @@ export const pt = {
     badge: 'Governança',
     title: 'Olá, {{name}} — fila do curador',
     subtitle:
-      'Seu papel no AgriZone Connect é validar o que entra no portal: conteúdos em revisão, vínculos de representação e catálogos de domínio. Publicar em nome de uma org não é a tarefa principal daqui.',
+      'Seu papel no AgriZONE Connect é validar o que entra no portal: conteúdos em revisão, vínculos de representação e catálogos de domínio. Publicar em nome de uma org não é a tarefa principal daqui.',
     tasksOpen: '{{count}} tarefa(s) aberta(s)',
     rolesTitle: 'Papéis do curador',
     role1: 'Aprovar, devolver com ajustes ou rejeitar publicações enviadas à curadoria',
@@ -420,7 +420,7 @@ export const pt = {
     orgsEyebrow: 'Governança',
     orgsTitle: 'Organizações',
     orgsSupport:
-      'Administre verificação, dados cadastrais (incluindo logo) e os tipos de conteúdo que cada organização pode publicar no AgriZone Connect.',
+      'Administre verificação, dados cadastrais (incluindo logo) e os tipos de conteúdo que cada organização pode publicar no AgriZONE Connect.',
     orgsTotal: '{{count}} organização(ões)',
     orgsFilterAllStatus: 'Todas',
     orgsFilterSearch: 'Buscar',

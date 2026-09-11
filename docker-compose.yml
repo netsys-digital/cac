@@ -76,7 +76,7 @@ services:
         VITE_API_URL: http://localhost:3003
         VITE_WEB_URL: http://localhost:5178
         VITE_WWW_URL: http://localhost:5179
-        VITE_APP_BRAND_NAME: AgriZone Connect
+        VITE_APP_BRAND_NAME: AgriZONE Connect
         VITE_APP_BRAND_SHORT: AZC
         VITE_APP_BRAND_LOGO: ""
         VITE_FONT_EXTRA_GRANDE: 54px
@@ -97,7 +97,7 @@ services:
         VITE_API_URL: http://localhost:3003
         VITE_WEB_URL: http://localhost:5178
         VITE_WWW_URL: http://localhost:5179
-        VITE_APP_BRAND_NAME: AgriZone Connect
+        VITE_APP_BRAND_NAME: AgriZONE Connect
         VITE_APP_BRAND_SHORT: AZC
         VITE_APP_BRAND_LOGO: ""
         VITE_FONT_EXTRA_GRANDE: 54px

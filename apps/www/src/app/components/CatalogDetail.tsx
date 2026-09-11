@@ -237,7 +237,7 @@ export function DetailSection({
         ) : null}
         <h2 className="text-grande font-bold text-cac-navy">{title}</h2>
       </div>
-      <div className="max-w-[42rem] text-media leading-relaxed text-cac-ink/85">{children}</div>
+      <div className="max-w-[42rem] text-pequena leading-relaxed text-cac-ink/85">{children}</div>
     </section>
   );
 }

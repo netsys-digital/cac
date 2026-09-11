@@ -27,7 +27,7 @@ export const env = {
     .map((origin) => origin.trim())
     .filter(Boolean),
   cookieDomain: process.env.COOKIE_DOMAIN ?? 'localhost',
-  brandName: process.env.APP_BRAND_NAME ?? 'AgriZone Connect',
+  brandName: process.env.APP_BRAND_NAME ?? 'AgriZONE Connect',
   brandShort: process.env.APP_BRAND_SHORT ?? 'AZC',
   brandLogo: process.env.APP_BRAND_LOGO ?? '/assets/brand/logo.svg',
   matchMinScore: Number(process.env.MATCH_MIN_SCORE ?? 5),

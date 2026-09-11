@@ -81,11 +81,11 @@ export const es = {
       { value: '128', label: 'Organizaciones conectadas' },
       { value: '32', label: 'Países alcanzados' },
     ],
-    aboutBadge: '¿Qué es AgriZone Connect?',
+    aboutBadge: '¿Qué es AgriZONE Connect?',
     aboutTitle: 'Un ecosistema global por soluciones climáticas reales',
     aboutBody:
-      'AgriZone Connect conecta a quienes enfrentan desafíos climáticos con quienes ofrecen soluciones, financiamiento y evidencia — con curaduría y gobernanza.',
-    aboutCta: 'Conozca más sobre AgriZone Connect',
+      'AgriZONE Connect conecta a quienes enfrentan desafíos climáticos con quienes ofrecen soluciones, financiamiento y evidencia — con curaduría y gobernanza.',
+    aboutCta: 'Conozca más sobre AgriZONE Connect',
     pillars: [
       {
         title: 'Conexión',
@@ -306,7 +306,7 @@ export const es = {
       funding: 'Financiamiento',
       challenges: 'Desafíos',
       cases: 'Casos de éxito',
-      aboutCac: 'AgriZone Connect',
+      aboutCac: 'AgriZONE Connect',
       partners: 'Socios',
       news: 'Noticias',
       contact: 'Contacto',

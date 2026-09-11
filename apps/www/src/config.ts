@@ -1,5 +1,5 @@
 export const brand = {
-  name: import.meta.env.VITE_APP_BRAND_NAME ?? 'AgriZone Connect',
+  name: import.meta.env.VITE_APP_BRAND_NAME ?? 'AgriZONE Connect',
   short: import.meta.env.VITE_APP_BRAND_SHORT ?? 'AZC',
   logo: import.meta.env.VITE_APP_BRAND_LOGO ?? '',
 };

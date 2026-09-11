@@ -122,7 +122,7 @@ export const en = {
     badge: 'Governance',
     title: 'Hello, {{name}} — curator queue',
     subtitle:
-      'Your role in AgriZone Connect is to validate what enters the portal: content in review, representation links, and domain catalogs. Publishing on behalf of an org is not the main job here.',
+      'Your role in AgriZONE Connect is to validate what enters the portal: content in review, representation links, and domain catalogs. Publishing on behalf of an org is not the main job here.',
     tasksOpen: '{{count}} open task(s)',
     rolesTitle: 'Curator roles',
     role1: 'Approve, return for edits, or reject publications submitted to curation',
@@ -419,7 +419,7 @@ export const en = {
     orgsEyebrow: 'Governance',
     orgsTitle: 'Organizations',
     orgsSupport:
-      'Manage verification, organization details (including logo) and which content types each organization can publish on AgriZone Connect.',
+      'Manage verification, organization details (including logo) and which content types each organization can publish on AgriZONE Connect.',
     orgsTotal: '{{count}} organization(s)',
     orgsFilterAllStatus: 'All',
     orgsFilterSearch: 'Search',

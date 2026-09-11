@@ -1,6 +1,6 @@
-# AgriZone Connect (AZC)
+# AgriZONE Connect (AZC)
 
-Monorepo da plataforma AgriZone Connect — **E0–E6 PASS** (Marco 1 demo hospedada).
+Monorepo da plataforma AgriZONE Connect — **E0–E6 PASS** (Marco 1 demo hospedada).
 
 ## Stack
 

@@ -122,7 +122,7 @@ export const es = {
     badge: 'Gobernanza',
     title: 'Hola, {{name}} — cola del curador',
     subtitle:
-      'Tu rol en AgriZone Connect es validar lo que entra al portal: contenidos en revisión, vínculos de representación y catálogos de dominio. Publicar en nombre de una org no es la tarea principal desde aquí.',
+      'Tu rol en AgriZONE Connect es validar lo que entra al portal: contenidos en revisión, vínculos de representación y catálogos de dominio. Publicar en nombre de una org no es la tarea principal desde aquí.',
     tasksOpen: '{{count}} tarea(s) abierta(s)',
     rolesTitle: 'Roles del curador',
     role1: 'Aprobar, devolver con ajustes o rechazar publicaciones enviadas a curaduría',
@@ -419,7 +419,7 @@ export const es = {
     orgsEyebrow: 'Gobernanza',
     orgsTitle: 'Organizaciones',
     orgsSupport:
-      'Administra la verificación, datos de la organización (incluido el logo) y los tipos de contenido que cada organización puede publicar en AgriZone Connect.',
+      'Administra la verificación, datos de la organización (incluido el logo) y los tipos de contenido que cada organización puede publicar en AgriZONE Connect.',
     orgsTotal: '{{count}} organización(es)',
     orgsFilterAllStatus: 'Todas',
     orgsFilterSearch: 'Buscar',

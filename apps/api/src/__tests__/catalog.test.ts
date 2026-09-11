@@ -89,7 +89,7 @@ describe('E1 catalog + representation', () => {
       .set('Authorization', `Bearer ${outsiderToken}`)
       .field('unit', 'Unidade Experimental')
       .field('linkRole', 'Pesquisador')
-      .field('interest', 'Quero representar a organização no catálogo AgriZone Connect.')
+      .field('interest', 'Quero representar a organização no catálogo AgriZONE Connect.')
       .attach('proofDocument1', Buffer.from('%PDF-1.4 proof'), {
         filename: 'proof.pdf',
         contentType: 'application/pdf',
