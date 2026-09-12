@@ -39,12 +39,28 @@ describe('POST /api/search', () => {
       expect(top.factors.length).toBeGreaterThanOrEqual(3);
     }
 
-    const topScores = res.body.results.slice(0, 3).map((r: { score: number }) => r.score);
-    // Demo meta when catalogue seed is present
-    if (topScores.length >= 3 && res.body.results.some((r: { slug: string }) => r.slug === 'recuperacao-pastagens-seca')) {
-      expect(topScores[0]).toBe(94);
-      expect(topScores).toContain(89);
-      expect(topScores).toContain(83);
+    // Demo meta: scores calibrados por slug (não exige que sejam os únicos no top-3 —
+    // sinônimos multilíngues podem elevar outros itens próximos).
+    const bySlug = new Map(
+      (res.body.results as Array<{ slug: string; score: number }>).map((r) => [r.slug, r.score]),
+    );
+    if (bySlug.has('recuperacao-pastagens-seca')) {
+      expect(bySlug.get('recuperacao-pastagens-seca')).toBe(94);
+      expect(bySlug.get('rede-pastagens-resilientes')).toBe(89);
+      expect(bySlug.get('manejo-hidrico-pequenos-produtores')).toBe(83);
+    }
+  });
+
+  it('returns results for English drought/pasture query against PT catalogue', async () => {
+    const res = await request(app)
+      .post('/api/search')
+      .send({ query: 'pasture drought recovery', filters: {}, lang: 'en' });
+
+    expect(res.status).toBe(200);
+    expect(Array.isArray(res.body.results)).toBe(true);
+    if (res.body.results.some((r: { slug: string }) => r.slug === 'recuperacao-pastagens-seca')) {
+      expect(res.body.results[0].slug).toBe('recuperacao-pastagens-seca');
+      expect(res.body.results[0].score).toBeGreaterThanOrEqual(60);
     }
   });
 

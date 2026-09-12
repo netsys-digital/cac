@@ -21,7 +21,7 @@ import { resolveMediaUrl } from '../lib/mediaUrl';
 
 export function ChallengeDetailPage() {
   const { slug = '' } = useParams();
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [item, setItem] = useState<Challenge | null>(null);
   const [error, setError] = useState('');
 
@@ -40,7 +40,7 @@ export function ChallengeDetailPage() {
     return () => {
       cancelled = true;
     };
-  }, [slug, t]);
+  }, [slug, t, i18n.language]);
 
   if (error) {
     return (

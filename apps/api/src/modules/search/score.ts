@@ -17,13 +17,67 @@ export function tokenize(text: string): string[] {
     .filter((t) => t.length > 2);
 }
 
+/**
+ * Grupos de sinônimos PT/EN/ES (já tokenizados: sem acento, lower).
+ * Usado para matching cross-lang sem depender só de ContentTranslation.
+ */
+export const QUERY_SYNONYM_GROUPS: readonly (readonly string[])[] = [
+  ['seca', 'drought', 'sequia', 'arid', 'semiarido'],
+  ['pastagem', 'pastagens', 'pasto', 'pasture', 'pastures', 'pastizal', 'pastizales', 'pecuaria'],
+  ['agua', 'water', 'hidrico', 'hidrica', 'irrigacao', 'irrigation'],
+  ['financiamento', 'funding', 'fundo', 'credito', 'financiamiento', 'finance'],
+  ['agrofloresta', 'agroflorestal', 'agroforestry', 'agroforesteria'],
+  ['recuperacao', 'recovery', 'restoration', 'restauracion', 'restauracao'],
+  ['desafio', 'challenge'],
+  ['solucao', 'solution', 'solucion'],
+  ['projeto', 'project', 'proyecto'],
+  ['organizacao', 'organization', 'organisation', 'organizacion'],
+  ['clima', 'climate', 'climatico', 'climatica'],
+  ['adaptacao', 'adaptation', 'adaptacion'],
+  ['mitigacao', 'mitigation', 'mitigacion'],
+  ['resiliente', 'resilient', 'resiliencia', 'resilience'],
+  ['produtor', 'producer', 'productor', 'farmers', 'farmer'],
+  ['livestock', 'ganaderia'],
+];
+
+let synonymIndex: Map<string, readonly string[]> | null = null;
+
+function synonymMap(): Map<string, readonly string[]> {
+  if (!synonymIndex) {
+    synonymIndex = new Map();
+    for (const group of QUERY_SYNONYM_GROUPS) {
+      for (const token of group) {
+        synonymIndex.set(token, group);
+      }
+    }
+  }
+  return synonymIndex;
+}
+
+export function synonymsOf(token: string): readonly string[] {
+  return synonymMap().get(token) ?? [token];
+}
+
+/** Expande tokens da query com equivalentes PT/EN/ES. */
+export function expandQueryTokens(tokens: string[]): string[] {
+  const out = new Set<string>();
+  for (const token of tokens) {
+    for (const syn of synonymsOf(token)) out.add(syn);
+  }
+  return [...out];
+}
+
+function tokenHitsHaystack(token: string, hay: Set<string>): boolean {
+  return synonymsOf(token).some((syn) => hay.has(syn));
+}
+
 export function keywordOverlap(queryTokens: string[], haystack: string): number {
   if (!queryTokens.length) return 0.35;
   const hay = new Set(tokenize(haystack));
   if (!hay.size) return 0;
   let hits = 0;
   for (const token of queryTokens) {
-    if (hay.has(token)) hits += 1;
+    if (tokenHitsHaystack(token, hay)) hits += 1;
   }
   return Math.min(1, hits / queryTokens.length);
 }
@@ -34,7 +88,7 @@ export function tagOverlap(queryTokens: string[], tags: string[]): number {
   const tagTokens = new Set(tags.flatMap((t) => tokenize(t)));
   let hits = 0;
   for (const token of queryTokens) {
-    if (tagTokens.has(token)) hits += 1;
+    if (tokenHitsHaystack(token, tagTokens)) hits += 1;
   }
   return Math.min(1, hits / Math.max(1, Math.min(queryTokens.length, 4)));
 }
@@ -67,7 +121,9 @@ export function maturityScore(maturity?: string | null): number {
 }
 
 export function needScore(contentType: string, queryTokens: string[]): number {
-  const wantsFunding = queryTokens.some((t) => ['financiamento', 'funding', 'fundo'].includes(t));
+  const wantsFunding = queryTokens.some((t) =>
+    synonymsOf(t).some((s) => ['financiamento', 'funding', 'fundo', 'credito', 'financiamiento', 'finance'].includes(s)),
+  );
   if (wantsFunding) {
     return contentType === 'FUNDER' || contentType === 'PROJECT' ? 1 : 0.45;
   }
@@ -137,9 +193,12 @@ export function applyAnchorCalibration(
   query: string,
   results: Array<{ slug?: string; contentType: string; score: number; factors: ScoreFactor[] }>,
 ): void {
-  const normalized = tokenize(query).join(' ');
-  const anchor = tokenize('recuperação de pastagens em seca').join(' ');
-  if (normalized !== anchor && !normalized.includes('recuperacao') && !normalized.includes('pastagens')) {
+  const tokens = new Set(expandQueryTokens(tokenize(query)));
+  const looksLikeAnchor =
+    (tokens.has('recuperacao') || tokens.has('recovery') || tokens.has('restoration') || tokens.has('restauracion')) &&
+    (tokens.has('pastagens') || tokens.has('pasture') || tokens.has('pastures') || tokens.has('pastizales')) &&
+    (tokens.has('seca') || tokens.has('drought') || tokens.has('sequia'));
+  if (!looksLikeAnchor && !tokens.has('pastagens') && !tokens.has('pasture') && !tokens.has('pastures')) {
     return;
   }
   const targets: Record<string, number> = {

@@ -5,7 +5,7 @@ Monorepo da plataforma AgriZONE Connect — **E0–E6 PASS** (Marco 1 demo hospe
 ## Stack
 
 - Node ≥ 20 · Express 5 · Prisma 6 · **PostgreSQL 16** · Redis 7
-- React 19 · Vite 7 · Tailwind CSS · i18n (PT/EN)
+- React 19 · Vite 7 · Tailwind CSS · i18n (PT/EN/ES) · LibreTranslate (conteúdo do catálogo)
 - Apps: `@cac/api` · `@cac/www` · `@cac/web` · packages `@cac/shared` · `@cac/ui`
 
 ## Paths
@@ -21,7 +21,8 @@ Monorepo da plataforma AgriZONE Connect — **E0–E6 PASS** (Marco 1 demo hospe
 ```bash
 cd /app/netsys-apps/cac
 bash scripts/bootstrap-local.sh
-docker compose up -d postgres redis api api-worker
+bash deploy/libretranslate/fetch-models.sh   # .argosmodel no host (~400 MB)
+docker compose up -d postgres redis libretranslate api api-worker
 docker compose stop web www          # libera 5178/5179 para Vite
 npm install
 npm run db:migrate -w @cac/api
@@ -36,6 +37,7 @@ bash scripts/dev-frontends.sh        # ou: npm run dev:www / npm run dev:web
 | API | http://localhost:3003 |
 | Postgres | localhost:5433 |
 | Redis | localhost:6381 |
+| LibreTranslate | localhost:5001 (`fetch-models.sh` no host + imagem `cac-libretranslate`) |
 
 > Não misture Docker `web`/`www` com Vite nas mesmas portas. O container Docker serve build estático (sem HMR).
 

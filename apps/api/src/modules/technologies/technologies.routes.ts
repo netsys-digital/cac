@@ -12,6 +12,7 @@ import { requireAuth, requireRole } from '../../middleware/auth.js';
 import { validateBody } from '../../middleware/validate.js';
 import { isUuid, param } from '../../lib/params.js';
 import { enqueueEmbedding } from '../../lib/queue/embedding-queue.js';
+import { enqueueTranslation, enqueueTranslationIfPublished, localizeEntities, localizeOne, requestLang } from '../../lib/translation/index.js';
 
 export const technologiesRouter = Router();
 
@@ -54,7 +55,10 @@ technologiesRouter.get('/', async (req, res, next) => {
       orderBy: { updatedAt: 'desc' },
       take: 100,
     });
-    res.json({ items: items.map(mapTech) });
+    const localized = await localizeEntities('technology', items.map(mapTech), requestLang(req.query), {
+      nestedOrganization: true,
+    });
+    res.json({ items: localized });
   } catch (error) {
     next(error);
   }
@@ -76,7 +80,11 @@ technologiesRouter.get('/:slugOrId', async (req, res, next) => {
       res.status(404).json({ error: 'not_found' });
       return;
     }
-    res.json({ technology: mapTech(item) });
+    res.json({
+      technology: await localizeOne('technology', mapTech(item), requestLang(req.query), {
+        nestedOrganization: true,
+      }),
+    });
   } catch (error) {
     next(error);
   }
@@ -157,6 +165,10 @@ technologiesRouter.patch(
         },
         include: { tags: true },
       });
+      void enqueueTranslationIfPublished(technology.status, {
+        entityType: 'technology',
+        entityId: technology.id,
+      });
       res.json({ technology: mapTech(technology) });
     } catch (error) {
       next(error);
@@ -208,6 +220,7 @@ technologiesRouter.post(
         include: { tags: true },
       });
       void enqueueEmbedding({ entityType: 'technology', entityId: technology.id });
+      void enqueueTranslation({ entityType: 'technology', entityId: technology.id });
       res.json({ technology: mapTech(technology) });
     } catch (error) {
       next(error);

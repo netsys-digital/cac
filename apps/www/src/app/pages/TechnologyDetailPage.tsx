@@ -25,7 +25,7 @@ function labelOrRaw(value: string | null | undefined, map: Record<string, string
 
 export function TechnologyDetailPage() {
   const { slug = '' } = useParams();
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [item, setItem] = useState<Technology | null>(null);
   const [error, setError] = useState('');
 
@@ -44,7 +44,7 @@ export function TechnologyDetailPage() {
     return () => {
       cancelled = true;
     };
-  }, [slug, t]);
+  }, [slug, t, i18n.language]);
 
   if (error) {
     return (

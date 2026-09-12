@@ -20,7 +20,7 @@ import { needTypeLabel } from '../lib/needTypeLabel';
 import { resolveMediaUrl } from '../lib/mediaUrl';
 
 export function CasesPage() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [items, setItems] = useState<SuccessCase[]>([]);
   const [error, setError] = useState('');
 
@@ -37,7 +37,7 @@ export function CasesPage() {
     return () => {
       cancelled = true;
     };
-  }, [t]);
+  }, [t, i18n.language]);
 
   return (
     <PageShell
@@ -94,7 +94,7 @@ export function CasesPage() {
 
 export function CaseDetailPage() {
   const { slug = '' } = useParams();
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [item, setItem] = useState<SuccessCase | null>(null);
   const [error, setError] = useState('');
 
@@ -113,7 +113,7 @@ export function CaseDetailPage() {
     return () => {
       cancelled = true;
     };
-  }, [slug, t]);
+  }, [slug, t, i18n.language]);
 
   if (error) {
     return (

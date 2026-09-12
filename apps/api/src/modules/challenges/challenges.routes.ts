@@ -7,17 +7,19 @@ import { requireAuth } from '../../middleware/auth.js';
 import { validateBody } from '../../middleware/validate.js';
 import { isUuid, param } from '../../lib/params.js';
 import { enqueueEmbedding } from '../../lib/queue/embedding-queue.js';
+import { enqueueTranslation, enqueueTranslationIfPublished, localizeEntities, localizeOne, requestLang } from '../../lib/translation/index.js';
 
 export const challengesRouter = Router();
 
 function mapChallenge(item: {
+  id: string;
   tags?: { tag: string }[];
   [key: string]: unknown;
 }) {
   return { ...item, tags: item.tags?.map((t) => t.tag) ?? [] };
 }
 
-challengesRouter.get('/', async (_req, res, next) => {
+challengesRouter.get('/', async (req, res, next) => {
   try {
     const items = await prisma.challenge.findMany({
       where: { status: ContentStatus.PUBLISHED },
@@ -25,7 +27,11 @@ challengesRouter.get('/', async (_req, res, next) => {
       orderBy: { updatedAt: 'desc' },
       take: 100,
     });
-    res.json({ items: items.map(mapChallenge) });
+    res.json({
+      items: await localizeEntities('challenge', items.map(mapChallenge), requestLang(req.query), {
+        nestedOrganization: true,
+      }),
+    });
   } catch (error) {
     next(error);
   }
@@ -42,7 +48,11 @@ challengesRouter.get('/:slugOrId', async (req, res, next) => {
       res.status(404).json({ error: 'not_found' });
       return;
     }
-    res.json({ challenge: mapChallenge(item) });
+    res.json({
+      challenge: await localizeOne('challenge', mapChallenge(item), requestLang(req.query), {
+        nestedOrganization: true,
+      }),
+    });
   } catch (error) {
     next(error);
   }
@@ -116,6 +126,10 @@ challengesRouter.patch(
         },
         include: { tags: true },
       });
+      void enqueueTranslationIfPublished(challenge.status, {
+        entityType: 'challenge',
+        entityId: challenge.id,
+      });
       res.json({ challenge: mapChallenge(challenge) });
     } catch (error) {
       next(error);
@@ -163,6 +177,7 @@ challengesRouter.post('/:id/publish', requireAuth, async (req, res, next) => {
       include: { tags: true },
     });
     void enqueueEmbedding({ entityType: 'challenge', entityId: challenge.id });
+    void enqueueTranslation({ entityType: 'challenge', entityId: challenge.id });
     res.json({ challenge: mapChallenge(challenge) });
   } catch (error) {
     next(error);

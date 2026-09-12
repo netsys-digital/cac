@@ -39,7 +39,7 @@ export function FundingOfferDetailPage() {
     return () => {
       cancelled = true;
     };
-  }, [slug, t]);
+  }, [slug, t, i18n.language]);
 
   if (error) {
     return (

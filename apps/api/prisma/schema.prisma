@@ -505,3 +505,21 @@ model Follow {
   @@index([userId])
   @@index([organizationId])
 }
+
+/// Tradução automática (LibreTranslate) de campos de catálogo.
+/// sourceHash identifica o texto-fonte para reusar o cache Redis e invalidar quando o original muda.
+model ContentTranslation {
+  id         String   @id @default(uuid()) @db.Uuid
+  entityType String
+  entityId   String   @db.Uuid
+  field      String
+  lang       String
+  value      String
+  sourceHash String
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@unique([entityType, entityId, field, lang])
+  @@index([entityType, entityId, lang])
+  @@index([sourceHash, lang])
+}

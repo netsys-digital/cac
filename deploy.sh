@@ -236,6 +236,10 @@ else
         need_web=1
         need_www=1
         ;;
+      deploy/libretranslate/*)
+        echo "  (lt)     $f"
+        need_worker=1
+        ;;
       deploy/nginx/*)
         echo "  (gw)     $f"
         need_gateway=1
@@ -277,6 +281,9 @@ echo
 echo "Serviços: ${services[*]:-nenhum}  gateway=${need_gateway}  db_prepare=${need_prepare_db}"
 
 ensure_netsys_infra
+echo "Garante LibreTranslate (modelos baixados no host, depois COPY na imagem)…"
+bash deploy/libretranslate/fetch-models.sh
+"${COMPOSE[@]}" up -d --build libretranslate
 
 # 1) Schema primeiro (enquanto containers antigos ainda atendem o máximo possível)
 if [[ "$need_prepare_db" == "1" ]]; then

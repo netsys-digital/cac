@@ -17,6 +17,8 @@ _MATERIAIS/
 _REQUISITOS/
 backups
 temp/
+deploy/libretranslate/models/*.argosmodel
+deploy/libretranslate/models/*.part
 .diag-*.html
 cac_full_diag.txt
 .cac-prod-fix-*.sh

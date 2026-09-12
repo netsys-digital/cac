@@ -32,6 +32,7 @@ services:
       OFFLINE_MODE: ${OFFLINE_MODE:-true}
       CORS_ORIGIN: ${CORS_ORIGIN:-https://portalcac.netsys.company,https://gestorcac.netsys.company}
       COOKIE_DOMAIN: ${COOKIE_DOMAIN:-.netsys.company}
+      LIBRETRANSLATE_URL: ${LIBRETRANSLATE_URL:-http://libretranslate:5000}
     volumes:
       - uploads_data:/app/apps/api/uploads
     networks:
@@ -46,6 +47,33 @@ services:
       retries: 10
       start_period: 60s
 
+  libretranslate:
+    build:
+      context: ./deploy/libretranslate
+    image: cac-libretranslate:v1.9.6-ptenes
+    command: --load-only en,es,pt
+    environment:
+      LT_DISABLE_WEB_UI: 'true'
+      LT_UPDATE_MODELS: 'false'
+      LT_LOAD_ONLY: en,es,pt
+      LT_THREADS: '2'
+    networks:
+      netsys:
+        aliases:
+          - libretranslate
+          - cac-libretranslate
+    restart: unless-stopped
+    healthcheck:
+      test:
+        [
+          'CMD-SHELL',
+          'python3 -c "import urllib.request; urllib.request.urlopen(''http://127.0.0.1:5000/languages'')"',
+        ]
+      interval: 30s
+      timeout: 10s
+      retries: 30
+      start_period: 300s
+
   api-worker:
     build:
       context: .
@@ -59,6 +87,7 @@ services:
       REDIS_URL: redis://redis:6379/5
       NODE_ENV: production
       OFFLINE_MODE: ${OFFLINE_MODE:-true}
+      LIBRETRANSLATE_URL: ${LIBRETRANSLATE_URL:-http://libretranslate:5000}
     depends_on:
       api:
         condition: service_healthy

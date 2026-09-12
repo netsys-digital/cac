@@ -11,10 +11,12 @@ import { slugify } from '../../lib/slug.js';
 import { requireAuth, requireRole } from '../../middleware/auth.js';
 import { validateBody } from '../../middleware/validate.js';
 import { isUuid, param } from '../../lib/params.js';
+import { enqueueTranslation, enqueueTranslationIfPublished, localizeEntities, localizeOne, requestLang } from '../../lib/translation/index.js';
 
 export const successCasesRouter = Router();
 
 function mapCase(item: {
+  id: string;
   needs?: Array<{ needType: string; detail: string | null; id: string }>;
   media?: unknown[];
   [key: string]: unknown;
@@ -26,7 +28,7 @@ function mapCase(item: {
   };
 }
 
-successCasesRouter.get('/', async (_req, res, next) => {
+successCasesRouter.get('/', async (req, res, next) => {
   try {
     const items = await prisma.successCase.findMany({
       where: { status: ContentStatus.PUBLISHED },
@@ -34,7 +36,11 @@ successCasesRouter.get('/', async (_req, res, next) => {
       orderBy: { updatedAt: 'desc' },
       take: 100,
     });
-    res.json({ items: items.map(mapCase) });
+    res.json({
+      items: await localizeEntities('success_case', items.map(mapCase), requestLang(req.query), {
+        nestedOrganization: true,
+      }),
+    });
   } catch (error) {
     next(error);
   }
@@ -54,7 +60,11 @@ successCasesRouter.get('/:slugOrId', async (req, res, next) => {
       res.status(404).json({ error: 'not_found' });
       return;
     }
-    res.json({ successCase: mapCase(item) });
+    res.json({
+      successCase: await localizeOne('success_case', mapCase(item), requestLang(req.query), {
+        nestedOrganization: true,
+      }),
+    });
   } catch (error) {
     next(error);
   }
@@ -154,6 +164,10 @@ successCasesRouter.patch(
         },
         include: { needs: true, media: true, organization: true },
       });
+      void enqueueTranslationIfPublished(successCase.status, {
+        entityType: 'success_case',
+        entityId: successCase.id,
+      });
       res.json({ successCase: mapCase(successCase) });
     } catch (error) {
       next(error);
@@ -200,6 +214,7 @@ successCasesRouter.post(
         data: { status: ContentStatus.PUBLISHED },
         include: { needs: true, media: true },
       });
+      void enqueueTranslation({ entityType: 'success_case', entityId: successCase.id });
       res.json({ successCase: mapCase(successCase) });
     } catch (error) {
       next(error);

@@ -20,7 +20,7 @@ fi
 
 echo
 echo "Próximos passos (dev):"
-echo "  docker compose up -d postgres redis api api-worker"
+echo "  docker compose up -d postgres redis libretranslate api api-worker"
 echo "  docker compose stop web www    # libera 5178/5179 para Vite"
 echo "  npm install"
 echo "  npm run db:migrate -w @cac/api"

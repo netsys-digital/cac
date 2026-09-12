@@ -15,6 +15,8 @@ import { requireAuth, requireRole } from '../../middleware/auth.js';
 import { validateBody } from '../../middleware/validate.js';
 import { param } from '../../lib/params.js';
 import { adminUsersRouter } from './admin-users.routes.js';
+import { enqueueTranslation } from '../../lib/translation/index.js';
+import type { TranslationEntityType } from '../../lib/translation/fields.js';
 
 export const adminRouter = Router();
 
@@ -509,6 +511,23 @@ adminRouter.get('/pending', async (_req, res, next) => {
 
 type CurationDecision = 'PUBLISHED' | 'DRAFT' | 'ARCHIVED';
 
+function curationKindToEntity(kind: string): TranslationEntityType | null {
+  switch (kind) {
+    case 'TECHNOLOGY':
+      return 'technology';
+    case 'CHALLENGE':
+      return 'challenge';
+    case 'PROJECT':
+      return 'project';
+    case 'FUNDING_OFFER':
+      return 'funding_offer';
+    case 'SUCCESS_CASE':
+      return 'success_case';
+    default:
+      return null;
+  }
+}
+
 function readCurationNote(body: unknown): string {
   if (!body || typeof body !== 'object') return '';
   const note = (body as { note?: unknown }).note;
@@ -569,6 +588,10 @@ adminRouter.post('/pending/:kind/:id/publish', async (req, res, next) => {
     if ('error' in result) {
       res.status(result.error === 'unsupported_kind' ? 400 : 400).json({ error: result.error });
       return;
+    }
+    const entityType = curationKindToEntity(kind);
+    if (entityType && 'item' in result) {
+      void enqueueTranslation({ entityType, entityId: result.item.id });
     }
     res.json(result);
   } catch (error) {

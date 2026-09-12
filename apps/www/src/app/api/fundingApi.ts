@@ -1,7 +1,8 @@
 import { urls } from '../../config';
+import { withLang } from './withLang';
 
 async function api<T>(path: string): Promise<T> {
-  const res = await fetch(`${urls.api}${path}`);
+  const res = await fetch(`${urls.api}${withLang(path)}`);
   if (!res.ok) throw new Error(`http_${res.status}`);
   return (await res.json()) as T;
 }

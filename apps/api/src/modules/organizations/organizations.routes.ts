@@ -15,6 +15,7 @@ import { slugify } from '../../lib/slug.js';
 import { requireAuth } from '../../middleware/auth.js';
 import { validateBody } from '../../middleware/validate.js';
 import { isUuid, param } from '../../lib/params.js';
+import { enqueueTranslation, localizeEntities, localizeOne, requestLang } from '../../lib/translation/index.js';
 
 export const organizationsRouter = Router();
 
@@ -94,13 +95,13 @@ function withLogoUpload(
   });
 }
 
-organizationsRouter.get('/', async (_req, res, next) => {
+organizationsRouter.get('/', async (req, res, next) => {
   try {
     const items = await prisma.organization.findMany({
       orderBy: { name: 'asc' },
       take: 100,
     });
-    res.json({ items });
+    res.json({ items: await localizeEntities('organization', items, requestLang(req.query)) });
   } catch (error) {
     next(error);
   }
@@ -121,7 +122,7 @@ organizationsRouter.get('/:slugOrId', async (req, res, next) => {
       res.status(404).json({ error: 'not_found' });
       return;
     }
-    res.json({ organization: item });
+    res.json({ organization: await localizeOne('organization', item, requestLang(req.query)) });
   } catch (error) {
     next(error);
   }
@@ -159,6 +160,7 @@ organizationsRouter.post('/', requireAuth, withLogoUpload, async (req, res, next
         },
       },
     });
+    void enqueueTranslation({ entityType: 'organization', entityId: organization.id });
     res.status(201).json({ organization });
   } catch (error) {
     if (error instanceof ZodError) {
@@ -182,6 +184,7 @@ organizationsRouter.patch(
           website: req.body.website === '' ? null : req.body.website,
         },
       });
+      void enqueueTranslation({ entityType: 'organization', entityId: organization.id });
       res.json({ organization });
     } catch (error) {
       next(error);

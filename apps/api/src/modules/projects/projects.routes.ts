@@ -7,10 +7,11 @@ import { requireAuth, requireRole } from '../../middleware/auth.js';
 import { validateBody } from '../../middleware/validate.js';
 import { isUuid, param } from '../../lib/params.js';
 import { enqueueEmbedding } from '../../lib/queue/embedding-queue.js';
+import { enqueueTranslation, enqueueTranslationIfPublished, localizeEntities, localizeOne, requestLang } from '../../lib/translation/index.js';
 
 export const projectsRouter = Router();
 
-projectsRouter.get('/', async (_req, res, next) => {
+projectsRouter.get('/', async (req, res, next) => {
   try {
     const items = await prisma.project.findMany({
       where: { status: ContentStatus.PUBLISHED },
@@ -18,7 +19,9 @@ projectsRouter.get('/', async (_req, res, next) => {
       orderBy: { updatedAt: 'desc' },
       take: 100,
     });
-    res.json({ items });
+    res.json({
+      items: await localizeEntities('project', items, requestLang(req.query), { nestedOrganization: true }),
+    });
   } catch (error) {
     next(error);
   }
@@ -38,7 +41,9 @@ projectsRouter.get('/:slugOrId', async (req, res, next) => {
       res.status(404).json({ error: 'not_found' });
       return;
     }
-    res.json({ project: item });
+    res.json({
+      project: await localizeOne('project', item, requestLang(req.query), { nestedOrganization: true }),
+    });
   } catch (error) {
     next(error);
   }
@@ -95,6 +100,7 @@ projectsRouter.patch(
         where: { id: current.id },
         data: req.body,
       });
+      void enqueueTranslationIfPublished(project.status, { entityType: 'project', entityId: project.id });
       res.json({ project });
     } catch (error) {
       next(error);
@@ -140,6 +146,7 @@ projectsRouter.post(
         data: { status: ContentStatus.PUBLISHED },
       });
       void enqueueEmbedding({ entityType: 'project', entityId: project.id });
+      void enqueueTranslation({ entityType: 'project', entityId: project.id });
       res.json({ project });
     } catch (error) {
       next(error);

@@ -42,6 +42,14 @@ export const env = {
   smtpUser: process.env.SMTP_USER ?? '',
   smtpPass: process.env.SMTP_PASS ?? '',
   smtpFrom: process.env.SMTP_FROM_EMAIL ?? 'noreply@climateactionconnect.org',
+  defaultLang: (process.env.DEFAULT_LANG ?? 'pt').toLowerCase().split(',')[0].trim() || 'pt',
+  supportedLangs: (process.env.SUPPORTED_LANGS ?? 'pt,en,es')
+    .split(',')
+    .map((lang) => lang.trim().toLowerCase())
+    .filter(Boolean),
+  translationEnabled: (process.env.TRANSLATION_ENABLED ?? 'true').toLowerCase() !== 'false',
+  translationProvider: process.env.TRANSLATION_PROVIDER ?? 'libretranslate',
+  libreTranslateUrl: (process.env.LIBRETRANSLATE_URL ?? '').replace(/\/$/, ''),
 };
 
 export const REFRESH_COOKIE = 'cac_refresh';

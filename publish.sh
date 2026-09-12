@@ -153,6 +153,11 @@ log "Build imagens (api, api-worker, web, www) — fronts --no-cache (PUBLIC_* +
 "${COMPOSE[@]}" build --no-cache web www
 
 # ----- 5) recreate ordenado --------------------------------------------------
+log "Baixa modelos Argos no host (fora do Docker) e constrói LibreTranslate"
+bash deploy/libretranslate/fetch-models.sh
+"${COMPOSE[@]}" build libretranslate
+"${COMPOSE[@]}" up -d --no-deps --force-recreate libretranslate
+
 log "Recreate API (entrypoint aplica prisma migrate deploy)"
 "${COMPOSE[@]}" up -d --no-deps --force-recreate api
 

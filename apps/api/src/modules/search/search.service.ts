@@ -7,6 +7,8 @@ import { env } from '../../config/env.js';
 import { getEmbeddingProvider } from '../../lib/embeddings/provider.js';
 import { prisma } from '../../lib/prisma.js';
 import { interpretQuery } from './interpret.js';
+import { localizeEntities } from '../../lib/translation/localize.js';
+import type { TranslationEntityType } from '../../lib/translation/fields.js';
 import {
   applyAnchorCalibration,
   composeScore,
@@ -83,6 +85,86 @@ type Candidate = {
 function asVector(value: unknown): number[] | null {
   if (!Array.isArray(value)) return null;
   return value.map((n) => Number(n)).filter((n) => !Number.isNaN(n));
+}
+
+const SEARCH_TYPE_MAP: Record<string, TranslationEntityType> = {
+  SOLUTION: 'technology',
+  PROJECT: 'project',
+  ORGANIZATION: 'organization',
+  FUNDER: 'funder',
+  CASE: 'success_case',
+  CHALLENGE: 'challenge',
+};
+
+function candidateTranslationType(c: Candidate): TranslationEntityType | null {
+  if (c.contentType === 'FUNDER' && c.tags.includes('active')) return 'funding_offer';
+  return SEARCH_TYPE_MAP[c.contentType] ?? null;
+}
+
+/**
+ * Acrescenta textos EN/ES (e demais langs) de ContentTranslation ao textBlob,
+ * para keyword matching cross-lang numa única passagem.
+ */
+async function enrichCandidatesWithTranslations(candidates: Candidate[]): Promise<void> {
+  if (!candidates.length) return;
+
+  const byType = new Map<TranslationEntityType, string[]>();
+  for (const c of candidates) {
+    const type = candidateTranslationType(c);
+    if (!type) continue;
+    const list = byType.get(type) ?? [];
+    list.push(c.id);
+    byType.set(type, list);
+  }
+  if (!byType.size) return;
+
+  const rows = await prisma.contentTranslation.findMany({
+    where: {
+      OR: [...byType.entries()].map(([entityType, entityIds]) => ({
+        entityType,
+        entityId: { in: entityIds },
+      })),
+    },
+    select: { entityId: true, value: true },
+  });
+  if (!rows.length) return;
+
+  const extras = new Map<string, string[]>();
+  for (const row of rows) {
+    if (!row.value?.trim()) continue;
+    const list = extras.get(row.entityId) ?? [];
+    list.push(row.value);
+    extras.set(row.entityId, list);
+  }
+
+  for (const c of candidates) {
+    const parts = extras.get(c.id);
+    if (parts?.length) {
+      c.textBlob = `${c.textBlob} ${parts.join(' ')}`;
+    }
+  }
+}
+
+async function localizeSearchResults(items: SearchResultItem[], lang: string): Promise<SearchResultItem[]> {
+  const groups = new Map<TranslationEntityType, SearchResultItem[]>();
+  for (const item of items) {
+    const type = SEARCH_TYPE_MAP[item.contentType];
+    if (!type) continue;
+    const list = groups.get(type) ?? [];
+    list.push(item);
+    groups.set(type, list);
+  }
+  const overlays = new Map<string, { title: string; summary: string }>();
+  for (const [type, group] of groups) {
+    const localized = await localizeEntities(type, group, lang);
+    for (const row of localized) {
+      overlays.set(row.id, { title: row.title, summary: row.summary });
+    }
+  }
+  return items.map((item) => {
+    const hit = overlays.get(item.id);
+    return hit ? { ...item, title: hit.title, summary: hit.summary } : item;
+  });
 }
 
 export async function runSearch(body: SearchBody): Promise<SearchResponse> {
@@ -350,6 +432,8 @@ export async function runSearch(body: SearchBody): Promise<SearchResponse> {
     candidates.push(...filtered);
   }
 
+  await enrichCandidatesWithTranslations(candidates);
+
   const scored: SearchResultItem[] = [];
 
   for (const c of candidates) {
@@ -447,15 +531,41 @@ export async function runSearch(body: SearchBody): Promise<SearchResponse> {
     })
     .slice(0, 8);
 
+  const [localizedVisible, localizedOffers, localizedRelated] = await Promise.all([
+    localizeSearchResults(visible, lang),
+    whoCanFund.length
+      ? localizeEntities(
+          'funding_offer',
+          whoCanFund.map((offer) => ({ id: offer.id, title: offer.name, summary: '' })),
+          lang,
+        )
+      : Promise.resolve([]),
+    relatedProjects.length
+      ? localizeEntities(
+          'project',
+          relatedProjects.map((project) => ({ id: project.id, title: project.title, summary: '' })),
+          lang,
+        )
+      : Promise.resolve([]),
+  ]);
+  const offerTitles = new Map(localizedOffers.map((offer) => [offer.id, offer.title]));
+  const projectTitles = new Map(localizedRelated.map((project) => [project.id, project.title]));
+
   return {
     interpretation: interpretQuery(query, lang),
     total: qualified.length,
     facets,
-    results: visible,
+    results: localizedVisible,
     paths: {
       whoCanSolve: [...whoCanSolveMap.values()].sort((a, b) => b.score - a.score).slice(0, 8),
-      whoCanFund: whoCanFund.slice(0, 8),
-      relatedProjects,
+      whoCanFund: whoCanFund.slice(0, 8).map((offer) => ({
+        ...offer,
+        name: offerTitles.get(offer.id) ?? offer.name,
+      })),
+      relatedProjects: relatedProjects.map((project) => ({
+        ...project,
+        title: projectTitles.get(project.id) ?? project.title,
+      })),
     },
     meta: {
       minScore,

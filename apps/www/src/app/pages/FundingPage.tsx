@@ -29,7 +29,7 @@ export function FundingPage() {
     return () => {
       cancelled = true;
     };
-  }, [t]);
+  }, [t, i18n.language]);
 
   return (
     <PageShell

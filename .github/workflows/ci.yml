@@ -38,6 +38,9 @@ jobs:
       JWT_REFRESH_SECRET: ci-refresh-secret-change-me-min-32
       CORS_ORIGIN: http://localhost:5178,http://localhost:5179
       COOKIE_DOMAIN: localhost
+      TRANSLATION_ENABLED: 'true'
+      DEFAULT_LANG: pt
+      SUPPORTED_LANGS: pt,en,es
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4

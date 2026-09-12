@@ -15,7 +15,7 @@ import { resolveMediaUrl } from '../lib/mediaUrl';
 
 export function ProjectDetailPage() {
   const { slug = '' } = useParams();
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [item, setItem] = useState<Project | null>(null);
   const [error, setError] = useState('');
 
@@ -32,7 +32,7 @@ export function ProjectDetailPage() {
     return () => {
       cancelled = true;
     };
-  }, [slug, t]);
+  }, [slug, t, i18n.language]);
 
   if (error) {
     return (

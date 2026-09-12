@@ -8,7 +8,7 @@ import { resolveMediaUrl } from '../lib/mediaUrl';
 
 export function OrganizationPage() {
   const { slug = '' } = useParams();
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [org, setOrg] = useState<OrgSummary | null>(null);
   const [techs, setTechs] = useState<Technology[]>([]);
   const [error, setError] = useState('');
@@ -28,7 +28,7 @@ export function OrganizationPage() {
     return () => {
       cancelled = true;
     };
-  }, [slug, t]);
+  }, [slug, t, i18n.language]);
 
   if (error) {
     return <PageShell title={t('detail.notFound')} />;

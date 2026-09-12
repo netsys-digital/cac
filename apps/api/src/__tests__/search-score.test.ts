@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import {
   applyAnchorCalibration,
   composeScore,
+  expandQueryTokens,
   getScoreWeights,
   keywordOverlap,
   tokenize,
@@ -37,6 +38,29 @@ describe('score engine', () => {
       'Solução para recuperação de pastagens em seca pastagem pecuária adaptação',
     );
     expect(overlap).toBeGreaterThan(0.5);
+  });
+
+  it('matches English query against Portuguese catalogue text via synonyms', () => {
+    const tokens = tokenize('pasture drought recovery');
+    const overlap = keywordOverlap(
+      tokens,
+      'Solução para recuperação de pastagens em seca pastagem pecuária adaptação',
+    );
+    expect(overlap).toBeGreaterThan(0.5);
+  });
+
+  it('matches English query against enriched translation blob', () => {
+    const tokens = tokenize('drought in pastures');
+    const overlap = keywordOverlap(
+      tokens,
+      'Recuperação de pastagens em seca Drought recovery for pastures in drylands',
+    );
+    expect(overlap).toBeGreaterThan(0.5);
+  });
+
+  it('expandQueryTokens adds PT/EN/ES equivalents', () => {
+    const expanded = expandQueryTokens(tokenize('drought'));
+    expect(expanded).toEqual(expect.arrayContaining(['drought', 'seca', 'sequia']));
   });
 
   it('calibrates anchor demo scores 94/89/83', () => {

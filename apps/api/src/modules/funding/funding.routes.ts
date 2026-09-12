@@ -12,6 +12,7 @@ import { slugify } from '../../lib/slug.js';
 import { requireAuth, requireRole } from '../../middleware/auth.js';
 import { validateBody } from '../../middleware/validate.js';
 import { isUuid, param } from '../../lib/params.js';
+import { enqueueTranslation, enqueueTranslationIfPublished, localizeEntities, localizeOne, requestLang } from '../../lib/translation/index.js';
 
 export const fundingOffersRouter = Router();
 export const fundersRouter = Router();
@@ -31,7 +32,11 @@ fundingOffersRouter.get('/', async (req, res, next) => {
       orderBy: { updatedAt: 'desc' },
       take: 100,
     });
-    res.json({ items });
+    res.json({
+      items: await localizeEntities('funding_offer', items, requestLang(req.query), {
+        nestedOrganization: true,
+      }),
+    });
   } catch (error) {
     next(error);
   }
@@ -51,7 +56,9 @@ fundingOffersRouter.get('/:slugOrId', async (req, res, next) => {
       res.status(404).json({ error: 'not_found' });
       return;
     }
-    res.json({ offer: item });
+    res.json({
+      offer: await localizeOne('funding_offer', item, requestLang(req.query), { nestedOrganization: true }),
+    });
   } catch (error) {
     next(error);
   }
@@ -104,6 +111,7 @@ fundingOffersRouter.patch(
           officialUrl: req.body.officialUrl === '' ? null : req.body.officialUrl,
         },
       });
+      void enqueueTranslationIfPublished(offer.status, { entityType: 'funding_offer', entityId: offer.id });
       res.json({ offer });
     } catch (error) {
       next(error);
@@ -148,6 +156,7 @@ fundingOffersRouter.post(
         where: { id: current.id },
         data: { status: ContentStatus.PUBLISHED },
       });
+      void enqueueTranslation({ entityType: 'funding_offer', entityId: offer.id });
       res.json({ offer });
     } catch (error) {
       next(error);
@@ -155,7 +164,7 @@ fundingOffersRouter.post(
   },
 );
 
-fundersRouter.get('/', async (_req, res, next) => {
+fundersRouter.get('/', async (req, res, next) => {
   try {
     const items = await prisma.funderProfile.findMany({
       where: { status: ContentStatus.PUBLISHED },
@@ -163,7 +172,9 @@ fundersRouter.get('/', async (_req, res, next) => {
       orderBy: { name: 'asc' },
       take: 100,
     });
-    res.json({ items });
+    res.json({
+      items: await localizeEntities('funder', items, requestLang(req.query), { nestedOrganization: true }),
+    });
   } catch (error) {
     next(error);
   }
@@ -183,7 +194,9 @@ fundersRouter.get('/:slugOrId', async (req, res, next) => {
       res.status(404).json({ error: 'not_found' });
       return;
     }
-    res.json({ funder: item });
+    res.json({
+      funder: await localizeOne('funder', item, requestLang(req.query), { nestedOrganization: true }),
+    });
   } catch (error) {
     next(error);
   }
@@ -206,6 +219,7 @@ fundersRouter.post('/', requireAuth, validateBody(createFunderProfileBodySchema)
         status: ContentStatus.PUBLISHED,
       },
     });
+    void enqueueTranslation({ entityType: 'funder', entityId: funder.id });
     res.status(201).json({ funder });
   } catch (error) {
     next(error);

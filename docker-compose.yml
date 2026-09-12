@@ -1,3 +1,12 @@
+# Rede explícita para DNS entre api/worker e LibreTranslate.
+# netsys (externa) cobre o caso híbrido local+gateway de prod no mesmo host.
+networks:
+  default:
+    name: cac_default
+  netsys:
+    external: true
+    name: netsys
+
 services:
   postgres:
     image: postgres:16-alpine
@@ -25,6 +34,38 @@ services:
       timeout: 5s
       retries: 10
 
+  libretranslate:
+    build:
+      context: ./deploy/libretranslate
+    image: cac-libretranslate:v1.9.6-ptenes
+    command: --load-only en,es,pt
+    environment:
+      LT_DISABLE_WEB_UI: 'true'
+      LT_UPDATE_MODELS: 'false'
+      LT_LOAD_ONLY: en,es,pt
+      LT_THREADS: '2'
+    ports:
+      - '5001:5000'
+    networks:
+      default:
+        aliases:
+          - libretranslate
+      netsys:
+        aliases:
+          - libretranslate
+          - cac-libretranslate
+    restart: unless-stopped
+    healthcheck:
+      test:
+        [
+          'CMD-SHELL',
+          'python3 -c "import urllib.request; urllib.request.urlopen(''http://127.0.0.1:5000/languages'')"',
+        ]
+      interval: 20s
+      timeout: 10s
+      retries: 30
+      start_period: 240s
+
   api:
     build:
       context: .
@@ -39,6 +80,9 @@ services:
       API_PORT: '3003'
       COOKIE_DOMAIN: localhost
       CORS_ORIGIN: http://localhost:5178,http://localhost:5179
+      LIBRETRANSLATE_URL: http://libretranslate:5000
+    extra_hosts:
+      - 'host.docker.internal:host-gateway'
     ports:
       - '3003:3003'
     volumes:
@@ -60,6 +104,9 @@ services:
     environment:
       DATABASE_URL: postgresql://cac:cac_secret@postgres:5432/cac
       REDIS_URL: redis://redis:6379
+      LIBRETRANSLATE_URL: http://libretranslate:5000
+    extra_hosts:
+      - 'host.docker.internal:host-gateway'
     depends_on:
       postgres:
         condition: service_healthy
