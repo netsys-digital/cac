@@ -48,7 +48,7 @@ const uploadCover = multer({
 
 const uploadBanner = multer({
   storage,
-  limits: { fileSize: 300 * 1024 },
+  limits: { fileSize: 400 * 1024 },
   fileFilter: (_req, file, cb) => {
     if (!coverAllowed.has(file.mimetype)) {
       cb(new Error('invalid_mime'));

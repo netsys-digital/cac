@@ -449,7 +449,7 @@ export const en = {
     orgsMediaNoKinds: 'No authorized content types. Set them on the Details tab.',
     orgBannerLabel: 'Banner · {{kind}}',
     orgBannerHint:
-      'Optional. 1900×200 px (or 19:2 ratio), up to 300 KB. Used on detail pages when the publication has no banner of its own.',
+      'Optional. 1200×200 px (or 6:1 ratio), up to 400 KB. Used on detail pages when the publication has no banner of its own.',
     orgsLinksHint:
       'Requested representations and members of this organization. Deleting removes the link and member access.',
     orgsLinksEmpty: 'No requested, authorized or member links for this organization.',
@@ -605,11 +605,11 @@ export const en = {
     coverImageEmpty: 'No image',
     bannerImage: 'Banner',
     bannerImageHint:
-      'Optional. Exactly 1900×200 px (or smaller 19:2 ratio), JPEG/PNG/WebP up to 300 KB.',
+      'Optional. Exactly 1200×200 px (or smaller 6:1 ratio), JPEG/PNG/WebP up to 400 KB.',
     bannerImageEmpty: 'No banner',
-    bannerTooLarge: 'Banner over 300 KB. Compress the file and try again.',
+    bannerTooLarge: 'Banner over 400 KB. Compress the file and try again.',
     bannerBadDimensions:
-      'Invalid size. Use 1900×200 px or an equivalent 19:2 ratio within 1900×200.',
+      'Invalid size. Use 1200×200 px or an equivalent 6:1 ratio within 1200×200.',
     bannerInvalidImage: 'Could not read the banner image.',
     bannerLink: 'Banner link',
     bannerLinkHint: 'Optional. URL opened in a new tab when the banner is clicked on the public portal.',

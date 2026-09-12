@@ -13,10 +13,10 @@ export function pickBannerLink(form: FormData, name = 'bannerLinkUrl'): string |
   return raw || null;
 }
 
-export const BANNER_MAX_BYTES = 300 * 1024;
-export const BANNER_TARGET_WIDTH = 1900;
+export const BANNER_MAX_BYTES = 400 * 1024;
+export const BANNER_TARGET_WIDTH = 1200;
 export const BANNER_TARGET_HEIGHT = 200;
-export const BANNER_ASPECT = BANNER_TARGET_WIDTH / BANNER_TARGET_HEIGHT; // 9.5
+export const BANNER_ASPECT = BANNER_TARGET_WIDTH / BANNER_TARGET_HEIGHT; // 6
 
 function readImageSize(file: File): Promise<{ width: number; height: number }> {
   return new Promise((resolve, reject) => {
@@ -36,7 +36,7 @@ function readImageSize(file: File): Promise<{ width: number; height: number }> {
   });
 }
 
-/** Valida arquivo de banner: ≤300 KB e 1900×200 (ou proporção equivalente dentro do envelope). */
+/** Valida arquivo de banner: ≤400 KB e 1200×200 (ou proporção equivalente dentro do envelope). */
 export async function validateBannerFile(
   file: File,
 ): Promise<'ok' | 'too_large' | 'bad_dimensions' | 'invalid_image'> {
@@ -152,7 +152,7 @@ export function BannerImageField({
         </label>
         <p className="text-mini leading-snug text-cac-muted">{hint ?? t('catalog.bannerImageHint')}</p>
         <div className="flex flex-wrap items-start gap-3">
-          <div className="aspect-[19/2] w-full max-w-md overflow-hidden border border-cac-line bg-[#edf1f3]">
+          <div className="aspect-[6/1] w-full max-w-md overflow-hidden border border-cac-line bg-[#edf1f3]">
             {preview ? (
               <img src={preview} alt="" className="h-full w-full object-cover" />
             ) : (

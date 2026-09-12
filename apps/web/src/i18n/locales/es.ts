@@ -449,7 +449,7 @@ export const es = {
     orgsMediaNoKinds: 'Ningún tipo de contenido autorizado. Defínelos en la pestaña Datos.',
     orgBannerLabel: 'Banner · {{kind}}',
     orgBannerHint:
-      'Opcional. 1900×200 px (o proporción 19:2), hasta 300 KB. Se usa en el detalle cuando la publicación no tiene banner propio.',
+      'Opcional. 1200×200 px (o proporción 6:1), hasta 400 KB. Se usa en el detalle cuando la publicación no tiene banner propio.',
     orgsLinksHint:
       'Solicitudes, representaciones y miembros de esta organización. Excluir quita el vínculo y el acceso de miembro.',
     orgsLinksEmpty: 'Ningún vínculo solicitado, autorizado o miembro en esta organización.',
@@ -605,11 +605,11 @@ export const es = {
     coverImageEmpty: 'Sin imagen',
     bannerImage: 'Banner',
     bannerImageHint:
-      'Opcional. Exactamente 1900×200 px (o proporción 19:2 menor), JPEG/PNG/WebP hasta 300 KB.',
+      'Opcional. Exactamente 1200×200 px (o proporción 6:1 menor), JPEG/PNG/WebP hasta 400 KB.',
     bannerImageEmpty: 'Sin banner',
-    bannerTooLarge: 'Banner superior a 300 KB. Reduce el archivo e inténtalo de nuevo.',
+    bannerTooLarge: 'Banner superior a 400 KB. Reduce el archivo e inténtalo de nuevo.',
     bannerBadDimensions:
-      'Dimensión inválida. Usa 1900×200 px o proporción equivalente (19:2) sin superar 1900×200.',
+      'Dimensión inválida. Usa 1200×200 px o proporción equivalente (6:1) sin superar 1200×200.',
     bannerInvalidImage: 'No fue posible leer la imagen del banner.',
     bannerLink: 'Enlace del banner',
     bannerLinkHint: 'Opcional. URL abierta en una nueva pestaña al hacer clic en el banner del portal público.',

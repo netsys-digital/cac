@@ -53,7 +53,7 @@ const orgBannerUpload = multer({
       cb(null, `${randomUUID()}${ext}`);
     },
   }),
-  limits: { fileSize: 300 * 1024 },
+  limits: { fileSize: 400 * 1024 },
   fileFilter: (_req, file, cb) => {
     if (!logoAllowed.has(file.mimetype)) {
       cb(new Error('invalid_mime'));

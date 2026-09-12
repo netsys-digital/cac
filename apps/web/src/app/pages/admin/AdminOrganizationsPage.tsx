@@ -798,7 +798,7 @@ export function AdminOrganizationsPage() {
                         <p className="text-mini font-extrabold uppercase tracking-[0.4px] text-cac-muted">
                           {t('admin.orgBannerLabel', { kind: t(`admin.publishKind.${kind}`) })}
                         </p>
-                        <div className="mt-3 aspect-[19/2] w-full max-w-md overflow-hidden border border-cac-line bg-[#edf1f3]">
+                        <div className="mt-3 aspect-[6/1] w-full max-w-md overflow-hidden border border-cac-line bg-[#edf1f3]">
                           {url ? (
                             <img src={url} alt="" className="h-full w-full object-cover" />
                           ) : (
