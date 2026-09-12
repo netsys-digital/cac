@@ -6,6 +6,7 @@ import { useAuth } from '../../auth/AuthContext';
 import { myContentsApi } from '../../api/myContentsApi';
 import { catalogApi } from '../../api/catalogApi';
 import { FieldFull, FormPage, SelectField } from '../../components/forms/FormPage';
+import { BannerImageField, pickBannerFile } from '../../components/forms/BannerImageField';
 import {
   pickCoverFile,
   RepresentativeImageField,
@@ -28,6 +29,7 @@ export function EditChallengePage() {
   const [error, setError] = useState('');
   const [message, setMessage] = useState('');
   const [loading, setLoading] = useState(true);
+  const [tab, setTab] = useState('content');
 
   useEffect(() => {
     if (!accessToken || !id) return;
@@ -67,6 +69,7 @@ export function EditChallengePage() {
         summary: String(form.get('summary')),
         context: String(form.get('context')),
         needType: String(form.get('needType')),
+        bannerLinkUrl: String(form.get('bannerLinkUrl') || '').trim() || null,
         country: String(form.get('country')),
         region: String(form.get('region')),
         tags,
@@ -74,6 +77,10 @@ export function EditChallengePage() {
       const cover = pickCoverFile(form);
       if (cover) {
         await catalogApi.uploadCover(accessToken, 'challenges', id, cover);
+      }
+      const banner = pickBannerFile(form);
+      if (banner) {
+        await catalogApi.uploadBanner(accessToken, 'challenges', id, banner);
       }
       const after = await myContentsApi.get(accessToken, 'CHALLENGE', id);
       if (String(after.item.status) === 'DRAFT') {
@@ -109,50 +116,71 @@ export function EditChallengePage() {
       submitLabel={t('mine.saveSubmit')}
       error={error}
       message={message}
-    >
-      <FieldFull>
-        <p className="rounded-lg border border-cac-line bg-[#fbfcfb] px-3 py-2 text-pequena text-cac-muted">
-          {(item.organization as { name?: string } | undefined)?.name ?? '—'} ·{' '}
-          <button type="button" className="font-bold text-cac-green" onClick={() => navigate('/my/contents')}>
-            {t('mine.backList')}
-          </button>
-        </p>
-      </FieldFull>
-      <FieldFull>
-        <Input label={t('catalog.title')} name="title" required defaultValue={String(item.title)} />
-      </FieldFull>
-      <FieldFull>
-        <TextArea label={t('catalog.summary')} name="summary" required rows={4} defaultValue={String(item.summary)} />
-      </FieldFull>
-      <FieldFull>
-        <TextArea
-          label={t('catalog.context')}
-          hint={t('catalog.contextChallengeHint')}
-          name="context"
-          required
-          rows={4}
-          defaultValue={String(item.context || '')}
-        />
-      </FieldFull>
-      <FieldFull>
-        <RepresentativeImageField currentUrl={item.coverImageUrl ? String(item.coverImageUrl) : null} />
-      </FieldFull>
-      <SelectField label={t('catalog.needType')} name="needType" required defaultValue={String(item.needType || 'TECHNOLOGY')}>
-        <option value="TECHNOLOGY">{t('catalog.needTechnology')}</option>
-        <option value="KNOWLEDGE">{t('catalog.needKnowledge')}</option>
-        <option value="PARTNERSHIP">{t('catalog.needPartnership')}</option>
-        <option value="FUNDING">{t('catalog.needFunding')}</option>
-        <option value="TRAINING">{t('catalog.needTraining')}</option>
-        <option value="RESEARCH">{t('catalog.needResearch')}</option>
-        <option value="EQUIPMENT">{t('catalog.needEquipment')}</option>
-      </SelectField>
-      <RegionCountryFields
-        defaultRegion={String(item.region || 'south_america')}
-        defaultCountry={String(item.country || 'BR')}
-      />
-      <FieldFull>
-        <Input label={t('catalog.tags')} hint={t('catalog.tagsHint')} name="tags" required defaultValue={tags} />
-      </FieldFull>
-    </FormPage>
+      tabs={[
+        { id: 'content', label: t('mine.tabContent') },
+        { id: 'media', label: t('mine.tabMedia') },
+      ]}
+      activeTab={tab}
+      onTabChange={setTab}
+      panels={{
+        content: (
+          <>
+            <FieldFull>
+              <p className="rounded-lg border border-cac-line bg-[#fbfcfb] px-3 py-2 text-pequena text-cac-muted">
+                {(item.organization as { name?: string } | undefined)?.name ?? '—'} ·{' '}
+                <button type="button" className="font-bold text-cac-green" onClick={() => navigate('/my/contents')}>
+                  {t('mine.backList')}
+                </button>
+              </p>
+            </FieldFull>
+            <FieldFull>
+              <Input label={t('catalog.title')} name="title" required defaultValue={String(item.title)} />
+            </FieldFull>
+            <FieldFull>
+              <TextArea label={t('catalog.summary')} name="summary" required rows={4} defaultValue={String(item.summary)} />
+            </FieldFull>
+            <FieldFull>
+              <TextArea
+                label={t('catalog.context')}
+                hint={t('catalog.contextChallengeHint')}
+                name="context"
+                required
+                rows={4}
+                defaultValue={String(item.context || '')}
+              />
+            </FieldFull>
+            <SelectField label={t('catalog.needType')} name="needType" required defaultValue={String(item.needType || 'TECHNOLOGY')}>
+              <option value="TECHNOLOGY">{t('catalog.needTechnology')}</option>
+              <option value="KNOWLEDGE">{t('catalog.needKnowledge')}</option>
+              <option value="PARTNERSHIP">{t('catalog.needPartnership')}</option>
+              <option value="FUNDING">{t('catalog.needFunding')}</option>
+              <option value="TRAINING">{t('catalog.needTraining')}</option>
+              <option value="RESEARCH">{t('catalog.needResearch')}</option>
+              <option value="EQUIPMENT">{t('catalog.needEquipment')}</option>
+            </SelectField>
+            <RegionCountryFields
+              defaultRegion={String(item.region || 'south_america')}
+              defaultCountry={String(item.country || 'BR')}
+            />
+            <FieldFull>
+              <Input label={t('catalog.tags')} hint={t('catalog.tagsHint')} name="tags" required defaultValue={tags} />
+            </FieldFull>
+          </>
+        ),
+        media: (
+          <>
+            <FieldFull>
+              <RepresentativeImageField currentUrl={item.coverImageUrl ? String(item.coverImageUrl) : null} />
+            </FieldFull>
+            <FieldFull>
+              <BannerImageField
+                currentUrl={item.bannerImageUrl ? String(item.bannerImageUrl) : null}
+                currentLink={item.bannerLinkUrl ? String(item.bannerLinkUrl) : null}
+              />
+            </FieldFull>
+          </>
+        ),
+      }}
+    />
   );
 }

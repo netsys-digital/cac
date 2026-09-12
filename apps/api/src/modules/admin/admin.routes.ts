@@ -45,6 +45,24 @@ const logoUpload = multer({
   },
 });
 
+const orgBannerUpload = multer({
+  storage: multer.diskStorage({
+    destination: (_req, _file, cb) => cb(null, uploadDir),
+    filename: (_req, file, cb) => {
+      const ext = path.extname(file.originalname).toLowerCase() || '.bin';
+      cb(null, `${randomUUID()}${ext}`);
+    },
+  }),
+  limits: { fileSize: 300 * 1024 },
+  fileFilter: (_req, file, cb) => {
+    if (!logoAllowed.has(file.mimetype)) {
+      cb(new Error('invalid_mime'));
+      return;
+    }
+    cb(null, true);
+  },
+});
+
 function withOrgLogoUpload(
   req: Parameters<typeof requireAuth>[0],
   res: Parameters<typeof requireAuth>[1],
@@ -57,6 +75,37 @@ function withOrgLogoUpload(
     }
     next();
   });
+}
+
+function withOrgBannerUpload(
+  req: Parameters<typeof requireAuth>[0],
+  res: Parameters<typeof requireAuth>[1],
+  next: Parameters<typeof requireAuth>[2],
+) {
+  orgBannerUpload.single('banner')(req, res, (err: unknown) => {
+    if (err) {
+      res.status(400).json({ error: 'invalid_upload', detail: String(err) });
+      return;
+    }
+    next();
+  });
+}
+
+const ORG_BANNER_KINDS = new Set(['TECHNOLOGY', 'CHALLENGE', 'FUNDING_OFFER', 'SUCCESS_CASE']);
+
+function orgBannerDataField(kind: string): string | null {
+  switch (kind) {
+    case 'TECHNOLOGY':
+      return 'technologyBannerUrl';
+    case 'CHALLENGE':
+      return 'challengeBannerUrl';
+    case 'FUNDING_OFFER':
+      return 'fundingOfferBannerUrl';
+    case 'SUCCESS_CASE':
+      return 'successCaseBannerUrl';
+    default:
+      return null;
+  }
 }
 
 adminRouter.get('/representation-requests', async (req, res, next) => {
@@ -313,6 +362,10 @@ adminRouter.patch(
         website?: string | null;
         publishKinds?: Array<'TECHNOLOGY' | 'CHALLENGE' | 'FUNDING_OFFER' | 'SUCCESS_CASE'>;
         verificationStatus?: 'PENDING' | 'VERIFIED' | 'REJECTED';
+        technologyBannerLinkUrl?: string | null;
+        challengeBannerLinkUrl?: string | null;
+        fundingOfferBannerLinkUrl?: string | null;
+        successCaseBannerLinkUrl?: string | null;
       } = {};
       if (req.body.name !== undefined) data.name = req.body.name;
       if (req.body.summary !== undefined) data.summary = req.body.summary;
@@ -320,6 +373,22 @@ adminRouter.patch(
       if (req.body.region !== undefined) data.region = req.body.region;
       if (req.body.website !== undefined) {
         data.website = req.body.website === '' ? null : req.body.website;
+      }
+      if (req.body.technologyBannerLinkUrl !== undefined) {
+        data.technologyBannerLinkUrl =
+          req.body.technologyBannerLinkUrl === '' ? null : req.body.technologyBannerLinkUrl;
+      }
+      if (req.body.challengeBannerLinkUrl !== undefined) {
+        data.challengeBannerLinkUrl =
+          req.body.challengeBannerLinkUrl === '' ? null : req.body.challengeBannerLinkUrl;
+      }
+      if (req.body.fundingOfferBannerLinkUrl !== undefined) {
+        data.fundingOfferBannerLinkUrl =
+          req.body.fundingOfferBannerLinkUrl === '' ? null : req.body.fundingOfferBannerLinkUrl;
+      }
+      if (req.body.successCaseBannerLinkUrl !== undefined) {
+        data.successCaseBannerLinkUrl =
+          req.body.successCaseBannerLinkUrl === '' ? null : req.body.successCaseBannerLinkUrl;
       }
       if (req.body.publishKinds !== undefined) {
         data.publishKinds = [...new Set(req.body.publishKinds as string[])] as Array<
@@ -349,6 +418,32 @@ adminRouter.post('/organizations/:id/logo', withOrgLogoUpload, async (req, res, 
     const organization = await prisma.organization.update({
       where: { id: param(req.params.id) },
       data: { logoUrl: `/uploads/${req.file.filename}` },
+    });
+    res.json({ organization });
+  } catch (error) {
+    next(error);
+  }
+});
+
+adminRouter.post('/organizations/:id/banners/:kind', withOrgBannerUpload, async (req, res, next) => {
+  try {
+    const kind = param(req.params.kind).toUpperCase();
+    if (!ORG_BANNER_KINDS.has(kind)) {
+      res.status(400).json({ error: 'invalid_banner_kind' });
+      return;
+    }
+    const field = orgBannerDataField(kind);
+    if (!field) {
+      res.status(400).json({ error: 'invalid_banner_kind' });
+      return;
+    }
+    if (!req.file) {
+      res.status(400).json({ error: 'banner_required' });
+      return;
+    }
+    const organization = await prisma.organization.update({
+      where: { id: param(req.params.id) },
+      data: { [field]: `/uploads/${req.file.filename}` },
     });
     res.json({ organization });
   } catch (error) {

@@ -151,6 +151,7 @@ technologiesRouter.patch(
           problemStatement: req.body.problemStatement,
           howItWorks: req.body.howItWorks,
           videoUrl: normalizeVideoUrl(req.body.videoUrl),
+          bannerLinkUrl: normalizeVideoUrl(req.body.bannerLinkUrl),
           country: req.body.country,
           region: req.body.region,
           climateAction: req.body.climateAction,

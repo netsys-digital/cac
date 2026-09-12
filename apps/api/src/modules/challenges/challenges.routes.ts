@@ -116,6 +116,12 @@ challengesRouter.patch(
           needType: req.body.needType,
           country: req.body.country,
           region: req.body.region,
+          bannerLinkUrl:
+            req.body.bannerLinkUrl === undefined
+              ? undefined
+              : req.body.bannerLinkUrl === null || req.body.bannerLinkUrl === ''
+                ? null
+                : String(req.body.bannerLinkUrl).trim(),
           status: req.body.status,
           tags: req.body.tags
             ? {

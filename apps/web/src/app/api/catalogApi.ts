@@ -9,6 +9,14 @@ export type Organization = {
   country?: string | null;
   region?: string | null;
   logoUrl?: string | null;
+  technologyBannerUrl?: string | null;
+  challengeBannerUrl?: string | null;
+  fundingOfferBannerUrl?: string | null;
+  successCaseBannerUrl?: string | null;
+  technologyBannerLinkUrl?: string | null;
+  challengeBannerLinkUrl?: string | null;
+  fundingOfferBannerLinkUrl?: string | null;
+  successCaseBannerLinkUrl?: string | null;
   publishKinds?: Array<'TECHNOLOGY' | 'CHALLENGE' | 'FUNDING_OFFER' | 'SUCCESS_CASE'>;
 };
 
@@ -153,6 +161,10 @@ export const catalogApi = {
       website?: string | null;
       publishKinds?: Array<'TECHNOLOGY' | 'CHALLENGE' | 'FUNDING_OFFER' | 'SUCCESS_CASE'>;
       verificationStatus?: string;
+      technologyBannerLinkUrl?: string | null;
+      challengeBannerLinkUrl?: string | null;
+      fundingOfferBannerLinkUrl?: string | null;
+      successCaseBannerLinkUrl?: string | null;
     },
   ) =>
     api<{ organization: Organization }>(`/api/admin/organizations/${id}`, {
@@ -164,6 +176,20 @@ export const catalogApi = {
     const body = new FormData();
     body.append('logo', logo);
     return api<{ organization: Organization }>(`/api/admin/organizations/${id}/logo`, {
+      method: 'POST',
+      accessToken: token,
+      body,
+    });
+  },
+  uploadOrganizationBanner: (
+    token: string,
+    id: string,
+    kind: 'TECHNOLOGY' | 'CHALLENGE' | 'FUNDING_OFFER' | 'SUCCESS_CASE',
+    banner: File,
+  ) => {
+    const body = new FormData();
+    body.append('banner', banner);
+    return api<{ organization: Organization }>(`/api/admin/organizations/${id}/banners/${kind}`, {
       method: 'POST',
       accessToken: token,
       body,
@@ -234,6 +260,20 @@ export const catalogApi = {
     const body = new FormData();
     body.append('file', file);
     return api<{ coverImageUrl: string }>(`/api/${kind}/${id}/cover`, {
+      method: 'POST',
+      accessToken: token,
+      body,
+    });
+  },
+  uploadBanner: (
+    token: string,
+    kind: 'technologies' | 'challenges' | 'funding-offers' | 'success-cases',
+    id: string,
+    file: File,
+  ) => {
+    const body = new FormData();
+    body.append('file', file);
+    return api<{ bannerImageUrl: string }>(`/api/${kind}/${id}/banner`, {
       method: 'POST',
       accessToken: token,
       body,

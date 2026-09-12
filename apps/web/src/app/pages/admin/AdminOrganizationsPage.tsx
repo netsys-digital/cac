@@ -1,11 +1,17 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { ORG_PUBLISH_KINDS, type OrgPublishKind } from '@cac/shared';
+import {
+  ORG_BANNER_FIELD,
+  ORG_BANNER_LINK_FIELD,
+  ORG_PUBLISH_KINDS,
+  type OrgPublishKind,
+} from '@cac/shared';
 import { Button, useDialog } from '@cac/ui';
 import { useAuth } from '../../auth/AuthContext';
 import { catalogApi, type AdminOrganization, type OrganizationLink } from '../../api/catalogApi';
 import { Modal } from '../../components/Modal';
 import { useModalState } from '../../components/useModalState';
+import { BannerImageField } from '../../components/forms/BannerImageField';
 import { OrganizationLogoField } from '../../components/forms/OrganizationLogoField';
 import { PublishKindsPicker } from '../../components/forms/PublishKindsPicker';
 import { RegionCountryFields } from '../../components/forms/RegionCountryFields';
@@ -13,7 +19,7 @@ import { resolveMediaUrl } from '../../components/forms/RepresentativeImageField
 
 type StatusFilter = 'ALL' | 'PENDING' | 'VERIFIED' | 'REJECTED';
 type KindFilter = 'ALL' | OrgPublishKind;
-type OrgModalTab = 'profile' | 'links';
+type OrgModalTab = 'profile' | 'media' | 'links';
 
 type ProfileDraft = {
   name: string;
@@ -22,6 +28,8 @@ type ProfileDraft = {
   region: string;
   country: string;
   logoFile: File | null;
+  bannerFiles: Partial<Record<OrgPublishKind, File | null>>;
+  bannerLinks: Partial<Record<OrgPublishKind, string>>;
   publishKinds: OrgPublishKind[];
 };
 
@@ -33,8 +41,16 @@ function profileFromOrg(org: AdminOrganization): ProfileDraft {
     region: org.region ?? '',
     country: org.country ?? '',
     logoFile: null,
+    bannerFiles: {},
+    bannerLinks: Object.fromEntries(
+      ORG_PUBLISH_KINDS.map((kind) => [kind, org[ORG_BANNER_LINK_FIELD[kind]] ?? '']),
+    ) as Partial<Record<OrgPublishKind, string>>,
     publishKinds: [...(org.publishKinds ?? [])],
   };
+}
+
+function orgBannerCurrentUrl(org: AdminOrganization, kind: OrgPublishKind): string | null {
+  return org[ORG_BANNER_FIELD[kind]] ?? null;
 }
 
 function statusClass(status: string) {
@@ -244,9 +260,19 @@ export function AdminOrganizationsPage() {
         region: draft.region,
         country: draft.country,
         publishKinds: draft.publishKinds,
+        technologyBannerLinkUrl: (draft.bannerLinks.TECHNOLOGY ?? '').trim() || null,
+        challengeBannerLinkUrl: (draft.bannerLinks.CHALLENGE ?? '').trim() || null,
+        fundingOfferBannerLinkUrl: (draft.bannerLinks.FUNDING_OFFER ?? '').trim() || null,
+        successCaseBannerLinkUrl: (draft.bannerLinks.SUCCESS_CASE ?? '').trim() || null,
       });
       if (draft.logoFile) {
         await catalogApi.uploadOrganizationLogo(accessToken, modal.item.id, draft.logoFile);
+      }
+      for (const kind of ORG_PUBLISH_KINDS) {
+        const file = draft.bannerFiles[kind];
+        if (file) {
+          await catalogApi.uploadOrganizationBanner(accessToken, modal.item.id, kind, file);
+        }
       }
       setMessage(t('admin.orgsProfileSaved', { name: draft.name.trim() }));
       modal.close();
@@ -563,7 +589,11 @@ export function AdminOrganizationsPage() {
         badge={t('admin.orgsEyebrow')}
         title={org?.name ?? t('admin.orgsTitle')}
         description={
-          modalTab === 'links' ? t('admin.orgsLinksHint') : t('admin.orgsProfileHint')
+          modalTab === 'links'
+            ? t('admin.orgsLinksHint')
+            : modalTab === 'media'
+              ? t('admin.orgsMediaHint')
+              : t('admin.orgsProfileHint')
         }
         size="xl"
         dismissible={!busy && !deletingLinkId}
@@ -588,7 +618,7 @@ export function AdminOrganizationsPage() {
                 <Button type="button" variant="secondary" disabled={busy} onClick={modal.close}>
                   {t('common.cancel')}
                 </Button>
-                {modalTab === 'profile' ? (
+                {modalTab === 'profile' || modalTab === 'media' ? (
                   <Button type="button" disabled={busy} onClick={() => void saveAll()}>
                     {busy ? t('common.working') : t('common.save')}
                   </Button>
@@ -610,6 +640,7 @@ export function AdminOrganizationsPage() {
               {(
                 [
                   ['profile', t('admin.orgsTabProfile')],
+                  ['media', t('admin.orgsTabMedia')],
                   ['links', `${t('admin.orgsTabLinks')}${links.length ? ` (${links.length})` : ''}`],
                 ] as const
               ).map(([key, label]) => (
@@ -687,11 +718,6 @@ export function AdminOrganizationsPage() {
                 </>
               ) : (
                 <>
-                  <OrganizationLogoField
-                    file={draft.logoFile}
-                    currentUrl={org.logoUrl}
-                    onChange={(file) => patchDraft({ logoFile: file })}
-                  />
                   <div className="grid gap-3 sm:grid-cols-2">
                     <label className="block sm:col-span-2">
                       <span className="mb-1 block text-mini font-extrabold uppercase tracking-[0.4px] text-cac-muted">
@@ -744,6 +770,90 @@ export function AdminOrganizationsPage() {
                     onChange={(next) => patchDraft({ publishKinds: next })}
                   />
                 </>
+              )
+            ) : modalTab === 'media' ? (
+              isView ? (
+                <div className="space-y-4">
+                  <div className="rounded-xl border border-cac-line bg-white p-4">
+                    <p className="text-mini font-extrabold uppercase tracking-[0.4px] text-cac-muted">
+                      {t('rep.orgLogo')}
+                    </p>
+                    <div className="mt-3">
+                      {resolveMediaUrl(org.logoUrl) ? (
+                        <img
+                          src={resolveMediaUrl(org.logoUrl)!}
+                          alt=""
+                          className="size-20 rounded-xl border border-cac-line object-contain p-1"
+                        />
+                      ) : (
+                        <span className="text-pequena text-cac-muted">{t('rep.orgLogoEmpty')}</span>
+                      )}
+                    </div>
+                  </div>
+                  {(draft.publishKinds.length ? draft.publishKinds : []).map((kind) => {
+                    const url = resolveMediaUrl(orgBannerCurrentUrl(org, kind));
+                    const link = org[ORG_BANNER_LINK_FIELD[kind]];
+                    return (
+                      <div key={kind} className="rounded-xl border border-cac-line bg-white p-4">
+                        <p className="text-mini font-extrabold uppercase tracking-[0.4px] text-cac-muted">
+                          {t('admin.orgBannerLabel', { kind: t(`admin.publishKind.${kind}`) })}
+                        </p>
+                        <div className="mt-3 aspect-[19/2] w-full max-w-md overflow-hidden border border-cac-line bg-[#edf1f3]">
+                          {url ? (
+                            <img src={url} alt="" className="h-full w-full object-cover" />
+                          ) : (
+                            <div className="grid h-full place-items-center text-mini text-cac-muted">
+                              {t('catalog.bannerImageEmpty')}
+                            </div>
+                          )}
+                        </div>
+                        {link ? (
+                          <p className="mt-2 truncate text-pequena text-cac-green">{link}</p>
+                        ) : (
+                          <p className="mt-2 text-pequena text-cac-muted">{t('catalog.bannerLinkEmpty')}</p>
+                        )}
+                      </div>
+                    );
+                  })}
+                  {!draft.publishKinds.length ? (
+                    <p className="rounded-xl border border-dashed border-cac-line bg-white px-4 py-6 text-center text-media text-cac-muted">
+                      {t('admin.orgsMediaNoKinds')}
+                    </p>
+                  ) : null}
+                </div>
+              ) : (
+                <div className="space-y-5">
+                  <OrganizationLogoField
+                    file={draft.logoFile}
+                    currentUrl={org.logoUrl}
+                    onChange={(file) => patchDraft({ logoFile: file })}
+                  />
+                  {(draft.publishKinds.length ? draft.publishKinds : []).map((kind) => (
+                    <BannerImageField
+                      key={kind}
+                      label={t('admin.orgBannerLabel', { kind: t(`admin.publishKind.${kind}`) })}
+                      hint={t('admin.orgBannerHint')}
+                      currentUrl={orgBannerCurrentUrl(org, kind)}
+                      file={draft.bannerFiles[kind] ?? null}
+                      onChange={(file) =>
+                        patchDraft({
+                          bannerFiles: { ...draft.bannerFiles, [kind]: file },
+                        })
+                      }
+                      linkValue={draft.bannerLinks[kind] ?? ''}
+                      onLinkChange={(value) =>
+                        patchDraft({
+                          bannerLinks: { ...draft.bannerLinks, [kind]: value },
+                        })
+                      }
+                    />
+                  ))}
+                  {!draft.publishKinds.length ? (
+                    <p className="rounded-xl border border-dashed border-cac-line bg-[#fbfcfb] px-4 py-6 text-center text-media text-cac-muted">
+                      {t('admin.orgsMediaNoKinds')}
+                    </p>
+                  ) : null}
+                </div>
               )
             ) : (
               <div className="space-y-4">

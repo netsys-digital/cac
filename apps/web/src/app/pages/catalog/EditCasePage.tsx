@@ -6,6 +6,7 @@ import { useAuth } from '../../auth/AuthContext';
 import { myContentsApi } from '../../api/myContentsApi';
 import { catalogApi } from '../../api/catalogApi';
 import { FieldFull, FormPage } from '../../components/forms/FormPage';
+import { BannerImageField, pickBannerFile } from '../../components/forms/BannerImageField';
 import {
   pickCoverFile,
   RepresentativeImageField,
@@ -21,6 +22,7 @@ export function EditCasePage() {
   const [error, setError] = useState('');
   const [message, setMessage] = useState('');
   const [loading, setLoading] = useState(true);
+  const [tab, setTab] = useState('content');
 
   useEffect(() => {
     if (!accessToken || !id) return;
@@ -68,6 +70,7 @@ export function EditCasePage() {
         summary: String(form.get('summary')),
         context: String(form.get('context')),
         outcomes: String(form.get('outcomes')),
+        bannerLinkUrl: String(form.get('bannerLinkUrl') || '').trim() || null,
         country: String(form.get('country')),
         region: String(form.get('region')),
         needs,
@@ -76,6 +79,10 @@ export function EditCasePage() {
       const cover = pickCoverFile(form);
       if (cover) {
         await catalogApi.uploadCover(accessToken, 'success-cases', id, cover);
+      }
+      const banner = pickBannerFile(form);
+      if (banner) {
+        await catalogApi.uploadBanner(accessToken, 'success-cases', id, banner);
       }
       const after = await myContentsApi.get(accessToken, 'SUCCESS_CASE', id);
       if (String(after.item.status) === 'DRAFT') {
@@ -113,38 +120,59 @@ export function EditCasePage() {
       submitLabel={t('mine.saveSubmit')}
       error={error}
       message={message}
-    >
-      <FieldFull>
-        <p className="rounded-lg border border-cac-line bg-[#fbfcfb] px-3 py-2 text-pequena text-cac-muted">
-          {(item.organization as { name?: string } | undefined)?.name ?? '—'} ·{' '}
-          <button type="button" className="font-bold text-cac-green" onClick={() => navigate('/my/contents')}>
-            {t('mine.backList')}
-          </button>
-        </p>
-      </FieldFull>
-      <FieldFull>
-        <Input label={t('catalog.title')} name="title" required defaultValue={String(item.title)} />
-      </FieldFull>
-      <FieldFull>
-        <TextArea label={t('catalog.summary')} name="summary" required rows={3} defaultValue={String(item.summary)} />
-      </FieldFull>
-      <FieldFull>
-        <RepresentativeImageField currentUrl={item.coverImageUrl ? String(item.coverImageUrl) : null} />
-      </FieldFull>
-      <FieldFull>
-        <TextArea label={t('catalog.context')} name="context" required rows={4} defaultValue={String(item.context || '')} />
-      </FieldFull>
-      <FieldFull>
-        <TextArea label={t('catalog.outcomes')} name="outcomes" required rows={3} defaultValue={String(item.outcomes || '')} />
-      </FieldFull>
-      <RegionCountryFields
-        defaultRegion={String(item.region || 'africa')}
-        defaultCountry={String(item.country || 'MZ')}
-      />
-      <Input label={t('catalog.needs')} name="needs" required defaultValue={needsDefault} />
-      <FieldFull>
-        <TextArea label={t('catalog.evidence')} name="evidence" rows={3} defaultValue={String(item.evidence || '')} />
-      </FieldFull>
-    </FormPage>
+      tabs={[
+        { id: 'content', label: t('mine.tabContent') },
+        { id: 'media', label: t('mine.tabMedia') },
+      ]}
+      activeTab={tab}
+      onTabChange={setTab}
+      panels={{
+        content: (
+          <>
+            <FieldFull>
+              <p className="rounded-lg border border-cac-line bg-[#fbfcfb] px-3 py-2 text-pequena text-cac-muted">
+                {(item.organization as { name?: string } | undefined)?.name ?? '—'} ·{' '}
+                <button type="button" className="font-bold text-cac-green" onClick={() => navigate('/my/contents')}>
+                  {t('mine.backList')}
+                </button>
+              </p>
+            </FieldFull>
+            <FieldFull>
+              <Input label={t('catalog.title')} name="title" required defaultValue={String(item.title)} />
+            </FieldFull>
+            <FieldFull>
+              <TextArea label={t('catalog.summary')} name="summary" required rows={3} defaultValue={String(item.summary)} />
+            </FieldFull>
+            <FieldFull>
+              <TextArea label={t('catalog.context')} name="context" required rows={4} defaultValue={String(item.context || '')} />
+            </FieldFull>
+            <FieldFull>
+              <TextArea label={t('catalog.outcomes')} name="outcomes" required rows={3} defaultValue={String(item.outcomes || '')} />
+            </FieldFull>
+            <RegionCountryFields
+              defaultRegion={String(item.region || 'africa')}
+              defaultCountry={String(item.country || 'MZ')}
+            />
+            <Input label={t('catalog.needs')} name="needs" required defaultValue={needsDefault} />
+            <FieldFull>
+              <TextArea label={t('catalog.evidence')} name="evidence" rows={3} defaultValue={String(item.evidence || '')} />
+            </FieldFull>
+          </>
+        ),
+        media: (
+          <>
+            <FieldFull>
+              <RepresentativeImageField currentUrl={item.coverImageUrl ? String(item.coverImageUrl) : null} />
+            </FieldFull>
+            <FieldFull>
+              <BannerImageField
+                currentUrl={item.bannerImageUrl ? String(item.bannerImageUrl) : null}
+                currentLink={item.bannerLinkUrl ? String(item.bannerLinkUrl) : null}
+              />
+            </FieldFull>
+          </>
+        ),
+      }}
+    />
   );
 }

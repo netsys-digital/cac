@@ -109,6 +109,12 @@ fundingOffersRouter.patch(
           ...req.body,
           deadline: req.body.deadline === undefined ? undefined : req.body.deadline ? new Date(req.body.deadline) : null,
           officialUrl: req.body.officialUrl === '' ? null : req.body.officialUrl,
+          bannerLinkUrl:
+            req.body.bannerLinkUrl === undefined
+              ? undefined
+              : req.body.bannerLinkUrl === '' || req.body.bannerLinkUrl === null
+                ? null
+                : req.body.bannerLinkUrl,
         },
       });
       void enqueueTranslationIfPublished(offer.status, { entityType: 'funding_offer', entityId: offer.id });

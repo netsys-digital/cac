@@ -144,6 +144,14 @@ model Organization {
   region                 String?
   website                String?
   logoUrl                String?
+  technologyBannerUrl    String?
+  challengeBannerUrl     String?
+  fundingOfferBannerUrl  String?
+  successCaseBannerUrl   String?
+  technologyBannerLinkUrl    String?
+  challengeBannerLinkUrl     String?
+  fundingOfferBannerLinkUrl  String?
+  successCaseBannerLinkUrl   String?
   verificationStatus     OrgVerificationStatus      @default(PENDING)
   publishKinds           OrgPublishKind[]           @default([])
   createdAt              DateTime                   @default(now())
@@ -219,6 +227,8 @@ model Technology {
   howItWorks       String
   videoUrl         String?
   coverImageUrl    String?
+  bannerImageUrl   String?
+  bannerLinkUrl    String?
   status           ContentStatus     @default(DRAFT)
   curationNote     String?
   reviewedAt       DateTime?
@@ -272,6 +282,8 @@ model Challenge {
   context        String?
   needType       NeedType
   coverImageUrl  String?
+  bannerImageUrl String?
+  bannerLinkUrl  String?
   status         ContentStatus  @default(DRAFT)
   curationNote   String?
   reviewedAt     DateTime?
@@ -387,6 +399,8 @@ model FundingOffer {
   country        String?
   region         String?
   coverImageUrl  String?
+  bannerImageUrl String?
+  bannerLinkUrl  String?
   organizationId String        @db.Uuid
   status         ContentStatus @default(DRAFT)
   curationNote   String?
@@ -410,6 +424,8 @@ model SuccessCase {
   country        String
   region         String?
   coverImageUrl  String?
+  bannerImageUrl String?
+  bannerLinkUrl  String?
   organizationId String            @db.Uuid
   status         ContentStatus     @default(DRAFT)
   curationNote   String?

@@ -34,6 +34,45 @@ export const ORG_PUBLISH_KINDS = [
   OrgPublishKind.FUNDING_OFFER,
   OrgPublishKind.SUCCESS_CASE,
 ] as const;
+
+/** Prisma field on Organization for the default banner of each publish kind. */
+export const ORG_BANNER_FIELD = {
+  TECHNOLOGY: 'technologyBannerUrl',
+  CHALLENGE: 'challengeBannerUrl',
+  FUNDING_OFFER: 'fundingOfferBannerUrl',
+  SUCCESS_CASE: 'successCaseBannerUrl',
+} as const satisfies Record<OrgPublishKind, string>;
+
+export type OrgBannerField = (typeof ORG_BANNER_FIELD)[OrgPublishKind];
+
+/** Prisma field on Organization for the click-through URL of each banner. */
+export const ORG_BANNER_LINK_FIELD = {
+  TECHNOLOGY: 'technologyBannerLinkUrl',
+  CHALLENGE: 'challengeBannerLinkUrl',
+  FUNDING_OFFER: 'fundingOfferBannerLinkUrl',
+  SUCCESS_CASE: 'successCaseBannerLinkUrl',
+} as const satisfies Record<OrgPublishKind, string>;
+
+export type OrgBannerLinkField = (typeof ORG_BANNER_LINK_FIELD)[OrgPublishKind];
+
+export function orgBannerUrlForKind(
+  org: Partial<Record<OrgBannerField, string | null | undefined>> | null | undefined,
+  kind: OrgPublishKind,
+): string | null {
+  if (!org) return null;
+  const value = org[ORG_BANNER_FIELD[kind]];
+  return value ?? null;
+}
+
+export function orgBannerLinkUrlForKind(
+  org: Partial<Record<OrgBannerLinkField, string | null | undefined>> | null | undefined,
+  kind: OrgPublishKind,
+): string | null {
+  if (!org) return null;
+  const value = org[ORG_BANNER_LINK_FIELD[kind]];
+  return value ?? null;
+}
+
 export const ContentStatus = {
   DRAFT: 'DRAFT',
   IN_REVIEW: 'IN_REVIEW',

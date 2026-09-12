@@ -6,6 +6,7 @@ import { useAuth } from '../../auth/AuthContext';
 import { myContentsApi } from '../../api/myContentsApi';
 import { catalogApi } from '../../api/catalogApi';
 import { FieldFull, FormPage } from '../../components/forms/FormPage';
+import { BannerImageField, pickBannerFile } from '../../components/forms/BannerImageField';
 import {
   pickCoverFile,
   RepresentativeImageField,
@@ -21,6 +22,7 @@ export function EditFundingOfferPage() {
   const [error, setError] = useState('');
   const [message, setMessage] = useState('');
   const [loading, setLoading] = useState(true);
+  const [tab, setTab] = useState('content');
 
   useEffect(() => {
     if (!accessToken || !id) return;
@@ -57,6 +59,7 @@ export function EditFundingOfferPage() {
         criteria: String(form.get('criteria')),
         amountRange: String(form.get('amountRange') || ''),
         officialUrl: String(form.get('officialUrl') || ''),
+        bannerLinkUrl: String(form.get('bannerLinkUrl') || '').trim() || null,
         deadline: String(form.get('deadline') || '') || undefined,
         country: String(form.get('country')),
         region: String(form.get('region')),
@@ -64,6 +67,10 @@ export function EditFundingOfferPage() {
       const cover = pickCoverFile(form);
       if (cover) {
         await catalogApi.uploadCover(accessToken, 'funding-offers', id, cover);
+      }
+      const banner = pickBannerFile(form);
+      if (banner) {
+        await catalogApi.uploadBanner(accessToken, 'funding-offers', id, banner);
       }
       const after = await myContentsApi.get(accessToken, 'FUNDING_OFFER', id);
       if (String(after.item.status) === 'DRAFT') {
@@ -100,39 +107,60 @@ export function EditFundingOfferPage() {
       submitLabel={t('mine.saveSubmit')}
       error={error}
       message={message}
-    >
-      <FieldFull>
-        <p className="rounded-lg border border-cac-line bg-[#fbfcfb] px-3 py-2 text-pequena text-cac-muted">
-          {(item.organization as { name?: string } | undefined)?.name ?? '—'} ·{' '}
-          <button type="button" className="font-bold text-cac-green" onClick={() => navigate('/my/contents')}>
-            {t('mine.backList')}
-          </button>
-        </p>
-      </FieldFull>
-      <FieldFull>
-        <Input label={t('catalog.title')} name="title" required defaultValue={String(item.title)} />
-      </FieldFull>
-      <FieldFull>
-        <TextArea label={t('catalog.summary')} name="summary" required rows={3} defaultValue={String(item.summary)} />
-      </FieldFull>
-      <FieldFull>
-        <RepresentativeImageField currentUrl={item.coverImageUrl ? String(item.coverImageUrl) : null} />
-      </FieldFull>
-      <FieldFull>
-        <TextArea label={t('catalog.whatFunds')} name="whatFunds" required rows={3} defaultValue={String(item.whatFunds || '')} />
-      </FieldFull>
-      <FieldFull>
-        <TextArea label={t('catalog.criteria')} name="criteria" required rows={3} defaultValue={String(item.criteria || '')} />
-      </FieldFull>
-      <Input label={t('catalog.amountRange')} name="amountRange" defaultValue={String(item.amountRange || '')} />
-      <Input label={t('catalog.deadline')} name="deadline" type="date" defaultValue={deadline} />
-      <FieldFull>
-        <Input label={t('catalog.officialUrl')} name="officialUrl" defaultValue={String(item.officialUrl || '')} />
-      </FieldFull>
-      <RegionCountryFields
-        defaultRegion={String(item.region || 'south_america')}
-        defaultCountry={String(item.country || 'BR')}
-      />
-    </FormPage>
+      tabs={[
+        { id: 'content', label: t('mine.tabContent') },
+        { id: 'media', label: t('mine.tabMedia') },
+      ]}
+      activeTab={tab}
+      onTabChange={setTab}
+      panels={{
+        content: (
+          <>
+            <FieldFull>
+              <p className="rounded-lg border border-cac-line bg-[#fbfcfb] px-3 py-2 text-pequena text-cac-muted">
+                {(item.organization as { name?: string } | undefined)?.name ?? '—'} ·{' '}
+                <button type="button" className="font-bold text-cac-green" onClick={() => navigate('/my/contents')}>
+                  {t('mine.backList')}
+                </button>
+              </p>
+            </FieldFull>
+            <FieldFull>
+              <Input label={t('catalog.title')} name="title" required defaultValue={String(item.title)} />
+            </FieldFull>
+            <FieldFull>
+              <TextArea label={t('catalog.summary')} name="summary" required rows={3} defaultValue={String(item.summary)} />
+            </FieldFull>
+            <FieldFull>
+              <TextArea label={t('catalog.whatFunds')} name="whatFunds" required rows={3} defaultValue={String(item.whatFunds || '')} />
+            </FieldFull>
+            <FieldFull>
+              <TextArea label={t('catalog.criteria')} name="criteria" required rows={3} defaultValue={String(item.criteria || '')} />
+            </FieldFull>
+            <Input label={t('catalog.amountRange')} name="amountRange" defaultValue={String(item.amountRange || '')} />
+            <Input label={t('catalog.deadline')} name="deadline" type="date" defaultValue={deadline} />
+            <FieldFull>
+              <Input label={t('catalog.officialUrl')} name="officialUrl" defaultValue={String(item.officialUrl || '')} />
+            </FieldFull>
+            <RegionCountryFields
+              defaultRegion={String(item.region || 'south_america')}
+              defaultCountry={String(item.country || 'BR')}
+            />
+          </>
+        ),
+        media: (
+          <>
+            <FieldFull>
+              <RepresentativeImageField currentUrl={item.coverImageUrl ? String(item.coverImageUrl) : null} />
+            </FieldFull>
+            <FieldFull>
+              <BannerImageField
+                currentUrl={item.bannerImageUrl ? String(item.bannerImageUrl) : null}
+                currentLink={item.bannerLinkUrl ? String(item.bannerLinkUrl) : null}
+              />
+            </FieldFull>
+          </>
+        ),
+      }}
+    />
   );
 }

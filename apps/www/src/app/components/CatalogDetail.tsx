@@ -1,5 +1,6 @@
 import type { PropsWithChildren, ReactNode } from 'react';
 import { Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { Chip, shell } from './PageChrome';
 import { BackToSearchLink } from './BackToSearchLink';
 import { isDirectVideoFile, toVideoEmbedUrl } from '../lib/videoEmbed';
@@ -220,6 +221,52 @@ export function DetailHeroStatGrid({ children }: PropsWithChildren) {
 
 export function CatalogDetailBody({ children }: PropsWithChildren) {
   return <div className={`${shell} relative z-[1] -mt-4 pb-16 md:-mt-6`}>{children}</div>;
+}
+
+/** Banner promocional no rodapé da publicação — cascata pub → org → skeleton. */
+export function CatalogDetailBanner({
+  bannerUrl,
+  linkUrl,
+}: {
+  bannerUrl?: string | null;
+  linkUrl?: string | null;
+}) {
+  const { t } = useTranslation();
+  const resolved = resolveMediaUrl(bannerUrl);
+  const href = linkUrl?.trim() || null;
+
+  const media = resolved ? (
+    <img
+      src={resolved}
+      alt=""
+      className="aspect-[6/1] max-h-[8.5rem] w-full object-cover md:max-h-[10rem]"
+    />
+  ) : (
+    <div
+      className="relative aspect-[6/1] max-h-[8.5rem] w-full overflow-hidden bg-[#e8f0ec] md:max-h-[10rem]"
+      aria-hidden
+    >
+      <div className="absolute inset-0 animate-pulse bg-[linear-gradient(110deg,#e8f0ec_0%,#f4f8f6_40%,#dce8e2_55%,#e8f0ec_100%)] bg-[length:200%_100%]" />
+      <div className="absolute inset-x-[8%] top-[28%] h-[18%] max-w-[40%] rounded-md bg-white/50" />
+      <div className="absolute inset-x-[8%] top-[52%] h-[10%] max-w-[28%] rounded-md bg-white/35" />
+      <div className="absolute inset-y-[18%] right-[-4%] w-[42%] skew-x-[-10deg] bg-[rgba(10,36,64,.06)]" />
+    </div>
+  );
+
+  return (
+    <div className="relative mt-8 overflow-hidden border border-cac-line bg-white md:mt-10">
+      <span className="pointer-events-none absolute top-0 right-0 z-[1] bg-[rgba(10,36,64,.72)] px-2 py-0.5 text-[0.625rem] font-bold tracking-[0.12em] text-white uppercase">
+        {t('detail.bannerAdLabel')}
+      </span>
+      {href && resolved ? (
+        <a href={href} target="_blank" rel="noopener noreferrer" className="block">
+          {media}
+        </a>
+      ) : (
+        media
+      )}
+    </div>
+  );
 }
 
 export function DetailSection({

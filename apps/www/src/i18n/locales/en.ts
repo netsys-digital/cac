@@ -232,6 +232,7 @@ export const en = {
       'Replicate learnings from this case by seeking aligned solutions, partners and funding.',
     actions: 'Actions',
     actionsHint: 'Connections and favorites need a panel account. You will return to this item after login.',
+    bannerAdLabel: 'Advertisement',
     needs: {
       technology: 'Technology',
       knowledge: 'Knowledge',

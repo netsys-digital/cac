@@ -5,6 +5,7 @@ import { formatDate } from '@cac/shared';
 import { fundingApi, type FundingOffer } from '../api/fundingApi';
 import {
   CatalogDetailBody,
+  CatalogDetailBanner,
   CatalogDetailHero,
   DetailActionStack,
   DetailHeroStatCard,
@@ -17,6 +18,7 @@ import {
 import { BackToSearchLink } from '../components/BackToSearchLink';
 import { shell } from '../components/PageChrome';
 import { urls } from '../../config';
+import { resolveDetailBanner } from '../lib/detailBanner';
 
 export function FundingOfferDetailPage() {
   const { slug = '' } = useParams();
@@ -76,6 +78,8 @@ export function FundingOfferDetailPage() {
       ? { label: t('search.filters.region'), value: item.region, icon: 'fa-solid fa-globe' }
       : null,
   ].filter((c): c is { label: string; value: string; icon: string } => Boolean(c));
+
+  const banner = resolveDetailBanner(item, item.organization, 'FUNDING_OFFER');
 
   return (
     <div className="bg-cac-bg">
@@ -189,6 +193,7 @@ export function FundingOfferDetailPage() {
             </div>
           </aside>
         </div>
+        <CatalogDetailBanner bannerUrl={banner.url} linkUrl={banner.linkUrl} />
       </CatalogDetailBody>
     </div>
   );

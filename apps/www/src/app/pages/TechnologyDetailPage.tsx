@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { catalogApi, type Technology } from '../api/catalogApi';
 import {
   CatalogDetailBody,
+  CatalogDetailBanner,
   CatalogDetailHero,
   DetailActionStack,
   DetailHeroChip,
@@ -17,6 +18,7 @@ import { BackToSearchLink } from '../components/BackToSearchLink';
 import { shell } from '../components/PageChrome';
 import { urls } from '../../config';
 import { resolveMediaUrl } from '../lib/mediaUrl';
+import { resolveDetailBanner } from '../lib/detailBanner';
 
 function labelOrRaw(value: string | null | undefined, map: Record<string, string>) {
   if (!value) return null;
@@ -82,6 +84,7 @@ export function TechnologyDetailPage() {
     item.media?.find((m) => m.kind === 'VIDEO' || m.mimeType?.startsWith('video/'))?.url ||
     null;
   const relatedVideo = resolveMediaUrl(relatedVideoRaw) ?? relatedVideoRaw;
+  const banner = resolveDetailBanner(item, item.organization, 'TECHNOLOGY');
 
   return (
     <div className="bg-cac-bg">
@@ -183,6 +186,7 @@ export function TechnologyDetailPage() {
             </div>
           </aside>
         </div>
+        <CatalogDetailBanner bannerUrl={banner.url} linkUrl={banner.linkUrl} />
       </CatalogDetailBody>
     </div>
   );

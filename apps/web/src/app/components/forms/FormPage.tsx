@@ -4,12 +4,19 @@ import { Button } from '@cac/ui';
 
 type Tip = { title: string; body: string };
 
+type FormTab = { id: string; label: string };
+
 type FormPageProps = {
   badge: string;
   title: string;
   description: string;
   tips: Tip[];
-  children: ReactNode;
+  children?: ReactNode;
+  /** Painéis por aba — mantidos montados (hidden) para preservar FormData. */
+  panels?: Record<string, ReactNode>;
+  tabs?: FormTab[];
+  activeTab?: string;
+  onTabChange?: (id: string) => void;
   onSubmit: FormEventHandler<HTMLFormElement>;
   submitLabel: string;
   submitHint?: string;
@@ -24,6 +31,10 @@ export function FormPage({
   description,
   tips,
   children,
+  panels,
+  tabs,
+  activeTab,
+  onTabChange,
   onSubmit,
   submitLabel,
   submitHint,
@@ -32,6 +43,7 @@ export function FormPage({
   submitting,
 }: FormPageProps) {
   const { t } = useTranslation();
+  const usePanels = Boolean(panels && tabs?.length);
 
   return (
     <div className="space-y-5">
@@ -49,7 +61,38 @@ export function FormPage({
           className="overflow-hidden rounded-[19px] border border-cac-line bg-white shadow-cac"
         >
           <div className="space-y-4 p-5 md:p-6">
-            <div className="grid gap-x-4 gap-y-3 sm:grid-cols-2">{children}</div>
+            {tabs?.length ? (
+              <div className="flex gap-1 border-b border-cac-line pb-0">
+                {tabs.map((tab) => (
+                  <button
+                    key={tab.id}
+                    type="button"
+                    onClick={() => onTabChange?.(tab.id)}
+                    className={`-mb-px border-b-2 px-3 py-2 text-pequena font-bold transition ${
+                      activeTab === tab.id
+                        ? 'border-cac-green text-cac-navy'
+                        : 'border-transparent text-cac-muted hover:text-cac-navy'
+                    }`}
+                  >
+                    {tab.label}
+                  </button>
+                ))}
+              </div>
+            ) : null}
+
+            {usePanels ? (
+              Object.entries(panels!).map(([id, node]) => (
+                <div
+                  key={id}
+                  className={`grid gap-x-4 gap-y-3 sm:grid-cols-2 ${activeTab !== id ? 'hidden' : ''}`}
+                >
+                  {node}
+                </div>
+              ))
+            ) : (
+              <div className="grid gap-x-4 gap-y-3 sm:grid-cols-2">{children}</div>
+            )}
+
             {error ? (
               <p className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-pequena text-red-800">
                 {error}

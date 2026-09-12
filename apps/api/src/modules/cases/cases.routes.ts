@@ -129,12 +129,19 @@ successCasesRouter.patch(
       const { needs, evidenceNotes, ...rest } = req.body as {
         needs?: Array<{ needType: string; detail?: string }>;
         evidenceNotes?: string[];
+        bannerLinkUrl?: string | null;
         [k: string]: unknown;
       };
       const successCase = await prisma.successCase.update({
         where: { id: current.id },
         data: {
           ...rest,
+          bannerLinkUrl:
+            rest.bannerLinkUrl === undefined
+              ? undefined
+              : rest.bannerLinkUrl === '' || rest.bannerLinkUrl === null
+                ? null
+                : rest.bannerLinkUrl,
           ...(needs
             ? {
                 needs: {

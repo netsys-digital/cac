@@ -19,6 +19,14 @@ export type OrgSummary = {
   region?: string | null;
   website?: string | null;
   logoUrl?: string | null;
+  technologyBannerUrl?: string | null;
+  challengeBannerUrl?: string | null;
+  fundingOfferBannerUrl?: string | null;
+  successCaseBannerUrl?: string | null;
+  technologyBannerLinkUrl?: string | null;
+  challengeBannerLinkUrl?: string | null;
+  fundingOfferBannerLinkUrl?: string | null;
+  successCaseBannerLinkUrl?: string | null;
   verificationStatus: string;
 };
 
@@ -39,6 +47,8 @@ export type Technology = {
   howItWorks: string;
   videoUrl?: string | null;
   coverImageUrl?: string | null;
+  bannerImageUrl?: string | null;
+  bannerLinkUrl?: string | null;
   status: string;
   country: string;
   region?: string | null;
@@ -57,6 +67,8 @@ export type Challenge = {
   context?: string | null;
   needType: string;
   coverImageUrl?: string | null;
+  bannerImageUrl?: string | null;
+  bannerLinkUrl?: string | null;
   country?: string | null;
   region?: string | null;
   tags: string[];

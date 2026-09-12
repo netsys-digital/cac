@@ -27,6 +27,10 @@ export const updateOrganizationAdminBodySchema = z.object({
   country: z.string().length(2).optional().nullable(),
   region: z.string().min(2).max(64).optional().nullable(),
   website: z.string().url().optional().or(z.literal('')).nullable(),
+  technologyBannerLinkUrl: z.string().url().optional().or(z.literal('')).nullable(),
+  challengeBannerLinkUrl: z.string().url().optional().or(z.literal('')).nullable(),
+  fundingOfferBannerLinkUrl: z.string().url().optional().or(z.literal('')).nullable(),
+  successCaseBannerLinkUrl: z.string().url().optional().or(z.literal('')).nullable(),
   publishKinds: z
     .array(
       z.enum([

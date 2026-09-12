@@ -20,12 +20,22 @@ export type FundingOffer = {
   country?: string | null;
   region?: string | null;
   coverImageUrl?: string | null;
+  bannerImageUrl?: string | null;
+  bannerLinkUrl?: string | null;
   organization?: {
     id: string;
     name: string;
     slug: string;
     summary?: string | null;
     logoUrl?: string | null;
+    technologyBannerUrl?: string | null;
+    challengeBannerUrl?: string | null;
+    fundingOfferBannerUrl?: string | null;
+    successCaseBannerUrl?: string | null;
+    technologyBannerLinkUrl?: string | null;
+    challengeBannerLinkUrl?: string | null;
+    fundingOfferBannerLinkUrl?: string | null;
+    successCaseBannerLinkUrl?: string | null;
     verificationStatus?: string;
   };
 };

@@ -15,6 +15,14 @@ export const createTechnologyBodySchema = z.object({
     .refine((v) => v == null || v === '' || /^https?:\/\/.+/i.test(v), {
       message: 'invalid_video_url',
     }),
+  bannerLinkUrl: z
+    .string()
+    .max(500)
+    .optional()
+    .nullable()
+    .refine((v) => v == null || v === '' || /^https?:\/\/.+/i.test(v), {
+      message: 'invalid_banner_link_url',
+    }),
   organizationId: z.string().uuid(),
   country: z.string().length(2),
   region: z.string().min(2).max(64),

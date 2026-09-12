@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { Chip, PageShell, shell } from '../components/PageChrome';
 import {
   CatalogDetailBody,
+  CatalogDetailBanner,
   CatalogDetailHero,
   DetailActionStack,
   DetailHeroChip,
@@ -18,6 +19,7 @@ import { urls } from '../../config';
 import { casesApi, type SuccessCase } from '../api/casesApi';
 import { needTypeLabel } from '../lib/needTypeLabel';
 import { resolveMediaUrl } from '../lib/mediaUrl';
+import { resolveDetailBanner } from '../lib/detailBanner';
 
 export function CasesPage() {
   const { t, i18n } = useTranslation();
@@ -135,6 +137,7 @@ export function CaseDetailPage() {
   const imageMedia = item.media.filter((m) => m.kind === 'IMAGE' || m.mimeType?.startsWith('image/'));
   const otherMedia = item.media.filter((m) => !(m.kind === 'IMAGE' || m.mimeType?.startsWith('image/')));
   const hasEvidence = imageMedia.length > 0 || otherMedia.length > 0;
+  const banner = resolveDetailBanner(item, item.organization, 'SUCCESS_CASE');
 
   let section = 0;
   const nextIndex = () => String(++section).padStart(2, '0');
@@ -281,6 +284,7 @@ export function CaseDetailPage() {
             </div>
           </aside>
         </div>
+        <CatalogDetailBanner bannerUrl={banner.url} linkUrl={banner.linkUrl} />
       </CatalogDetailBody>
     </div>
   );

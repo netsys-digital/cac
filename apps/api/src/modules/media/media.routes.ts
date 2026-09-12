@@ -46,6 +46,18 @@ const uploadCover = multer({
   },
 });
 
+const uploadBanner = multer({
+  storage,
+  limits: { fileSize: 300 * 1024 },
+  fileFilter: (_req, file, cb) => {
+    if (!coverAllowed.has(file.mimetype)) {
+      cb(new Error('invalid_mime'));
+      return;
+    }
+    cb(null, true);
+  },
+});
+
 export const mediaRouter = Router();
 
 function withUpload(
@@ -192,3 +204,48 @@ registerCoverRoute('challenges');
 registerCoverRoute('projects');
 registerCoverRoute('funding-offers');
 registerCoverRoute('success-cases');
+
+async function saveBannerUrl(kind: CoverKind, id: string, bannerImageUrl: string) {
+  switch (kind) {
+    case 'technologies':
+      return prisma.technology.update({ where: { id }, data: { bannerImageUrl } });
+    case 'challenges':
+      return prisma.challenge.update({ where: { id }, data: { bannerImageUrl } });
+    case 'funding-offers':
+      return prisma.fundingOffer.update({ where: { id }, data: { bannerImageUrl } });
+    case 'success-cases':
+      return prisma.successCase.update({ where: { id }, data: { bannerImageUrl } });
+    case 'projects':
+      // Projects do not support promotional banners yet.
+      return null;
+  }
+}
+
+function registerBannerRoute(kind: Exclude<CoverKind, 'projects'>) {
+  mediaRouter.post(`/${kind}/:id/banner`, requireAuth, withUpload(uploadBanner), async (req, res, next) => {
+    try {
+      const id = param(req.params.id);
+      const item = await loadCoverTarget(kind, id);
+      if (!item) {
+        res.status(404).json({ error: 'not_found' });
+        return;
+      }
+      await assertCanActForOrganization(req.auth!.sub, item.organizationId, req.auth!.role);
+      if (!req.file) {
+        res.status(400).json({ error: 'file_required' });
+        return;
+      }
+
+      const bannerImageUrl = `/uploads/${req.file.filename}`;
+      const updated = await saveBannerUrl(kind, id, bannerImageUrl);
+      res.status(201).json({ bannerImageUrl, item: updated });
+    } catch (error) {
+      next(error);
+    }
+  });
+}
+
+registerBannerRoute('technologies');
+registerBannerRoute('challenges');
+registerBannerRoute('funding-offers');
+registerBannerRoute('success-cases');

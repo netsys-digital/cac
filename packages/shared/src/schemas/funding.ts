@@ -21,6 +21,14 @@ export const createFundingOfferBodySchema = z.object({
   country: z.string().length(2),
   region: z.string().min(2).max(64),
   organizationId: z.string().uuid(),
+  bannerLinkUrl: z
+    .string()
+    .max(500)
+    .optional()
+    .nullable()
+    .refine((v) => v == null || v === '' || /^https?:\/\/.+/i.test(v), {
+      message: 'invalid_banner_link_url',
+    }),
   status: z
     .enum([ContentStatus.DRAFT, ContentStatus.IN_REVIEW, ContentStatus.PUBLISHED])
     .optional(),
@@ -58,6 +66,14 @@ export const createSuccessCaseBodySchema = z.object({
   country: z.string().length(2),
   region: z.string().min(2).max(64),
   organizationId: z.string().uuid(),
+  bannerLinkUrl: z
+    .string()
+    .max(500)
+    .optional()
+    .nullable()
+    .refine((v) => v == null || v === '' || /^https?:\/\/.+/i.test(v), {
+      message: 'invalid_banner_link_url',
+    }),
   needs: z
     .array(
       z.object({

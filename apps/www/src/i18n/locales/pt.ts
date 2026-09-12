@@ -237,6 +237,7 @@ export const pt = {
       'Replique aprendizados deste caso buscando soluções, parceiros e financiamento alinhados.',
     actions: 'Ações',
     actionsHint: 'Conexões e favoritos pedem conta no painel. Você volta para este item depois do login.',
+    bannerAdLabel: 'Publicidade',
     needs: {
       technology: 'Tecnologia',
       knowledge: 'Conhecimento',

@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { catalogApi, type Challenge } from '../api/catalogApi';
 import {
   CatalogDetailBody,
+  CatalogDetailBanner,
   CatalogDetailHero,
   DetailActionStack,
   DetailHeroChip,
@@ -18,6 +19,7 @@ import { shell } from '../components/PageChrome';
 import { urls } from '../../config';
 import { needTypeLabel } from '../lib/needTypeLabel';
 import { resolveMediaUrl } from '../lib/mediaUrl';
+import { resolveDetailBanner } from '../lib/detailBanner';
 
 export function ChallengeDetailPage() {
   const { slug = '' } = useParams();
@@ -60,6 +62,7 @@ export function ChallengeDetailPage() {
   const needLabel = needTypeLabel(item.needType, t);
   const connectUrl = `${urls.web}/login?returnUrl=${encodeURIComponent(`/connections/new?targetType=CHALLENGE&targetId=${item.id}`)}`;
   const favoriteUrl = `${urls.web}/login?returnUrl=${encodeURIComponent(`/connections/new?targetType=CHALLENGE&targetId=${item.id}&intent=save`)}`;
+  const banner = resolveDetailBanner(item, item.organization, 'CHALLENGE');
 
   return (
     <div className="bg-cac-bg">
@@ -166,6 +169,7 @@ export function ChallengeDetailPage() {
             </div>
           </aside>
         </div>
+        <CatalogDetailBanner bannerUrl={banner.url} linkUrl={banner.linkUrl} />
       </CatalogDetailBody>
     </div>
   );
