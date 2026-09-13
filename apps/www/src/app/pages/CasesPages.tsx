@@ -79,7 +79,7 @@ export function CasesPage() {
 
       <div className={`${shell} py-8 pb-16 md:py-10 md:pb-[4rem]`}>
         {error ? <p className="text-pequena text-red-700">{error}</p> : null}
-        <div className="grid gap-3 md:grid-cols-2">
+        <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
           {items.map((item) => (
             <Link
               key={item.id}
