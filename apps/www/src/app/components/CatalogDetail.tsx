@@ -75,6 +75,7 @@ export function CatalogDetailHero({
   videoUrl,
   coverImageUrl,
   showBack = true,
+  topBanner,
 }: {
   eyebrow: string;
   title: string;
@@ -86,6 +87,8 @@ export function CatalogDetailHero({
   videoUrl?: string | null;
   coverImageUrl?: string | null;
   showBack?: boolean;
+  /** Banner promocional no topo interno do hero (posição ABOVE_HERO). */
+  topBanner?: ReactNode;
 }) {
   const embedUrl = toVideoEmbedUrl(videoUrl);
   const directFile = embedUrl ? isDirectVideoFile(embedUrl) : false;
@@ -130,6 +133,7 @@ export function CatalogDetailHero({
       />
 
       <div className={`${shell} relative cac-fade-up py-8 pb-14 md:py-10 md:pb-16`}>
+        {topBanner ? <div className="mb-6 md:mb-8">{topBanner}</div> : null}
         <div className="grid items-start gap-6 lg:grid-cols-2 lg:gap-8">
           <div className="flex min-w-0 flex-col">
             {showBack ? (
@@ -219,21 +223,34 @@ export function DetailHeroStatGrid({ children }: PropsWithChildren) {
   return <div className="grid grid-cols-2 gap-3 sm:gap-3.5">{children}</div>;
 }
 
-export function CatalogDetailBody({ children }: PropsWithChildren) {
-  return <div className={`${shell} relative z-[1] -mt-4 pb-16 md:-mt-6`}>{children}</div>;
+export function CatalogDetailBody({
+  children,
+  pullUp = true,
+}: PropsWithChildren<{ pullUp?: boolean }>) {
+  return (
+    <div
+      className={`${shell} relative z-[1] pb-16 ${pullUp ? '-mt-4 md:-mt-6' : 'mt-6 md:mt-8'}`}
+    >
+      {children}
+    </div>
+  );
 }
 
-/** Banner promocional no rodapé da publicação — cascata pub → org → skeleton. */
+/** Banner promocional — posição: acima do hero, abaixo do hero ou acima do footer. */
 export function CatalogDetailBanner({
   bannerUrl,
   linkUrl,
+  position = 'ABOVE_FOOTER',
 }: {
   bannerUrl?: string | null;
   linkUrl?: string | null;
+  position?: 'ABOVE_HERO' | 'BELOW_HERO' | 'ABOVE_FOOTER';
 }) {
   const { t } = useTranslation();
   const resolved = resolveMediaUrl(bannerUrl);
   const href = linkUrl?.trim() || null;
+  const aboveHero = position === 'ABOVE_HERO';
+  const belowHero = position === 'BELOW_HERO';
 
   const media = resolved ? (
     <img
@@ -253,8 +270,8 @@ export function CatalogDetailBanner({
     </div>
   );
 
-  return (
-    <div className="relative mt-8 overflow-hidden border border-cac-line bg-white md:mt-10">
+  const inner = (
+    <>
       <span className="pointer-events-none absolute top-0 right-0 z-[1] bg-[rgba(10,36,64,.72)] px-2 py-0.5 text-[0.625rem] font-bold tracking-[0.12em] text-white uppercase">
         {t('detail.bannerAdLabel')}
       </span>
@@ -265,6 +282,28 @@ export function CatalogDetailBanner({
       ) : (
         media
       )}
+    </>
+  );
+
+  if (aboveHero) {
+    return (
+      <div className="relative overflow-hidden rounded-[12px] border border-white/20 shadow-[0_12px_32px_rgba(0,0,0,.28)]">
+        {inner}
+      </div>
+    );
+  }
+
+  if (belowHero) {
+    return (
+      <div className={`${shell} relative z-[1] -mt-4 md:-mt-6`}>
+        <div className="relative overflow-hidden border border-cac-line bg-white">{inner}</div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="relative mt-8 overflow-hidden border border-cac-line bg-white md:mt-10">
+      {inner}
     </div>
   );
 }
@@ -356,12 +395,17 @@ export function DetailActionStack({ children }: PropsWithChildren) {
 export function DetailPrimaryButton({
   href,
   children,
-}: PropsWithChildren<{ href: string }>) {
+  icon,
+  done,
+}: PropsWithChildren<{ href: string; icon?: string; done?: boolean }>) {
   return (
     <a
       href={href}
-      className="flex w-full items-center justify-center rounded-[12px] bg-cac-green2 px-4 py-3 text-pequena font-bold text-white transition hover:brightness-105"
+      className={`flex w-full items-center justify-center gap-2 rounded-[12px] px-4 py-3 text-pequena font-bold text-white transition hover:brightness-105 ${
+        done ? 'bg-[#1f6b4a]' : 'bg-cac-green2'
+      }`}
     >
+      {icon ? <i className={`${icon} text-[1.05rem]`} aria-hidden /> : null}
       {children}
     </a>
   );
@@ -370,17 +414,25 @@ export function DetailPrimaryButton({
 export function DetailSecondaryButton({
   href,
   children,
-}: PropsWithChildren<{ href: string }>) {
+  icon,
+  done,
+}: PropsWithChildren<{ href: string; icon?: string; done?: boolean }>) {
   return (
     <a
       href={href}
-      className="flex w-full items-center justify-center rounded-[12px] border border-cac-line bg-[#f7faf8] px-4 py-3 text-pequena font-bold text-cac-navy transition hover:border-cac-green/40 hover:bg-white"
+      className={`flex w-full items-center justify-center gap-2 rounded-[12px] border px-4 py-3 text-pequena font-bold transition ${
+        done
+          ? 'border-cac-green/45 bg-[#eef7f1] text-cac-green'
+          : 'border-cac-line bg-[#f7faf8] text-cac-navy hover:border-cac-green/40 hover:bg-white'
+      }`}
     >
+      {icon ? <i className={`${icon} text-[1.05rem]`} aria-hidden /> : null}
       {children}
     </a>
   );
 }
 
+export { DetailFavoriteButton } from './FavoriteButton';
 export function DetailMetaChip({ children }: PropsWithChildren) {
   return (
     <Chip>

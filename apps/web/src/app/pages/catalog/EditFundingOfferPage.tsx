@@ -60,6 +60,7 @@ export function EditFundingOfferPage() {
         amountRange: String(form.get('amountRange') || ''),
         officialUrl: String(form.get('officialUrl') || ''),
         bannerLinkUrl: String(form.get('bannerLinkUrl') || '').trim() || null,
+        bannerPosition: String(form.get('bannerPosition') || 'ABOVE_FOOTER'),
         deadline: String(form.get('deadline') || '') || undefined,
         country: String(form.get('country')),
         region: String(form.get('region')),
@@ -156,6 +157,7 @@ export function EditFundingOfferPage() {
               <BannerImageField
                 currentUrl={item.bannerImageUrl ? String(item.bannerImageUrl) : null}
                 currentLink={item.bannerLinkUrl ? String(item.bannerLinkUrl) : null}
+                currentPosition={item.bannerPosition ? String(item.bannerPosition) : 'ABOVE_FOOTER'}
               />
             </FieldFull>
           </>

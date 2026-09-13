@@ -45,6 +45,9 @@ export function PublicLayout() {
   ];
 
   const name = user ? displayName(user.name) : '';
+  const portalReturn = `${urls.www}${location.pathname}${location.search}${location.hash}`;
+  const signInHref = `${urls.web}/login?returnUrl=${encodeURIComponent(portalReturn)}`;
+  const signUpHref = `${urls.web}/register?returnUrl=${encodeURIComponent(portalReturn)}`;
 
   return (
     <div className="flex min-h-screen flex-col bg-cac-bg pb-14 font-sans md:pb-0">
@@ -111,13 +114,13 @@ export function PublicLayout() {
             ) : (
               <>
                 <a
-                  href={`${urls.web}/login`}
+                  href={signInHref}
                   className={`${btnBase} border border-[rgba(255,255,255,.22)] bg-transparent text-white hover:bg-white/10`}
                 >
                   {t('nav.signIn')}
                 </a>
                 <a
-                  href={`${urls.web}/register`}
+                  href={signUpHref}
                   className={`${btnBase} bg-cac-green2 text-white hover:brightness-105 max-[620px]:hidden`}
                 >
                   {t('nav.signUp')}

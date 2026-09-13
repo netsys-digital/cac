@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { ContentStatus, NeedType } from '../enums.js';
+import { BannerPosition, ContentStatus, NeedType } from '../enums.js';
 
 export const createChallengeBodySchema = z.object({
   title: z.string().min(3).max(200),
@@ -32,6 +32,9 @@ export const createChallengeBodySchema = z.object({
     .refine((v) => v == null || v === '' || /^https?:\/\/.+/i.test(v), {
       message: 'invalid_banner_link_url',
     }),
+  bannerPosition: z
+    .enum([BannerPosition.ABOVE_HERO, BannerPosition.BELOW_HERO, BannerPosition.ABOVE_FOOTER])
+    .optional(),
   status: z
     .enum([ContentStatus.DRAFT, ContentStatus.IN_REVIEW, ContentStatus.PUBLISHED])
     .optional(),

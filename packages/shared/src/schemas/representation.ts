@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { OrgPublishKind, RepresentationStatus } from '../enums.js';
+import { BannerPosition, OrgPublishKind, RepresentationStatus } from '../enums.js';
 
 export const createRepresentationBodySchema = z.object({
   unit: z.string().min(2).max(200),
@@ -21,6 +21,10 @@ export const approveRepresentationBodySchema = z.object({
     .max(4),
 });
 
+const orgBannerPositionSchema = z
+  .enum([BannerPosition.ABOVE_HERO, BannerPosition.BELOW_HERO, BannerPosition.ABOVE_FOOTER])
+  .optional();
+
 export const updateOrganizationAdminBodySchema = z.object({
   name: z.string().min(2).max(200).optional(),
   summary: z.string().min(10).max(2000).optional().nullable(),
@@ -31,6 +35,10 @@ export const updateOrganizationAdminBodySchema = z.object({
   challengeBannerLinkUrl: z.string().url().optional().or(z.literal('')).nullable(),
   fundingOfferBannerLinkUrl: z.string().url().optional().or(z.literal('')).nullable(),
   successCaseBannerLinkUrl: z.string().url().optional().or(z.literal('')).nullable(),
+  technologyBannerPosition: orgBannerPositionSchema,
+  challengeBannerPosition: orgBannerPositionSchema,
+  fundingOfferBannerPosition: orgBannerPositionSchema,
+  successCaseBannerPosition: orgBannerPositionSchema,
   publishKinds: z
     .array(
       z.enum([

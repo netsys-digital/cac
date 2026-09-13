@@ -1,5 +1,9 @@
 import { z } from 'zod';
-import { ContentStatus, NeedType } from '../enums.js';
+import { BannerPosition, ContentStatus, NeedType } from '../enums.js';
+
+const bannerPositionSchema = z
+  .enum([BannerPosition.ABOVE_HERO, BannerPosition.BELOW_HERO, BannerPosition.ABOVE_FOOTER])
+  .optional();
 
 export const createFundingOfferBodySchema = z.object({
   title: z.string().min(3).max(240),
@@ -29,6 +33,7 @@ export const createFundingOfferBodySchema = z.object({
     .refine((v) => v == null || v === '' || /^https?:\/\/.+/i.test(v), {
       message: 'invalid_banner_link_url',
     }),
+  bannerPosition: bannerPositionSchema,
   status: z
     .enum([ContentStatus.DRAFT, ContentStatus.IN_REVIEW, ContentStatus.PUBLISHED])
     .optional(),
@@ -74,6 +79,7 @@ export const createSuccessCaseBodySchema = z.object({
     .refine((v) => v == null || v === '' || /^https?:\/\/.+/i.test(v), {
       message: 'invalid_banner_link_url',
     }),
+  bannerPosition: bannerPositionSchema,
   needs: z
     .array(
       z.object({

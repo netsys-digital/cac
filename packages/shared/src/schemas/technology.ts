@@ -1,5 +1,9 @@
 import { z } from 'zod';
-import { ClimateAction, ContentStatus, Maturity } from '../enums.js';
+import { BannerPosition, ClimateAction, ContentStatus, Maturity } from '../enums.js';
+
+const bannerPositionSchema = z
+  .enum([BannerPosition.ABOVE_HERO, BannerPosition.BELOW_HERO, BannerPosition.ABOVE_FOOTER])
+  .optional();
 
 export const createTechnologyBodySchema = z.object({
   title: z.string().min(3).max(200),
@@ -23,6 +27,7 @@ export const createTechnologyBodySchema = z.object({
     .refine((v) => v == null || v === '' || /^https?:\/\/.+/i.test(v), {
       message: 'invalid_banner_link_url',
     }),
+  bannerPosition: bannerPositionSchema,
   organizationId: z.string().uuid(),
   country: z.string().length(2),
   region: z.string().min(2).max(64),

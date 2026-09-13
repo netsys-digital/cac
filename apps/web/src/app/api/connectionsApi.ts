@@ -35,6 +35,23 @@ export type PendingItem = {
   updatedAt: string;
 };
 
+export type SavedItemTarget = {
+  title: string;
+  slug: string | null;
+  summary: string | null;
+  coverImageUrl: string | null;
+  organizationName: string | null;
+  portalPath: string | null;
+};
+
+export type SavedItem = {
+  id: string;
+  targetType: string;
+  targetId: string;
+  createdAt: string;
+  target: SavedItemTarget | null;
+};
+
 export const connectionsApi = {
   list: (token: string) => api<{ items: Connection[] }>('/api/connections', { accessToken: token }),
   create: (token: string, body: Record<string, unknown>) =>
@@ -65,7 +82,10 @@ export const connectionsApi = {
       accessToken: token,
       body: JSON.stringify(body),
     }),
-  listSaved: (token: string) => api<{ items: Array<{ id: string; targetType: string; targetId: string }> }>('/api/saved-items', { accessToken: token }),
+  listSaved: (token: string) =>
+    api<{ items: SavedItem[] }>('/api/saved-items', { accessToken: token }),
+  unsaveItem: (token: string, id: string) =>
+    api<void>(`/api/saved-items/${id}`, { method: 'DELETE', accessToken: token }),
   follow: (token: string, organizationId: string) =>
     api<{ item: unknown }>('/api/follows', {
       method: 'POST',

@@ -11,10 +11,11 @@ import {
   DetailHeroStatCard,
   DetailHeroStatGrid,
   DetailOrgCard,
-  DetailPrimaryButton,
   DetailSecondaryButton,
+  DetailFavoriteButton,
   DetailSection,
 } from '../components/CatalogDetail';
+import { DetailConnectionActions } from '../components/DetailConnectionActions';
 import { BackToSearchLink } from '../components/BackToSearchLink';
 import { shell } from '../components/PageChrome';
 import { urls } from '../../config';
@@ -60,7 +61,6 @@ export function FundingOfferDetailPage() {
 
   const deadlineLabel = item.deadline ? formatDate(item.deadline, i18n.language) : null;
   const connectUrl = `${urls.web}/login?returnUrl=${encodeURIComponent(`/connections/new?targetType=FUNDING_OFFER&targetId=${item.id}`)}`;
-  const favoriteUrl = `${urls.web}/login?returnUrl=${encodeURIComponent(`/connections/new?targetType=FUNDING_OFFER&targetId=${item.id}&intent=save`)}`;
 
   const conditionCards = [
     item.amountRange
@@ -80,6 +80,13 @@ export function FundingOfferDetailPage() {
   ].filter((c): c is { label: string; value: string; icon: string } => Boolean(c));
 
   const banner = resolveDetailBanner(item, item.organization, 'FUNDING_OFFER');
+  const bannerEl = (
+    <CatalogDetailBanner
+      bannerUrl={banner.url}
+      linkUrl={banner.linkUrl}
+      position={banner.position}
+    />
+  );
 
   return (
     <div className="bg-cac-bg">
@@ -87,6 +94,7 @@ export function FundingOfferDetailPage() {
         eyebrow={t('detail.fundingBadge')}
         title={item.title}
         summary={item.summary}
+        topBanner={banner.position === 'ABOVE_HERO' ? bannerEl : undefined}
         aside={
           conditionCards.length > 0 ? (
             <DetailHeroStatGrid>
@@ -97,8 +105,9 @@ export function FundingOfferDetailPage() {
           ) : undefined
         }
       />
+      {banner.position === 'BELOW_HERO' ? bannerEl : null}
 
-      <CatalogDetailBody>
+      <CatalogDetailBody pullUp={banner.position !== 'BELOW_HERO'}>
         <div className="grid gap-6 lg:grid-cols-[minmax(0,1.45fr)_minmax(260px,0.7fr)] lg:gap-8">
           <article className="cac-fade-up rounded-[18px] border border-cac-line bg-white px-5 py-2 shadow-[0_16px_40px_rgba(10,36,64,.07)] md:px-8">
             {item.whatFunds ? (
@@ -168,9 +177,12 @@ export function FundingOfferDetailPage() {
               <p className="text-mini font-bold tracking-[1.4px] text-cac-muted uppercase">
                 {t('detail.actions')}
               </p>
-              <DetailPrimaryButton href={connectUrl}>{t('detail.interest')}</DetailPrimaryButton>
-              <DetailSecondaryButton href={connectUrl}>{t('detail.connect')}</DetailSecondaryButton>
-              <DetailSecondaryButton href={favoriteUrl}>{t('detail.favorite')}</DetailSecondaryButton>
+              <DetailConnectionActions
+                connectUrl={connectUrl}
+                targetType="FUNDING_OFFER"
+                targetId={item.id}
+              />
+              <DetailFavoriteButton targetType="FUNDING_OFFER" targetId={item.id} />
               <DetailSecondaryButton href={`${urls.web}/funding-offers/new`}>
                 {t('funding.publishCta')}
               </DetailSecondaryButton>
@@ -193,7 +205,7 @@ export function FundingOfferDetailPage() {
             </div>
           </aside>
         </div>
-        <CatalogDetailBanner bannerUrl={banner.url} linkUrl={banner.linkUrl} />
+        {banner.position === 'ABOVE_FOOTER' ? bannerEl : null}
       </CatalogDetailBody>
     </div>
   );

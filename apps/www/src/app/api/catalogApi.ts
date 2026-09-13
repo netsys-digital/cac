@@ -27,6 +27,10 @@ export type OrgSummary = {
   challengeBannerLinkUrl?: string | null;
   fundingOfferBannerLinkUrl?: string | null;
   successCaseBannerLinkUrl?: string | null;
+  technologyBannerPosition?: 'ABOVE_HERO' | 'BELOW_HERO' | 'ABOVE_FOOTER' | null;
+  challengeBannerPosition?: 'ABOVE_HERO' | 'BELOW_HERO' | 'ABOVE_FOOTER' | null;
+  fundingOfferBannerPosition?: 'ABOVE_HERO' | 'BELOW_HERO' | 'ABOVE_FOOTER' | null;
+  successCaseBannerPosition?: 'ABOVE_HERO' | 'BELOW_HERO' | 'ABOVE_FOOTER' | null;
   verificationStatus: string;
 };
 
@@ -49,6 +53,7 @@ export type Technology = {
   coverImageUrl?: string | null;
   bannerImageUrl?: string | null;
   bannerLinkUrl?: string | null;
+  bannerPosition?: 'ABOVE_HERO' | 'BELOW_HERO' | 'ABOVE_FOOTER' | null;
   status: string;
   country: string;
   region?: string | null;
@@ -69,6 +74,7 @@ export type Challenge = {
   coverImageUrl?: string | null;
   bannerImageUrl?: string | null;
   bannerLinkUrl?: string | null;
+  bannerPosition?: 'ABOVE_HERO' | 'BELOW_HERO' | 'ABOVE_FOOTER' | null;
   country?: string | null;
   region?: string | null;
   tags: string[];

@@ -1,5 +1,6 @@
 import { useEffect, useId, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { BannerPosition, BANNER_POSITIONS, type BannerPosition as BannerPositionType } from '@cac/shared';
 import { resolveMediaUrl } from './RepresentativeImageField';
 
 /** Lê o arquivo de banner do FormData (campo `bannerImage`). */
@@ -11,6 +12,17 @@ export function pickBannerFile(form: FormData): File | null {
 export function pickBannerLink(form: FormData, name = 'bannerLinkUrl'): string | null {
   const raw = String(form.get(name) || '').trim();
   return raw || null;
+}
+
+export function pickBannerPosition(
+  form: FormData,
+  name = 'bannerPosition',
+): BannerPositionType {
+  const raw = String(form.get(name) || '').trim();
+  if ((BANNER_POSITIONS as readonly string[]).includes(raw)) {
+    return raw as BannerPositionType;
+  }
+  return BannerPosition.ABOVE_FOOTER;
 }
 
 export const BANNER_MAX_BYTES = 400 * 1024;
@@ -70,9 +82,54 @@ type Props = {
   linkValue?: string;
   onLinkChange?: (value: string) => void;
   showLinkField?: boolean;
+  /** Posição na página de detalhe. */
+  positionName?: string;
+  currentPosition?: BannerPositionType | string | null;
+  positionValue?: BannerPositionType | string;
+  onPositionChange?: (value: BannerPositionType) => void;
+  showPositionField?: boolean;
 };
 
 const ACCEPT = 'image/jpeg,image/png,image/webp';
+
+const POSITION_LABEL_KEYS: Record<BannerPositionType, string> = {
+  ABOVE_HERO: 'catalog.bannerPositionAboveHero',
+  BELOW_HERO: 'catalog.bannerPositionBelowHero',
+  ABOVE_FOOTER: 'catalog.bannerPositionAboveFooter',
+};
+
+/** Miniatura esquemática da página de detalhe com o banner destacado. */
+function BannerPositionPreview({ position }: { position: BannerPositionType }) {
+  return (
+    <div
+      className="relative mx-auto aspect-[3/4] w-full max-w-[5.5rem] overflow-hidden rounded-md border border-cac-line bg-white"
+      aria-hidden
+    >
+      {/* hero */}
+      <div
+        className={`absolute inset-x-0 ${
+          position === BannerPosition.ABOVE_HERO ? 'top-[12%]' : 'top-0'
+        } h-[28%] bg-[#0e2f4f]`}
+      />
+      {/* conteúdo */}
+      <div className="absolute inset-x-[12%] top-[46%] h-[7%] rounded-[2px] bg-[#dce3e8]" />
+      <div className="absolute inset-x-[12%] top-[56%] h-[7%] rounded-[2px] bg-[#e4eaee]" />
+      <div className="absolute inset-x-[12%] top-[66%] h-[7%] rounded-[2px] bg-[#eaf0f3]" />
+      {/* footer */}
+      <div className="absolute inset-x-0 bottom-0 h-[10%] bg-[#edf1f3]" />
+      {/* faixa do banner */}
+      {position === BannerPosition.ABOVE_HERO ? (
+        <div className="absolute inset-x-0 top-0 h-[10%] bg-cac-green" />
+      ) : null}
+      {position === BannerPosition.BELOW_HERO ? (
+        <div className="absolute inset-x-0 top-[28%] h-[10%] bg-cac-green" />
+      ) : null}
+      {position === BannerPosition.ABOVE_FOOTER ? (
+        <div className="absolute inset-x-0 bottom-[10%] h-[10%] bg-cac-green" />
+      ) : null}
+    </div>
+  );
+}
 
 export function BannerImageField({
   currentUrl,
@@ -87,14 +144,42 @@ export function BannerImageField({
   linkValue,
   onLinkChange,
   showLinkField = true,
+  positionName = 'bannerPosition',
+  currentPosition,
+  positionValue,
+  onPositionChange,
+  showPositionField = true,
 }: Props) {
   const { t } = useTranslation();
   const inputId = useId();
   const linkId = useId();
+  const positionGroupId = useId();
   const controlled = onChange !== undefined;
   const linkControlled = onLinkChange !== undefined;
+  const positionControlled = onPositionChange !== undefined;
   const [preview, setPreview] = useState<string | null>(resolveMediaUrl(currentUrl));
   const [errorKey, setErrorKey] = useState<string | null>(null);
+  const [localPosition, setLocalPosition] = useState<BannerPositionType>(() => {
+    const initial = currentPosition || BannerPosition.ABOVE_FOOTER;
+    if ((BANNER_POSITIONS as readonly string[]).includes(String(initial))) {
+      return initial as BannerPositionType;
+    }
+    return BannerPosition.ABOVE_FOOTER;
+  });
+
+  const resolvedPosition: BannerPositionType = positionControlled
+    ? ((BANNER_POSITIONS as readonly string[]).includes(String(positionValue))
+        ? (positionValue as BannerPositionType)
+        : BannerPosition.ABOVE_FOOTER)
+    : localPosition;
+
+  useEffect(() => {
+    if (positionControlled) return;
+    const next = currentPosition || BannerPosition.ABOVE_FOOTER;
+    if ((BANNER_POSITIONS as readonly string[]).includes(String(next))) {
+      setLocalPosition(next as BannerPositionType);
+    }
+  }, [positionControlled, currentPosition]);
 
   useEffect(() => {
     if (controlled && file) {
@@ -145,7 +230,7 @@ export function BannerImageField({
   }
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-3 rounded-xl border border-cac-line bg-white p-4">
       <div className="space-y-2">
         <label htmlFor={inputId} className="block text-mini font-extrabold uppercase tracking-[0.4px] text-cac-muted">
           {label ?? t('catalog.bannerImage')}
@@ -175,6 +260,49 @@ export function BannerImageField({
         </div>
         {errorKey ? <p className="text-mini text-red-700">{t(errorKey)}</p> : null}
       </div>
+
+      {showPositionField ? (
+        <fieldset className="space-y-2" aria-labelledby={positionGroupId}>
+          <legend id={positionGroupId} className="block text-mini font-extrabold uppercase tracking-[0.4px] text-cac-muted">
+            {t('catalog.bannerPosition')}
+          </legend>
+          <p className="text-mini leading-snug text-cac-muted">{t('catalog.bannerPositionHint')}</p>
+          {!positionControlled ? (
+            <input type="hidden" name={positionName} value={resolvedPosition} />
+          ) : null}
+          <div className="grid grid-cols-3 gap-2 sm:gap-3" role="radiogroup" aria-labelledby={positionGroupId}>
+            {BANNER_POSITIONS.map((pos) => {
+              const selected = resolvedPosition === pos;
+              return (
+                <button
+                  key={pos}
+                  type="button"
+                  role="radio"
+                  aria-checked={selected}
+                  onClick={() => {
+                    if (positionControlled) onPositionChange?.(pos);
+                    else setLocalPosition(pos);
+                  }}
+                  className={`flex flex-col gap-2 rounded-[12px] border px-2 py-2.5 text-left transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cac-green2/40 ${
+                    selected
+                      ? 'border-cac-green bg-cac-green3 shadow-[0_0_0_1px_rgba(46,125,90,.25)]'
+                      : 'border-cac-line bg-white hover:border-cac-green/40'
+                  }`}
+                >
+                  <BannerPositionPreview position={pos} />
+                  <span
+                    className={`text-center text-[0.65rem] font-extrabold leading-tight tracking-[0.2px] uppercase sm:text-mini ${
+                      selected ? 'text-cac-navy' : 'text-cac-muted'
+                    }`}
+                  >
+                    {t(POSITION_LABEL_KEYS[pos])}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+        </fieldset>
+      ) : null}
 
       {showLinkField ? (
         <label htmlFor={linkId} className="block space-y-1">

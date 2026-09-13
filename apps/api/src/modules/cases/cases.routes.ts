@@ -130,6 +130,7 @@ successCasesRouter.patch(
         needs?: Array<{ needType: string; detail?: string }>;
         evidenceNotes?: string[];
         bannerLinkUrl?: string | null;
+        bannerPosition?: string;
         [k: string]: unknown;
       };
       const successCase = await prisma.successCase.update({
@@ -142,6 +143,7 @@ successCasesRouter.patch(
               : rest.bannerLinkUrl === '' || rest.bannerLinkUrl === null
                 ? null
                 : rest.bannerLinkUrl,
+          bannerPosition: rest.bannerPosition as never,
           ...(needs
             ? {
                 needs: {

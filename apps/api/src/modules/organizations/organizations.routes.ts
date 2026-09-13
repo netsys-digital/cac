@@ -8,8 +8,10 @@ import {
   createOrganizationBodySchema,
   createRepresentationBodySchema,
   updateOrganizationBodySchema,
+  updateOrganizationMediaBodySchema,
 } from '@cac/shared';
 import { ZodError } from 'zod';
+import { assertCanActForOrganization } from '../../lib/org-access.js';
 import { prisma } from '../../lib/prisma.js';
 import { slugify } from '../../lib/slug.js';
 import { requireAuth } from '../../middleware/auth.js';
@@ -64,6 +66,18 @@ const logoUpload = multer({
   },
 });
 
+const orgBannerUpload = multer({
+  storage: diskStorage,
+  limits: { fileSize: 400 * 1024 },
+  fileFilter: (_req, file, cb) => {
+    if (!logoAllowed.has(file.mimetype)) {
+      cb(new Error('invalid_mime'));
+      return;
+    }
+    cb(null, true);
+  },
+});
+
 function withProofUpload(
   req: Parameters<typeof requireAuth>[0],
   res: Parameters<typeof requireAuth>[1],
@@ -93,6 +107,37 @@ function withLogoUpload(
     }
     next();
   });
+}
+
+function withOrgBannerUpload(
+  req: Parameters<typeof requireAuth>[0],
+  res: Parameters<typeof requireAuth>[1],
+  next: Parameters<typeof requireAuth>[2],
+) {
+  orgBannerUpload.single('banner')(req, res, (err: unknown) => {
+    if (err) {
+      res.status(400).json({ error: 'invalid_upload', detail: String(err) });
+      return;
+    }
+    next();
+  });
+}
+
+const ORG_BANNER_KINDS = new Set(['TECHNOLOGY', 'CHALLENGE', 'FUNDING_OFFER', 'SUCCESS_CASE']);
+
+function orgBannerDataField(kind: string): string | null {
+  switch (kind) {
+    case 'TECHNOLOGY':
+      return 'technologyBannerUrl';
+    case 'CHALLENGE':
+      return 'challengeBannerUrl';
+    case 'FUNDING_OFFER':
+      return 'fundingOfferBannerUrl';
+    case 'SUCCESS_CASE':
+      return 'successCaseBannerUrl';
+    default:
+      return null;
+  }
 }
 
 organizationsRouter.get('/', async (req, res, next) => {
@@ -177,8 +222,10 @@ organizationsRouter.patch(
   validateBody(updateOrganizationBodySchema),
   async (req, res, next) => {
     try {
+      const id = param(req.params.id);
+      await assertCanActForOrganization(req.auth!.sub, id, req.auth!.role);
       const organization = await prisma.organization.update({
-        where: { id: param(req.params.id) },
+        where: { id },
         data: {
           ...req.body,
           website: req.body.website === '' ? null : req.body.website,
@@ -192,22 +239,110 @@ organizationsRouter.patch(
   },
 );
 
+organizationsRouter.patch(
+  '/:id/media',
+  requireAuth,
+  validateBody(updateOrganizationMediaBodySchema),
+  async (req, res, next) => {
+    try {
+      const id = param(req.params.id);
+      await assertCanActForOrganization(req.auth!.sub, id, req.auth!.role);
+      const data: Record<string, string | null | undefined> = {};
+      const body = req.body as Record<string, string | null | undefined>;
+      for (const key of [
+        'technologyBannerLinkUrl',
+        'challengeBannerLinkUrl',
+        'fundingOfferBannerLinkUrl',
+        'successCaseBannerLinkUrl',
+      ] as const) {
+        if (body[key] !== undefined) {
+          data[key] = body[key] === '' ? null : body[key];
+        }
+      }
+      for (const key of [
+        'technologyBannerPosition',
+        'challengeBannerPosition',
+        'fundingOfferBannerPosition',
+        'successCaseBannerPosition',
+      ] as const) {
+        if (body[key] !== undefined) data[key] = body[key];
+      }
+      const organization = await prisma.organization.update({
+        where: { id },
+        data,
+      });
+      res.json({ organization });
+    } catch (error) {
+      next(error);
+    }
+  },
+);
+
+organizationsRouter.post('/:id/logo', requireAuth, withLogoUpload, async (req, res, next) => {
+  try {
+    const id = param(req.params.id);
+    await assertCanActForOrganization(req.auth!.sub, id, req.auth!.role);
+    if (!req.file) {
+      res.status(400).json({ error: 'logo_required' });
+      return;
+    }
+    const organization = await prisma.organization.update({
+      where: { id },
+      data: { logoUrl: `/uploads/${req.file.filename}` },
+    });
+    res.json({ organization });
+  } catch (error) {
+    next(error);
+  }
+});
+
+organizationsRouter.post(
+  '/:id/banners/:kind',
+  requireAuth,
+  withOrgBannerUpload,
+  async (req, res, next) => {
+    try {
+      const id = param(req.params.id);
+      await assertCanActForOrganization(req.auth!.sub, id, req.auth!.role);
+      const kind = param(req.params.kind).toUpperCase();
+      if (!ORG_BANNER_KINDS.has(kind)) {
+        res.status(400).json({ error: 'invalid_banner_kind' });
+        return;
+      }
+      const field = orgBannerDataField(kind);
+      if (!field || !req.file) {
+        res.status(400).json({ error: 'banner_required' });
+        return;
+      }
+      const organization = await prisma.organization.update({
+        where: { id },
+        data: { [field]: `/uploads/${req.file.filename}` },
+      });
+      res.status(201).json({ organization });
+    } catch (error) {
+      next(error);
+    }
+  },
+);
+
 organizationsRouter.post(
   '/:id/members',
   requireAuth,
   validateBody(addMemberBodySchema),
   async (req, res, next) => {
     try {
+      const id = param(req.params.id);
+      await assertCanActForOrganization(req.auth!.sub, id, req.auth!.role);
       const member = await prisma.organizationMember.upsert({
         where: {
           userId_organizationId: {
             userId: req.body.userId,
-            organizationId: param(req.params.id),
+            organizationId: id,
           },
         },
         create: {
           userId: req.body.userId,
-          organizationId: param(req.params.id),
+          organizationId: id,
           role: req.body.role,
         },
         update: { role: req.body.role },

@@ -53,7 +53,20 @@ export function NewConnectionPage() {
     [t],
   );
 
+  const saveOnly = params.get('intent') === 'save' && Boolean(targetId);
+
   useEffect(() => {
+    if (!saveOnly) return;
+    const qs = new URLSearchParams({
+      intent: 'save',
+      targetType,
+      targetId,
+    });
+    navigate(`/my/favorites?${qs.toString()}`, { replace: true });
+  }, [navigate, saveOnly, targetId, targetType]);
+
+  useEffect(() => {
+    if (saveOnly) return;
     if (!accessToken) {
       setOrgs([]);
       setRequesterOrgId('');
@@ -74,16 +87,7 @@ export function NewConnectionPage() {
         setRequesterOrgId('');
       })
       .finally(() => setLoadingOrgs(false));
-  }, [accessToken]);
-
-  useEffect(() => {
-    const intent = params.get('intent');
-    if (intent !== 'save' || !accessToken || !targetId) return;
-    void connectionsApi
-      .saveItem(accessToken, { targetType, targetId })
-      .then(() => setOk(t('conn.saved')))
-      .catch(() => undefined);
-  }, [accessToken, params, targetId, targetType, t]);
+  }, [accessToken, saveOnly]);
 
   async function onSubmit(event: FormEvent) {
     event.preventDefault();
@@ -107,7 +111,7 @@ export function NewConnectionPage() {
     }
   }
 
-  if (loadingOrgs) {
+  if (saveOnly || loadingOrgs) {
     return (
       <div className="rounded-2xl border border-cac-line bg-white p-5 text-media text-cac-muted shadow-cac">
         {t('dash.loading')}

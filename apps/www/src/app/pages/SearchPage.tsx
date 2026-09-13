@@ -2,11 +2,13 @@ import { type FormEvent, useEffect, useMemo, useRef, useState } from 'react';
 import { useLocation, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { postSearch, type SearchFilters, type SearchResponse } from '../api/searchApi';
-import { PageShell, ResultCard } from '../components/PageChrome';
+import { shell, ResultCard } from '../components/PageChrome';
 import { resolveMediaUrl } from '../lib/mediaUrl';
 import { FilterPanel } from '../components/search/FilterPanel';
 import { MatchPaths } from '../components/search/MatchPaths';
 import { ResultFacets } from '../components/search/ResultFacets';
+import { useSavedFavoriteKeys } from '../hooks/useSavedFavoriteKeys';
+import { useConnectionEngagement } from '../hooks/useConnectionEngagement';
 import { normalizeLanguage } from '../../i18n';
 import {
   consumeSearchScroll,
@@ -14,6 +16,8 @@ import {
   saveSearchReturn,
   searchParamsFromState,
 } from '../search/searchReturn';
+
+const SEARCH_HERO_IMG = '/images/fundo_busca.png';
 
 const STATIC_OPTIONS = {
   themes: [
@@ -78,6 +82,8 @@ function contentLabel(type: string, t: (k: string) => string): string {
       return t('search.typeFunder');
     case 'CHALLENGE':
       return t('search.typeChallenge');
+    case 'CASE':
+      return t('search.typeCase');
     default:
       return type;
   }
@@ -94,6 +100,8 @@ function filtersEqual(a: SearchFilters, b: SearchFilters) {
 export function SearchPage() {
   const { t, i18n } = useTranslation();
   const location = useLocation();
+  const { isFavorited, reload: reloadFavorites } = useSavedFavoriteKeys();
+  const { getKindForSearch } = useConnectionEngagement();
   const [params, setParams] = useSearchParams();
   const qParam = params.get('q') ?? '';
   const filters = useMemo(() => filtersFromSearchParams(params), [params]);
@@ -121,6 +129,10 @@ export function SearchPage() {
   useEffect(() => {
     setFacetSnapshot(null);
   }, [facetBaseKey]);
+
+  useEffect(() => {
+    void reloadFavorites();
+  }, [location.key, reloadFavorites]);
 
   useEffect(() => {
     let cancelled = false;
@@ -215,130 +227,159 @@ export function SearchPage() {
   const facetTotals = facetSnapshot ?? (data ? { total: data.total, facets: data.facets } : null);
 
   return (
-    <PageShell eyebrow={t('search.badge')} title={t('search.title')}>
-      <p className="mb-4 max-w-[760px] text-media leading-relaxed text-cac-muted">{t('search.support')}</p>
-
-      <form onSubmit={onSubmit} className="mb-3 flex flex-col gap-2 sm:flex-row">
-        <input
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          placeholder={t('home.searchPlaceholder')}
-          className="flex-1 rounded-[10px] border border-cac-line bg-white px-3 py-3 text-media text-cac-ink"
+    <div className="bg-cac-bg">
+      <section className="relative overflow-hidden">
+        <div
+          className="absolute inset-0 bg-[#f4f8f9] bg-cover bg-[position:center_center] bg-no-repeat"
+          style={{ backgroundImage: `url(${SEARCH_HERO_IMG})` }}
+          aria-hidden
         />
-        <button
-          type="submit"
-          className="rounded-[10px] bg-cac-green2 px-4 py-3 text-pequena font-bold text-white"
+
+        <div
+          className={`${shell} relative grid items-center gap-8 py-10 md:py-14 lg:grid-cols-[minmax(0,1.4fr)_minmax(0,0.6fr)] lg:gap-8 lg:py-16`}
         >
-          {t('home.searchCta')}
-        </button>
-      </form>
+          <div className="cac-fade-up min-w-0 max-w-[52rem]">
+            <p className="text-mini font-bold tracking-[1.7px] text-cac-green uppercase">
+              {t('search.badge')}
+            </p>
+            <h1 className="mt-3 max-w-[36rem] text-extra-grande leading-[1.08] font-bold tracking-[-0.7px] text-cac-navy">
+              {t('search.title')}
+            </h1>
+            <p className="mt-4 max-w-[40rem] text-media leading-relaxed text-cac-muted">
+              {t('search.support')}
+            </p>
 
-      <FilterPanel
-        value={filters}
-        onChange={onFiltersChange}
-        labels={{
-          country: t('search.filters.country'),
-          region: t('search.filters.region'),
-          theme: t('search.filters.theme'),
-          actorType: t('search.filters.actorType'),
-          sector: t('search.filters.sector'),
-          maturity: t('search.filters.maturity'),
-          scale: t('search.filters.scale'),
-          financing: t('search.filters.financing'),
-        }}
-        options={STATIC_OPTIONS}
-      />
-
-      {data ? (
-        <div className="mt-4 rounded-[12px] border border-cac-line bg-[#eff7f3] px-3 py-2.5 text-pequena text-cac-navy">
-          <b>{t('search.interpretationBadge')}</b> {interpretation}
-        </div>
-      ) : null}
-
-      {error ? <p className="mt-3 text-pequena text-red-700">{error}</p> : null}
-      {loading ? <p className="mt-3 text-pequena text-cac-muted">{t('detail.loading')}</p> : null}
-
-      {data ? (
-        <>
-          {facetTotals ? (
-            <ResultFacets
-              total={facetTotals.total}
-              facets={facetTotals.facets}
-              activeContentType={filters.contentType}
-              onSelect={onFacetSelect}
-              labels={{
-                results: t('search.facets.results'),
-                solutions: t('search.facets.solutions'),
-                projects: t('search.facets.projects'),
-                organizations: t('search.facets.organizations'),
-                funders: t('search.facets.funders'),
-                cases: t('search.facets.cases'),
-                challenges: t('search.facets.challenges'),
-              }}
-            />
-          ) : null}
-          <div className="mt-5">
-            <div className="mb-3 flex flex-wrap items-end justify-between gap-2">
-              <div>
-                <h2 className="text-grande font-bold text-cac-navy">{t('search.resultsTitle')}</h2>
-                <p className="mt-0.5 text-pequena text-cac-muted">
-                  {t('search.resultsHint', { count: data.results.length, total: data.total })}
-                </p>
-              </div>
-              {data.meta?.minScore != null ? (
-                <p className="text-mini text-cac-muted">
-                  {t('search.minScoreHint', { score: data.meta.minScore })}
-                </p>
-              ) : null}
-            </div>
-
-            <div className="space-y-2.5">
-              {data.results.map((item) => (
-                <ResultCard
-                  key={item.id}
-                  to={item.href}
-                  onNavigate={() =>
-                    saveSearchReturn(`${location.pathname}${location.search}`, window.scrollY)
-                  }
-                  title={item.title}
-                  summary={item.summary}
-                  imageUrl={resolveMediaUrl(item.coverImageUrl)}
-                  imageContain={item.contentType === 'ORGANIZATION'}
-                  meta={[
-                    contentLabel(item.contentType, t),
-                    item.organizationName,
-                    item.country,
-                    item.region,
-                  ]
-                    .filter(Boolean)
-                    .join(' · ')}
-                  tags={item.tags}
-                  score={`${item.score}%`}
-                  factors={item.factors}
-                />
-              ))}
-              {!data.results.length ? (
-                <p className="rounded-[12px] border border-dashed border-cac-line bg-white px-4 py-6 text-pequena text-cac-muted">
-                  {t('detail.emptyList')}
-                </p>
-              ) : null}
-            </div>
+            <form onSubmit={onSubmit} className="mt-7 flex w-full max-w-[52rem] flex-col gap-2 sm:flex-row">
+              <input
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                placeholder={t('home.searchPlaceholder')}
+                className="min-w-0 flex-1 rounded-[10px] border border-cac-line bg-white/95 px-3 py-3 text-media text-cac-ink shadow-[0_8px_24px_rgba(10,36,64,.08)] backdrop-blur-[2px]"
+              />
+              <button
+                type="submit"
+                className="shrink-0 rounded-[10px] bg-cac-green2 px-4 py-3 text-pequena font-bold text-white shadow-[0_10px_24px_rgba(10,36,64,.18)] transition hover:brightness-105"
+              >
+                {t('home.searchCta')}
+              </button>
+            </form>
           </div>
 
-          <MatchPaths
-            paths={data.paths}
-            labels={{
-              title: t('search.pathsTitle'),
-              solve: t('search.paths.solve'),
-              fund: t('search.paths.fund'),
-              projects: t('search.paths.projects'),
-              empty: t('search.paths.empty'),
-              active: t('search.paths.active'),
-              directory: t('search.paths.directory'),
-            }}
-          />
-        </>
-      ) : null}
-    </PageShell>
+          <div className="pointer-events-none relative min-h-[10rem] self-stretch lg:min-h-[16rem]" aria-hidden />
+        </div>
+      </section>
+
+      <div className={`${shell} py-8 pb-16 md:py-10 md:pb-[4rem]`}>
+        <FilterPanel
+          value={filters}
+          onChange={onFiltersChange}
+          labels={{
+            country: t('search.filters.country'),
+            region: t('search.filters.region'),
+            theme: t('search.filters.theme'),
+            actorType: t('search.filters.actorType'),
+            sector: t('search.filters.sector'),
+            maturity: t('search.filters.maturity'),
+            scale: t('search.filters.scale'),
+            financing: t('search.filters.financing'),
+          }}
+          options={STATIC_OPTIONS}
+        />
+
+        {data ? (
+          <div className="mt-4 rounded-[12px] border border-cac-line bg-[#eff7f3] px-3 py-2.5 text-pequena text-cac-navy">
+            <b>{t('search.interpretationBadge')}</b> {interpretation}
+          </div>
+        ) : null}
+
+        {error ? <p className="mt-3 text-pequena text-red-700">{error}</p> : null}
+        {loading ? <p className="mt-3 text-pequena text-cac-muted">{t('detail.loading')}</p> : null}
+
+        {data ? (
+          <>
+            {facetTotals ? (
+              <ResultFacets
+                total={facetTotals.total}
+                facets={facetTotals.facets}
+                activeContentType={filters.contentType}
+                onSelect={onFacetSelect}
+                labels={{
+                  results: t('search.facets.results'),
+                  solutions: t('search.facets.solutions'),
+                  projects: t('search.facets.projects'),
+                  organizations: t('search.facets.organizations'),
+                  funders: t('search.facets.funders'),
+                  cases: t('search.facets.cases'),
+                  challenges: t('search.facets.challenges'),
+                }}
+              />
+            ) : null}
+            <div className="mt-5">
+              <div className="mb-3 flex flex-wrap items-end justify-between gap-2">
+                <div>
+                  <h2 className="text-grande font-bold text-cac-navy">{t('search.resultsTitle')}</h2>
+                  <p className="mt-0.5 text-pequena text-cac-muted">
+                    {t('search.resultsHint', { count: data.results.length, total: data.total })}
+                  </p>
+                </div>
+                {data.meta?.minScore != null ? (
+                  <p className="text-mini text-cac-muted">
+                    {t('search.minScoreHint', { score: data.meta.minScore })}
+                  </p>
+                ) : null}
+              </div>
+
+              <div className="space-y-2.5">
+                {data.results.map((item) => (
+                  <ResultCard
+                    key={item.id}
+                    to={item.href}
+                    onNavigate={() =>
+                      saveSearchReturn(`${location.pathname}${location.search}`, window.scrollY)
+                    }
+                    title={item.title}
+                    summary={item.summary}
+                    imageUrl={resolveMediaUrl(item.coverImageUrl)}
+                    imageContain={item.contentType === 'ORGANIZATION'}
+                    favorited={isFavorited(item.contentType, item.id)}
+                    interested={getKindForSearch(item.contentType, item.id) === 'interest'}
+                    connected={getKindForSearch(item.contentType, item.id) === 'connected'}
+                    meta={[
+                      contentLabel(item.contentType, t),
+                      item.organizationName,
+                      item.country,
+                      item.region,
+                    ]
+                      .filter(Boolean)
+                      .join(' · ')}
+                    tags={item.tags}
+                    score={`${item.score}%`}
+                    factors={item.factors}
+                  />
+                ))}
+                {!data.results.length ? (
+                  <p className="rounded-[12px] border border-dashed border-cac-line bg-white px-4 py-6 text-pequena text-cac-muted">
+                    {t('detail.emptyList')}
+                  </p>
+                ) : null}
+              </div>
+            </div>
+
+            <MatchPaths
+              paths={data.paths}
+              labels={{
+                title: t('search.pathsTitle'),
+                solve: t('search.paths.solve'),
+                fund: t('search.paths.fund'),
+                projects: t('search.paths.projects'),
+                empty: t('search.paths.empty'),
+                active: t('search.paths.active'),
+                directory: t('search.paths.directory'),
+              }}
+            />
+          </>
+        ) : null}
+      </div>
+    </div>
   );
 }

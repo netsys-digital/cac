@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { OrgVerificationStatus } from '../enums.js';
+import { BannerPosition, OrgVerificationStatus } from '../enums.js';
 
 export const createOrganizationBodySchema = z.object({
   name: z.string().min(2).max(200),
@@ -12,10 +12,31 @@ export const createOrganizationBodySchema = z.object({
 
 export const updateOrganizationBodySchema = createOrganizationBodySchema.partial();
 
+const orgBannerPositionSchema = z
+  .enum([BannerPosition.ABOVE_HERO, BannerPosition.BELOW_HERO, BannerPosition.ABOVE_FOOTER])
+  .optional();
+
+/** Member/affiliate can update org media metadata (links + positions). */
+export const updateOrganizationMediaBodySchema = z.object({
+  technologyBannerLinkUrl: z.string().url().optional().or(z.literal('')).nullable(),
+  challengeBannerLinkUrl: z.string().url().optional().or(z.literal('')).nullable(),
+  fundingOfferBannerLinkUrl: z.string().url().optional().or(z.literal('')).nullable(),
+  successCaseBannerLinkUrl: z.string().url().optional().or(z.literal('')).nullable(),
+  technologyBannerPosition: orgBannerPositionSchema,
+  challengeBannerPosition: orgBannerPositionSchema,
+  fundingOfferBannerPosition: orgBannerPositionSchema,
+  successCaseBannerPosition: orgBannerPositionSchema,
+});
+
 export const addMemberBodySchema = z.object({
   userId: z.string().uuid(),
   role: z.enum(['ORG_ADMIN', 'ORG_MEMBER']).default('ORG_MEMBER'),
 });
+
+const bannerPositionField = z
+  .enum([BannerPosition.ABOVE_HERO, BannerPosition.BELOW_HERO, BannerPosition.ABOVE_FOOTER])
+  .nullable()
+  .optional();
 
 export const organizationSchema = z.object({
   id: z.string().uuid(),
@@ -34,6 +55,10 @@ export const organizationSchema = z.object({
   challengeBannerLinkUrl: z.string().nullable().optional(),
   fundingOfferBannerLinkUrl: z.string().nullable().optional(),
   successCaseBannerLinkUrl: z.string().nullable().optional(),
+  technologyBannerPosition: bannerPositionField,
+  challengeBannerPosition: bannerPositionField,
+  fundingOfferBannerPosition: bannerPositionField,
+  successCaseBannerPosition: bannerPositionField,
   verificationStatus: z.enum([
     OrgVerificationStatus.PENDING,
     OrgVerificationStatus.VERIFIED,
@@ -43,4 +68,5 @@ export const organizationSchema = z.object({
 
 export type CreateOrganizationBody = z.infer<typeof createOrganizationBodySchema>;
 export type UpdateOrganizationBody = z.infer<typeof updateOrganizationBodySchema>;
+export type UpdateOrganizationMediaBody = z.infer<typeof updateOrganizationMediaBodySchema>;
 export type AddMemberBody = z.infer<typeof addMemberBodySchema>;

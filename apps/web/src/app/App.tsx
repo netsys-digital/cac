@@ -7,9 +7,11 @@ import { AuthLayout } from './layout/AuthLayout';
 import { AppShell } from './layout/AppShell';
 import { LoginPage } from './pages/auth/LoginPage';
 import { RegisterPage } from './pages/auth/RegisterPage';
+import { AuthBridgePage } from './pages/auth/AuthBridgePage';
 import { HomePage } from './pages/HomePage';
 import { RepresentationListPage } from './pages/org/RepresentationListPage';
 import { RepresentationWizardPage } from './pages/org/RepresentationWizardPage';
+import { MyOrganizationPage } from './pages/org/MyOrganizationPage';
 import { AdminRepresentationPage } from './pages/admin/AdminRepresentationPage';
 import { AdminDomainsPage } from './pages/admin/AdminDomainsPage';
 import { AdminOrganizationsPage } from './pages/admin/AdminOrganizationsPage';
@@ -26,6 +28,7 @@ import { EditFundingOfferPage } from './pages/catalog/EditFundingOfferPage';
 import { EditCasePage } from './pages/catalog/EditCasePage';
 import { NewConnectionPage } from './pages/connections/NewConnectionPage';
 import { MyConnectionsPage } from './pages/connections/MyConnectionsPage';
+import { MyFavoritesPage } from './pages/connections/MyFavoritesPage';
 import { RepresentationProvider } from './auth/RepresentationContext';
 import { StaffTasksProvider } from './auth/StaffTasksContext';
 
@@ -52,6 +55,7 @@ export default function App() {
         <Route path="/login" element={<LoginWithReturn />} />
         <Route path="/register" element={<RegisterPage />} />
       </Route>
+      <Route path="/auth/bridge" element={<AuthBridgePage />} />
       <Route
         path="/"
         element={
@@ -62,6 +66,7 @@ export default function App() {
       >
         <Route index element={<HomePage />} />
         <Route path="welcome" element={<Navigate to="/" replace />} />
+        <Route path="org" element={<MyOrganizationPage />} />
         <Route path="org/representation" element={<RepresentationListPage />} />
         <Route path="org/representation/new" element={<RepresentationWizardPage />} />
         <Route
@@ -110,6 +115,7 @@ export default function App() {
         <Route path="cases/:id/edit" element={<EditCasePage />} />
         <Route path="connections/new" element={<NewConnectionPage />} />
         <Route path="my/connections" element={<MyConnectionsPage />} />
+        <Route path="my/favorites" element={<MyFavoritesPage />} />
         <Route path="offer/new" element={<Navigate to="/catalog/technologies/new" replace />} />
         <Route path="demand/new" element={<Navigate to="/catalog/challenges/new" replace />} />
         <Route

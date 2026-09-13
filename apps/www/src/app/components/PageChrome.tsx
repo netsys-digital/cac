@@ -44,6 +44,9 @@ export function ResultCard({
   factors,
   imageUrl,
   imageContain,
+  favorited,
+  interested,
+  connected,
   onNavigate,
 }: {
   to: string;
@@ -57,6 +60,12 @@ export function ResultCard({
   imageUrl?: string | null;
   /** Use contain (ex.: logo de organização) em vez de cover. */
   imageContain?: boolean;
+  /** Item já está nos favoritos do usuário. */
+  favorited?: boolean;
+  /** Interesse / conexão pendente do usuário. */
+  interested?: boolean;
+  /** Conexão aceita com o item. */
+  connected?: boolean;
   onNavigate?: () => void;
 }) {
   const { t } = useTranslation();
@@ -116,7 +125,7 @@ export function ResultCard({
           </span>
         ) : null}
       </span>
-      <span className="flex shrink-0 flex-row items-center justify-between gap-3 sm:flex-col sm:items-end sm:justify-center sm:text-right">
+      <span className="flex shrink-0 flex-row items-center justify-between gap-3 sm:flex-col sm:items-end sm:justify-center sm:gap-2.5 sm:text-right">
         <span>
           {score ? <b className="block text-media leading-none text-cac-green">{score}</b> : null}
           {score ? (
@@ -125,8 +134,37 @@ export function ResultCard({
             </span>
           ) : null}
         </span>
-        <span className="inline-flex rounded-[10px] border border-cac-green bg-white px-3 py-2 text-pequena font-extrabold text-cac-green">
-          {t('detail.open')}
+        <span className="inline-flex items-center gap-2.5">
+          {favorited ? (
+            <span
+              className="grid size-9 shrink-0 place-items-center rounded-full bg-[#fff1f2] text-[#e11d48] ring-1 ring-[#e11d48]/25"
+              title={t('detail.favorited')}
+              aria-label={t('detail.favorited')}
+            >
+              <i className="fa-solid fa-heart text-[1.05rem]" aria-hidden />
+            </span>
+          ) : null}
+          {interested && !connected ? (
+            <span
+              className="grid size-9 shrink-0 place-items-center rounded-full bg-[#fff8eb] text-[#c47a12] ring-1 ring-[#c47a12]/25"
+              title={t('detail.interestDone')}
+              aria-label={t('detail.interestDone')}
+            >
+              <i className="fa-solid fa-thumbs-up text-[1rem]" aria-hidden />
+            </span>
+          ) : null}
+          {connected ? (
+            <span
+              className="grid size-9 shrink-0 place-items-center rounded-full bg-[#eef7f1] text-cac-green ring-1 ring-cac-green/30"
+              title={t('detail.connectDone')}
+              aria-label={t('detail.connectDone')}
+            >
+              <i className="fa-solid fa-handshake text-[1rem]" aria-hidden />
+            </span>
+          ) : null}
+          <span className="inline-flex rounded-[10px] border border-cac-green bg-white px-3 py-2 text-pequena font-extrabold text-cac-green">
+            {t('detail.open')}
+          </span>
         </span>
       </span>
     </Link>

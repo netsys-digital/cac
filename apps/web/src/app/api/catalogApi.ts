@@ -17,6 +17,10 @@ export type Organization = {
   challengeBannerLinkUrl?: string | null;
   fundingOfferBannerLinkUrl?: string | null;
   successCaseBannerLinkUrl?: string | null;
+  technologyBannerPosition?: 'ABOVE_HERO' | 'BELOW_HERO' | 'ABOVE_FOOTER' | null;
+  challengeBannerPosition?: 'ABOVE_HERO' | 'BELOW_HERO' | 'ABOVE_FOOTER' | null;
+  fundingOfferBannerPosition?: 'ABOVE_HERO' | 'BELOW_HERO' | 'ABOVE_FOOTER' | null;
+  successCaseBannerPosition?: 'ABOVE_HERO' | 'BELOW_HERO' | 'ABOVE_FOOTER' | null;
   publishKinds?: Array<'TECHNOLOGY' | 'CHALLENGE' | 'FUNDING_OFFER' | 'SUCCESS_CASE'>;
 };
 
@@ -165,6 +169,10 @@ export const catalogApi = {
       challengeBannerLinkUrl?: string | null;
       fundingOfferBannerLinkUrl?: string | null;
       successCaseBannerLinkUrl?: string | null;
+      technologyBannerPosition?: 'ABOVE_HERO' | 'BELOW_HERO' | 'ABOVE_FOOTER';
+      challengeBannerPosition?: 'ABOVE_HERO' | 'BELOW_HERO' | 'ABOVE_FOOTER';
+      fundingOfferBannerPosition?: 'ABOVE_HERO' | 'BELOW_HERO' | 'ABOVE_FOOTER';
+      successCaseBannerPosition?: 'ABOVE_HERO' | 'BELOW_HERO' | 'ABOVE_FOOTER';
     },
   ) =>
     api<{ organization: Organization }>(`/api/admin/organizations/${id}`, {

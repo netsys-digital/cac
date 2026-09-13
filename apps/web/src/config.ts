@@ -8,12 +8,13 @@ export const brand = {
 };
 
 /**
- * Em `vite dev`, chama a API pela mesma origem (proxy em vite.config).
- * Assim o cookie httpOnly de refresh fica first-party e sobrevive ao F5.
- * Em build/produção usa VITE_API_URL absoluto.
+ * Base da API.
+ * Em Vite local: sempre absoluta (VITE_API_URL) para o cookie de refresh
+ * ser compartilhado entre portal (5179) e painel (5178).
+ * Em build com proxy nginx (prod): VITE_API_URL vazio → same-origin `/api`.
  */
 export const urls = {
-  api: import.meta.env.DEV ? '' : (import.meta.env.VITE_API_URL ?? 'http://localhost:3003'),
+  api: import.meta.env.VITE_API_URL?.trim() || (import.meta.env.DEV ? 'http://localhost:3003' : ''),
   web: import.meta.env.VITE_WEB_URL ?? 'http://localhost:5178',
   www: import.meta.env.VITE_WWW_URL ?? 'http://localhost:5179',
 };

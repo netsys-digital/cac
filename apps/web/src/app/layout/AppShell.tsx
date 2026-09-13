@@ -26,8 +26,10 @@ function useBreadcrumbs() {
     const map: Array<{ match: RegExp | string; label: string }> = [
       { match: /^\/welcome/, label: t('nav.dashboard') },
       { match: /^\/my\/contents/, label: t('nav.myContents') },
+      { match: /^\/my\/favorites/, label: t('nav.favorites') },
       { match: /^\/my\/connections/, label: t('nav.connections') },
       { match: /^\/org\/representation/, label: t('nav.representation') },
+      { match: /^\/org/, label: t('nav.organization') },
       { match: /^\/catalog\/technologies\/[^/]+\/edit/, label: t('mine.edit') },
       { match: /^\/catalog\/technologies/, label: t('nav.newTech') },
       { match: /^\/catalog\/challenges\/[^/]+\/edit/, label: t('mine.edit') },
@@ -93,6 +95,8 @@ export function AppShell() {
       : [
           homePrimary,
           { to: '/my/connections', label: t('nav.connections') },
+          { to: '/my/favorites', label: t('nav.favorites') },
+          { to: '/org', label: t('nav.organization') },
           { to: '/org/representation', label: t('nav.representation') },
           { to: '/my/contents', label: t('nav.myContents') },
         ];
@@ -178,6 +182,7 @@ export function AppShell() {
         portalItem,
         ...staffItems,
         { to: '/my/connections', label: t('nav.connections'), icon: sideIcons.connections },
+        { to: '/my/favorites', label: t('nav.favorites'), icon: sideIcons.favorites },
       ]
     : isAdmin
       ? [
@@ -186,12 +191,19 @@ export function AppShell() {
           ...adminItems,
           ...staffItems,
           { to: '/my/connections', label: t('nav.connections'), icon: sideIcons.connections },
+          { to: '/my/favorites', label: t('nav.favorites'), icon: sideIcons.favorites },
           ...publishItems,
         ]
       : [
           homeItem,
           portalItem,
           { to: '/my/connections', label: t('nav.connections'), icon: sideIcons.connections },
+          { to: '/my/favorites', label: t('nav.favorites'), icon: sideIcons.favorites },
+          {
+            to: '/org',
+            label: t('nav.organization'),
+            icon: sideIcons.orgs,
+          },
           {
             to: '/org/representation',
             label: t('nav.representation'),

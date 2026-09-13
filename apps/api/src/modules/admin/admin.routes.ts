@@ -366,6 +366,10 @@ adminRouter.patch(
         challengeBannerLinkUrl?: string | null;
         fundingOfferBannerLinkUrl?: string | null;
         successCaseBannerLinkUrl?: string | null;
+        technologyBannerPosition?: 'ABOVE_HERO' | 'BELOW_HERO' | 'ABOVE_FOOTER';
+        challengeBannerPosition?: 'ABOVE_HERO' | 'BELOW_HERO' | 'ABOVE_FOOTER';
+        fundingOfferBannerPosition?: 'ABOVE_HERO' | 'BELOW_HERO' | 'ABOVE_FOOTER';
+        successCaseBannerPosition?: 'ABOVE_HERO' | 'BELOW_HERO' | 'ABOVE_FOOTER';
       } = {};
       if (req.body.name !== undefined) data.name = req.body.name;
       if (req.body.summary !== undefined) data.summary = req.body.summary;
@@ -389,6 +393,18 @@ adminRouter.patch(
       if (req.body.successCaseBannerLinkUrl !== undefined) {
         data.successCaseBannerLinkUrl =
           req.body.successCaseBannerLinkUrl === '' ? null : req.body.successCaseBannerLinkUrl;
+      }
+      if (req.body.technologyBannerPosition !== undefined) {
+        data.technologyBannerPosition = req.body.technologyBannerPosition;
+      }
+      if (req.body.challengeBannerPosition !== undefined) {
+        data.challengeBannerPosition = req.body.challengeBannerPosition;
+      }
+      if (req.body.fundingOfferBannerPosition !== undefined) {
+        data.fundingOfferBannerPosition = req.body.fundingOfferBannerPosition;
+      }
+      if (req.body.successCaseBannerPosition !== undefined) {
+        data.successCaseBannerPosition = req.body.successCaseBannerPosition;
       }
       if (req.body.publishKinds !== undefined) {
         data.publishKinds = [...new Set(req.body.publishKinds as string[])] as Array<

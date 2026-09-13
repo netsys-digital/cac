@@ -72,6 +72,7 @@ export function EditTechnologyPage() {
         howItWorks: String(form.get('howItWorks')),
         videoUrl: String(form.get('videoUrl') || '').trim() || null,
         bannerLinkUrl: String(form.get('bannerLinkUrl') || '').trim() || null,
+        bannerPosition: String(form.get('bannerPosition') || 'ABOVE_FOOTER'),
         country: String(form.get('country')),
         region: String(form.get('region')),
         maturity: String(form.get('maturity')),
@@ -191,6 +192,7 @@ export function EditTechnologyPage() {
               <BannerImageField
                 currentUrl={item.bannerImageUrl ? String(item.bannerImageUrl) : null}
                 currentLink={item.bannerLinkUrl ? String(item.bannerLinkUrl) : null}
+                currentPosition={item.bannerPosition ? String(item.bannerPosition) : 'ABOVE_FOOTER'}
               />
             </FieldFull>
           </>

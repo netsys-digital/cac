@@ -70,6 +70,7 @@ export function EditChallengePage() {
         context: String(form.get('context')),
         needType: String(form.get('needType')),
         bannerLinkUrl: String(form.get('bannerLinkUrl') || '').trim() || null,
+        bannerPosition: String(form.get('bannerPosition') || 'ABOVE_FOOTER'),
         country: String(form.get('country')),
         region: String(form.get('region')),
         tags,
@@ -176,6 +177,7 @@ export function EditChallengePage() {
               <BannerImageField
                 currentUrl={item.bannerImageUrl ? String(item.bannerImageUrl) : null}
                 currentLink={item.bannerLinkUrl ? String(item.bannerLinkUrl) : null}
+                currentPosition={item.bannerPosition ? String(item.bannerPosition) : 'ABOVE_FOOTER'}
               />
             </FieldFull>
           </>

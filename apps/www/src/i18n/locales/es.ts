@@ -150,6 +150,7 @@ export const es = {
     typeOrg: 'Organización',
     typeFunder: 'Financiador',
     typeChallenge: 'Desafío',
+    typeCase: 'Caso',
     filters: {
       country: 'País',
       region: 'Región',
@@ -207,8 +208,15 @@ export const es = {
       'El edital, las reglas de inscripción y los plazos oficiales están en la página de la institución financiadora. Acceda al sitio de la convocatoria para postularse u obtener los documentos completos.',
     officialCta: 'Acceder a la convocatoria',
     interest: 'Me interesa',
+    interestDone: 'Interés registrado',
     connect: 'Solicitar conexión',
-    favorite: 'Favorito',
+    connectPending: 'Conexión solicitada',
+    connectDone: 'Conexión realizada',
+    favorite: 'Me gusta',
+    favoriting: 'Guardando…',
+    favorited: 'Me gusta',
+    favoriteError: 'No se pudo marcar como favorito. Inténtelo de nuevo.',
+    favoriteLoginHint: 'Si la sesión del portal no está activa, el inicio de sesión vuelve aquí y completa “Me gusta”.',
     complementary: 'Información complementaria',
     complementaryHint:
       'Use la búsqueda y el directorio de financiamiento para cruzar esta solución con proyectos y oportunidades abiertas.',
@@ -236,7 +244,7 @@ export const es = {
     caseNextStepsBody:
       'Replique aprendizajes de este caso buscando soluciones, socios y financiamiento alineados.',
     actions: 'Acciones',
-    actionsHint: 'Conexiones y favoritos requieren cuenta en el panel. Volverá a este ítem después del inicio de sesión.',
+    actionsHint: 'Las conexiones requieren cuenta en el panel. Los iconos de pulgar y apretón de manos marcan interés o conexión ya hecha; el corazón marca “Me gusta”.',
     bannerAdLabel: 'Publicidad',
     needs: {
       technology: 'Tecnología',
@@ -260,11 +268,22 @@ export const es = {
       scale: 'A escala',
     },
   },
+  challengeLanding: {
+    badge: '03 • DESAFÍO',
+    title: 'Publique un desafío',
+    support: 'Registre demandas reales y encuentre quién puede ayudar a resolverlas.',
+    publishCta: 'Publicar desafío',
+  },
   funding: {
     badge: '02 • FINANCIAMIENTO',
     title: 'Financiamiento',
     support:
-      'Explore ofertas activas (con plazo, entran en el match) y el directorio de financiadores (referencia — no es convocatoria abierta).',
+      'Explore ofertas activas, convocatorias, edictos y oportunidades de financiamiento conectadas a soluciones y proyectos que generan impacto en el agro.',
+    heroQuote: 'Inversión que impulsa soluciones para un agro más productivo y resiliente.',
+    feature1: 'Más oportunidades',
+    feature2: 'Conexión con financiadores',
+    feature3: 'Impacto mensurable',
+    feature4: 'Alcance global',
     activeTitle: 'Ofertas activas',
     activeBody: 'Convocatorias y oportunidades con plazo — participan del camino “quién puede financiar”.',
     directoryTitle: 'Directorio de financiadores',

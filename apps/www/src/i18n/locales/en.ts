@@ -145,6 +145,7 @@ export const en = {
     typeOrg: 'Organization',
     typeFunder: 'Funder',
     typeChallenge: 'Challenge',
+    typeCase: 'Case',
     filters: {
       country: 'Country',
       region: 'Region',
@@ -202,8 +203,15 @@ export const en = {
       'The full call, application rules and official deadlines are on the funder website. Open the call page to apply or get the complete documents.',
     officialCta: 'Open the call',
     interest: 'I am interested',
+    interestDone: 'Interest registered',
     connect: 'Request connection',
-    favorite: 'Favorite',
+    connectPending: 'Connection requested',
+    connectDone: 'Connection made',
+    favorite: 'Liked this',
+    favoriting: 'Saving…',
+    favorited: 'Liked this',
+    favoriteError: 'Could not favorite. Try again.',
+    favoriteLoginHint: 'If the portal session is inactive, sign-in returns here and completes “Liked this”.',
     complementary: 'Complementary information',
     complementaryHint:
       'Use search and the funding directory to cross this solution with projects and open opportunities.',
@@ -231,7 +239,7 @@ export const en = {
     caseNextStepsBody:
       'Replicate learnings from this case by seeking aligned solutions, partners and funding.',
     actions: 'Actions',
-    actionsHint: 'Connections and favorites need a panel account. You will return to this item after login.',
+    actionsHint: 'Connections need a panel account. Thumbs-up and handshake icons mark interest or an existing connection; the heart marks “Liked this”.',
     bannerAdLabel: 'Advertisement',
     needs: {
       technology: 'Technology',
@@ -255,11 +263,22 @@ export const en = {
       scale: 'At scale',
     },
   },
+  challengeLanding: {
+    badge: '03 • CHALLENGE',
+    title: 'Publish a challenge',
+    support: 'Register real demands and find who can help solve them.',
+    publishCta: 'Publish challenge',
+  },
   funding: {
     badge: '02 • FUNDING',
     title: 'Funding',
     support:
-      'Explore active offers (with deadlines, included in match) and the funder directory (reference — not an open call).',
+      'Explore active offers, calls, notices and funding opportunities connected to solutions and projects that create impact in agri-food systems.',
+    heroQuote: 'Investment that drives solutions for a more productive and resilient agri-food system.',
+    feature1: 'More opportunities',
+    feature2: 'Link to funders',
+    feature3: 'Measurable impact',
+    feature4: 'Global reach',
     activeTitle: 'Active offers',
     activeBody: 'Calls and opportunities with deadlines — included in the “who can fund” path.',
     directoryTitle: 'Funder directory',

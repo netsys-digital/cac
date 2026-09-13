@@ -150,6 +150,7 @@ export const pt = {
     typeOrg: 'Organização',
     typeFunder: 'Financiador',
     typeChallenge: 'Desafio',
+    typeCase: 'Caso',
     filters: {
       country: 'País',
       region: 'Região',
@@ -207,8 +208,15 @@ export const pt = {
       'O edital, as regras de inscrição e os prazos oficiais ficam na página da instituição financiadora. Acesse o site da chamada para se candidatar ou obter os documentos completos.',
     officialCta: 'Acessar a chamada',
     interest: 'Tenho interesse',
+    interestDone: 'Interesse registrado',
     connect: 'Solicitar conexão',
-    favorite: 'Favoritar',
+    connectPending: 'Conexão solicitada',
+    connectDone: 'Conexão realizada',
+    favorite: 'Gostei disso',
+    favoriting: 'Salvando…',
+    favorited: 'Gostei disso',
+    favoriteError: 'Não foi possível favoritar. Tente de novo.',
+    favoriteLoginHint: 'Se a sessão não estiver ativa no portal, o login volta para esta página e conclui o “Gostei”.',
     complementary: 'Informações complementares',
     complementaryHint:
       'Use a busca e o diretório de financiamento para cruzar esta solução com projetos e oportunidades abertas.',
@@ -236,7 +244,7 @@ export const pt = {
     caseNextStepsBody:
       'Replique aprendizados deste caso buscando soluções, parceiros e financiamento alinhados.',
     actions: 'Ações',
-    actionsHint: 'Conexões e favoritos pedem conta no painel. Você volta para este item depois do login.',
+    actionsHint: 'Conexões pedem conta no painel. Ícones de polegar e aperto de mão indicam interesse ou conexão já feitos; o coração marca “Gostei”.',
     bannerAdLabel: 'Publicidade',
     needs: {
       technology: 'Tecnologia',
@@ -260,11 +268,22 @@ export const pt = {
       scale: 'Em escala',
     },
   },
+  challengeLanding: {
+    badge: '03 • DESAFIO',
+    title: 'Publique um desafio',
+    support: 'Registre demandas reais e encontre quem pode ajudar a resolvê-las.',
+    publishCta: 'Publicar desafio',
+  },
   funding: {
     badge: '02 • FINANCIAMENTO',
     title: 'Financiamento',
     support:
-      'Explore ofertas ativas (com prazo, entram no match) e o diretório de financiadores (referência — não é chamada aberta).',
+      'Explore ofertas ativas, chamadas, editais e oportunidades de financiamento conectadas a soluções e projetos que geram impacto no agro.',
+    heroQuote: 'Investimento que impulsiona soluções para um agro mais produtivo e resiliente.',
+    feature1: 'Mais oportunidades',
+    feature2: 'Conexão com financiadores',
+    feature3: 'Impacto mensurável',
+    feature4: 'Alcance global',
     activeTitle: 'Ofertas ativas',
     activeBody: 'Chamadas e oportunidades com prazo — participam do caminho “quem pode financiar”.',
     directoryTitle: 'Diretório de financiadores',

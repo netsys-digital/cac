@@ -157,6 +157,7 @@ export const sideIcons = {
   users: <IconShield />,
   portal: <IconGlobe />,
   connections: <IconLink />,
+  favorites: <IconStar />,
   representation: <IconBadge />,
 };
 

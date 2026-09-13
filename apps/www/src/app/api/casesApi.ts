@@ -19,6 +19,7 @@ export type SuccessCase = {
   coverImageUrl?: string | null;
   bannerImageUrl?: string | null;
   bannerLinkUrl?: string | null;
+  bannerPosition?: 'ABOVE_HERO' | 'BELOW_HERO' | 'ABOVE_FOOTER' | null;
   organization?: {
     id: string;
     name: string;
@@ -33,6 +34,10 @@ export type SuccessCase = {
     challengeBannerLinkUrl?: string | null;
     fundingOfferBannerLinkUrl?: string | null;
     successCaseBannerLinkUrl?: string | null;
+    technologyBannerPosition?: 'ABOVE_HERO' | 'BELOW_HERO' | 'ABOVE_FOOTER' | null;
+    challengeBannerPosition?: 'ABOVE_HERO' | 'BELOW_HERO' | 'ABOVE_FOOTER' | null;
+    fundingOfferBannerPosition?: 'ABOVE_HERO' | 'BELOW_HERO' | 'ABOVE_FOOTER' | null;
+    successCaseBannerPosition?: 'ABOVE_HERO' | 'BELOW_HERO' | 'ABOVE_FOOTER' | null;
     verificationStatus?: string;
   };
   needs: Array<{ id: string; needType: string; detail?: string | null }>;

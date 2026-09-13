@@ -62,7 +62,7 @@ export function DashboardPage() {
       value: stats?.favorites ?? '—',
       label: t('dash.favorites'),
       hint: t('dash.favoritesHint', { follows: stats?.follows ?? 0 }),
-      to: '/my/connections',
+      to: '/my/favorites',
     },
     {
       key: 'interactions',
@@ -198,6 +198,12 @@ export function DashboardPage() {
           className="rounded-[10px] bg-cac-green3 px-3 py-2 text-pequena font-extrabold text-cac-navy"
         >
           {t('nav.connections')}
+        </Link>
+        <Link
+          to="/my/favorites"
+          className="rounded-[10px] border border-cac-line bg-white px-3 py-2 text-pequena font-extrabold text-cac-navy"
+        >
+          {t('nav.favorites')}
         </Link>
         <Link
           to="/my/contents"

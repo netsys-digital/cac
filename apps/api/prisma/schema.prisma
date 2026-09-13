@@ -82,6 +82,12 @@ enum MediaKind {
   PDF
 }
 
+enum BannerPosition {
+  ABOVE_HERO
+  BELOW_HERO
+  ABOVE_FOOTER
+}
+
 enum ConnectionObjective {
   KNOW_MORE
   IMPLEMENT_SOLUTION
@@ -152,6 +158,10 @@ model Organization {
   challengeBannerLinkUrl     String?
   fundingOfferBannerLinkUrl  String?
   successCaseBannerLinkUrl   String?
+  technologyBannerPosition   BannerPosition @default(ABOVE_FOOTER)
+  challengeBannerPosition    BannerPosition @default(ABOVE_FOOTER)
+  fundingOfferBannerPosition BannerPosition @default(ABOVE_FOOTER)
+  successCaseBannerPosition  BannerPosition @default(ABOVE_FOOTER)
   verificationStatus     OrgVerificationStatus      @default(PENDING)
   publishKinds           OrgPublishKind[]           @default([])
   createdAt              DateTime                   @default(now())
@@ -229,6 +239,7 @@ model Technology {
   coverImageUrl    String?
   bannerImageUrl   String?
   bannerLinkUrl    String?
+  bannerPosition   BannerPosition    @default(ABOVE_FOOTER)
   status           ContentStatus     @default(DRAFT)
   curationNote     String?
   reviewedAt       DateTime?
@@ -284,6 +295,7 @@ model Challenge {
   coverImageUrl  String?
   bannerImageUrl String?
   bannerLinkUrl  String?
+  bannerPosition BannerPosition @default(ABOVE_FOOTER)
   status         ContentStatus  @default(DRAFT)
   curationNote   String?
   reviewedAt     DateTime?
@@ -401,6 +413,7 @@ model FundingOffer {
   coverImageUrl  String?
   bannerImageUrl String?
   bannerLinkUrl  String?
+  bannerPosition BannerPosition @default(ABOVE_FOOTER)
   organizationId String        @db.Uuid
   status         ContentStatus @default(DRAFT)
   curationNote   String?
@@ -426,6 +439,7 @@ model SuccessCase {
   coverImageUrl  String?
   bannerImageUrl String?
   bannerLinkUrl  String?
+  bannerPosition BannerPosition    @default(ABOVE_FOOTER)
   organizationId String            @db.Uuid
   status         ContentStatus     @default(DRAFT)
   curationNote   String?

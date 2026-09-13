@@ -10,10 +10,11 @@ import {
   DetailHeroChip,
   DetailMetaChip,
   DetailOrgCard,
-  DetailPrimaryButton,
   DetailSecondaryButton,
+  DetailFavoriteButton,
   DetailSection,
 } from '../components/CatalogDetail';
+import { DetailConnectionActions } from '../components/DetailConnectionActions';
 import { BackToSearchLink } from '../components/BackToSearchLink';
 import { urls } from '../../config';
 import { casesApi, type SuccessCase } from '../api/casesApi';
@@ -133,11 +134,17 @@ export function CaseDetailPage() {
   }
 
   const connectUrl = `${urls.web}/login?returnUrl=${encodeURIComponent(`/connections/new?targetType=SUCCESS_CASE&targetId=${item.id}`)}`;
-  const favoriteUrl = `${urls.web}/login?returnUrl=${encodeURIComponent(`/connections/new?targetType=SUCCESS_CASE&targetId=${item.id}&intent=save`)}`;
   const imageMedia = item.media.filter((m) => m.kind === 'IMAGE' || m.mimeType?.startsWith('image/'));
   const otherMedia = item.media.filter((m) => !(m.kind === 'IMAGE' || m.mimeType?.startsWith('image/')));
   const hasEvidence = imageMedia.length > 0 || otherMedia.length > 0;
   const banner = resolveDetailBanner(item, item.organization, 'SUCCESS_CASE');
+  const bannerEl = (
+    <CatalogDetailBanner
+      bannerUrl={banner.url}
+      linkUrl={banner.linkUrl}
+      position={banner.position}
+    />
+  );
 
   let section = 0;
   const nextIndex = () => String(++section).padStart(2, '0');
@@ -149,6 +156,7 @@ export function CaseDetailPage() {
         title={item.title}
         summary={item.summary}
         coverImageUrl={resolveMediaUrl(item.coverImageUrl)}
+        topBanner={banner.position === 'ABOVE_HERO' ? bannerEl : undefined}
         chips={
           <>
             <DetailHeroChip>{item.country}</DetailHeroChip>
@@ -159,8 +167,9 @@ export function CaseDetailPage() {
           </>
         }
       />
+      {banner.position === 'BELOW_HERO' ? bannerEl : null}
 
-      <CatalogDetailBody>
+      <CatalogDetailBody pullUp={banner.position !== 'BELOW_HERO'}>
         <div className="grid gap-6 lg:grid-cols-[minmax(0,1.45fr)_minmax(260px,0.7fr)] lg:gap-8">
           <article className="cac-fade-up rounded-[18px] border border-cac-line bg-white px-5 py-2 shadow-[0_16px_40px_rgba(10,36,64,.07)] md:px-8">
             <DetailSection title={t('cases.context')} index={nextIndex()}>
@@ -259,9 +268,12 @@ export function CaseDetailPage() {
               <p className="text-mini font-bold tracking-[1.4px] text-cac-muted uppercase">
                 {t('detail.actions')}
               </p>
-              <DetailPrimaryButton href={connectUrl}>{t('detail.interest')}</DetailPrimaryButton>
-              <DetailSecondaryButton href={connectUrl}>{t('detail.connect')}</DetailSecondaryButton>
-              <DetailSecondaryButton href={favoriteUrl}>{t('detail.favorite')}</DetailSecondaryButton>
+              <DetailConnectionActions
+                connectUrl={connectUrl}
+                targetType="SUCCESS_CASE"
+                targetId={item.id}
+              />
+              <DetailFavoriteButton targetType="SUCCESS_CASE" targetId={item.id} />
               <DetailSecondaryButton href={`${urls.web}/cases/new`}>
                 {t('cases.publishCta')}
               </DetailSecondaryButton>
@@ -284,7 +296,7 @@ export function CaseDetailPage() {
             </div>
           </aside>
         </div>
-        <CatalogDetailBanner bannerUrl={banner.url} linkUrl={banner.linkUrl} />
+        {banner.position === 'ABOVE_FOOTER' ? bannerEl : null}
       </CatalogDetailBody>
     </div>
   );

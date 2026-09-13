@@ -152,3 +152,14 @@ Arquivos: [`.env.example`](./.env.example) (local) · [`.env.prod.example`](./.e
 
 Status: [`_REQUISITOS/aceite-e0-e1-status.md`](./_REQUISITOS/aceite-e0-e1-status.md) (E0–E6).  
 Roteiro demo: [`_REQUISITOS/roteiro-demo-marco1.md`](./_REQUISITOS/roteiro-demo-marco1.md).
+
+
+### Linguagem Library Config
+
+A configuração para linguagens funcionar em qualquer novo ambientee necessita da execuçao dos comandos abaixo
+
+```bash
+cd /app/netsys-apps/cac
+bash deploy/libretranslate/fetch-models.sh
+ls -lh deploy/libretranslate/models/*.argosmodel
+```

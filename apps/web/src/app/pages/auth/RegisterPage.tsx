@@ -1,19 +1,14 @@
-import { type FormEvent, useMemo, useState } from 'react';
+import { type FormEvent, useEffect, useMemo, useState } from 'react';
 import { Link, Navigate, useNavigate, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Button, Input } from '@cac/ui';
 import { useAuth } from '../../auth/AuthContext';
 import { AuthCard } from '../../layout/AuthLayout';
-
-function safeReturnUrl(value: string | null): string | null {
-  if (!value) return null;
-  if (!value.startsWith('/') || value.startsWith('//')) return null;
-  return value;
-}
+import { isExternalReturnUrl, safeReturnUrl } from '../../lib/returnUrl';
 
 export function RegisterPage() {
   const { t } = useTranslation();
-  const { register, user, loading } = useAuth();
+  const { register, user, loading, ensureAccessToken } = useAuth();
   const navigate = useNavigate();
   const [params] = useSearchParams();
   const returnUrl = safeReturnUrl(params.get('returnUrl'));
@@ -21,6 +16,7 @@ export function RegisterPage() {
   const [submitting, setSubmitting] = useState(false);
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const externalReturn = Boolean(returnUrl && isExternalReturnUrl(returnUrl));
 
   const passwordHint = useMemo(() => {
     if (password.length === 0) return t('auth.passwordHint');
@@ -28,7 +24,27 @@ export function RegisterPage() {
     return t('auth.passwordOk');
   }, [password, t]);
 
-  if (!loading && user) {
+  useEffect(() => {
+    if (!loading && user && returnUrl && externalReturn) {
+      let cancelled = false;
+      void (async () => {
+        const token = await ensureAccessToken();
+        if (cancelled) return;
+        const url = new URL(returnUrl);
+        if (token) {
+          const hash = new URLSearchParams(url.hash.replace(/^#/, ''));
+          hash.set('cac_at', token);
+          url.hash = hash.toString();
+        }
+        window.location.replace(url.toString());
+      })();
+      return () => {
+        cancelled = true;
+      };
+    }
+  }, [ensureAccessToken, externalReturn, loading, returnUrl, user]);
+
+  if (!loading && user && !externalReturn) {
     return (
       <Navigate
         to={returnUrl ?? '/'}
@@ -49,7 +65,16 @@ export function RegisterPage() {
         String(form.get('email')),
         String(form.get('password')),
       );
-      if (returnUrl) {
+      if (returnUrl && externalReturn) {
+        const token = await ensureAccessToken();
+        const url = new URL(returnUrl);
+        if (token) {
+          const hash = new URLSearchParams(url.hash.replace(/^#/, ''));
+          hash.set('cac_at', token);
+          url.hash = hash.toString();
+        }
+        window.location.assign(url.toString());
+      } else if (returnUrl) {
         navigate(returnUrl, { replace: true, state: { justRegistered: true } });
       } else {
         navigate('/', { replace: true });

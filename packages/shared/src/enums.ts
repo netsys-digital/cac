@@ -55,6 +55,30 @@ export const ORG_BANNER_LINK_FIELD = {
 
 export type OrgBannerLinkField = (typeof ORG_BANNER_LINK_FIELD)[OrgPublishKind];
 
+/** Where the promotional banner appears on the public detail page. */
+export const BannerPosition = {
+  ABOVE_HERO: 'ABOVE_HERO',
+  BELOW_HERO: 'BELOW_HERO',
+  ABOVE_FOOTER: 'ABOVE_FOOTER',
+} as const;
+export type BannerPosition = (typeof BannerPosition)[keyof typeof BannerPosition];
+
+export const BANNER_POSITIONS = [
+  BannerPosition.ABOVE_HERO,
+  BannerPosition.BELOW_HERO,
+  BannerPosition.ABOVE_FOOTER,
+] as const;
+
+/** Prisma field on Organization for the default banner position of each publish kind. */
+export const ORG_BANNER_POSITION_FIELD = {
+  TECHNOLOGY: 'technologyBannerPosition',
+  CHALLENGE: 'challengeBannerPosition',
+  FUNDING_OFFER: 'fundingOfferBannerPosition',
+  SUCCESS_CASE: 'successCaseBannerPosition',
+} as const satisfies Record<OrgPublishKind, string>;
+
+export type OrgBannerPositionField = (typeof ORG_BANNER_POSITION_FIELD)[OrgPublishKind];
+
 export function orgBannerUrlForKind(
   org: Partial<Record<OrgBannerField, string | null | undefined>> | null | undefined,
   kind: OrgPublishKind,
@@ -71,6 +95,15 @@ export function orgBannerLinkUrlForKind(
   if (!org) return null;
   const value = org[ORG_BANNER_LINK_FIELD[kind]];
   return value ?? null;
+}
+
+export function orgBannerPositionForKind(
+  org: Partial<Record<OrgBannerPositionField, BannerPosition | null | undefined>> | null | undefined,
+  kind: OrgPublishKind,
+): BannerPosition {
+  if (!org) return BannerPosition.ABOVE_FOOTER;
+  const value = org[ORG_BANNER_POSITION_FIELD[kind]];
+  return value ?? BannerPosition.ABOVE_FOOTER;
 }
 
 export const ContentStatus = {

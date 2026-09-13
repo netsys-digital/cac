@@ -1,9 +1,12 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
+  BannerPosition,
   ORG_BANNER_FIELD,
   ORG_BANNER_LINK_FIELD,
+  ORG_BANNER_POSITION_FIELD,
   ORG_PUBLISH_KINDS,
+  type BannerPosition as BannerPositionType,
   type OrgPublishKind,
 } from '@cac/shared';
 import { Button, useDialog } from '@cac/ui';
@@ -30,6 +33,7 @@ type ProfileDraft = {
   logoFile: File | null;
   bannerFiles: Partial<Record<OrgPublishKind, File | null>>;
   bannerLinks: Partial<Record<OrgPublishKind, string>>;
+  bannerPositions: Partial<Record<OrgPublishKind, BannerPositionType>>;
   publishKinds: OrgPublishKind[];
 };
 
@@ -45,6 +49,12 @@ function profileFromOrg(org: AdminOrganization): ProfileDraft {
     bannerLinks: Object.fromEntries(
       ORG_PUBLISH_KINDS.map((kind) => [kind, org[ORG_BANNER_LINK_FIELD[kind]] ?? '']),
     ) as Partial<Record<OrgPublishKind, string>>,
+    bannerPositions: Object.fromEntries(
+      ORG_PUBLISH_KINDS.map((kind) => [
+        kind,
+        org[ORG_BANNER_POSITION_FIELD[kind]] ?? BannerPosition.ABOVE_FOOTER,
+      ]),
+    ) as Partial<Record<OrgPublishKind, BannerPositionType>>,
     publishKinds: [...(org.publishKinds ?? [])],
   };
 }
@@ -264,6 +274,10 @@ export function AdminOrganizationsPage() {
         challengeBannerLinkUrl: (draft.bannerLinks.CHALLENGE ?? '').trim() || null,
         fundingOfferBannerLinkUrl: (draft.bannerLinks.FUNDING_OFFER ?? '').trim() || null,
         successCaseBannerLinkUrl: (draft.bannerLinks.SUCCESS_CASE ?? '').trim() || null,
+        technologyBannerPosition: draft.bannerPositions.TECHNOLOGY ?? BannerPosition.ABOVE_FOOTER,
+        challengeBannerPosition: draft.bannerPositions.CHALLENGE ?? BannerPosition.ABOVE_FOOTER,
+        fundingOfferBannerPosition: draft.bannerPositions.FUNDING_OFFER ?? BannerPosition.ABOVE_FOOTER,
+        successCaseBannerPosition: draft.bannerPositions.SUCCESS_CASE ?? BannerPosition.ABOVE_FOOTER,
       });
       if (draft.logoFile) {
         await catalogApi.uploadOrganizationLogo(accessToken, modal.item.id, draft.logoFile);
@@ -845,6 +859,17 @@ export function AdminOrganizationsPage() {
                         patchDraft({
                           bannerLinks: { ...draft.bannerLinks, [kind]: value },
                         })
+                      }
+                      positionValue={draft.bannerPositions[kind] ?? BannerPosition.ABOVE_FOOTER}
+                      onPositionChange={(value) =>
+                        setDraft((prev) =>
+                          prev
+                            ? {
+                                ...prev,
+                                bannerPositions: { ...prev.bannerPositions, [kind]: value },
+                              }
+                            : prev,
+                        )
                       }
                     />
                   ))}

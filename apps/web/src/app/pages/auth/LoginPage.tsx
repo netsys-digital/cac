@@ -1,19 +1,23 @@
-import { type FormEvent, useState } from 'react';
+import { type FormEvent, useEffect, useState } from 'react';
 import { Link, Navigate, useLocation, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Button, Input } from '@cac/ui';
 import { useAuth } from '../../auth/AuthContext';
 import { AuthCard } from '../../layout/AuthLayout';
+import { isExternalReturnUrl, safeReturnUrl } from '../../lib/returnUrl';
 
-function safeReturnUrl(value: string | null | undefined): string | null {
-  if (!value) return null;
-  if (!value.startsWith('/') || value.startsWith('//')) return null;
-  return value;
+function withAccessTokenHash(returnUrl: string, accessToken: string | null) {
+  if (!accessToken || !isExternalReturnUrl(returnUrl)) return returnUrl;
+  const url = new URL(returnUrl);
+  const hash = new URLSearchParams(url.hash.replace(/^#/, ''));
+  hash.set('cac_at', accessToken);
+  url.hash = hash.toString();
+  return url.toString();
 }
 
 export function LoginPage({ forcedFrom }: { forcedFrom?: string | null }) {
   const { t } = useTranslation();
-  const { login, user, loading } = useAuth();
+  const { login, user, loading, ensureAccessToken } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const [error, setError] = useState<'credentials' | 'disabled' | null>(null);
@@ -25,8 +29,22 @@ export function LoginPage({ forcedFrom }: { forcedFrom?: string | null }) {
     safeReturnUrl((location.state as { from?: string } | null)?.from) ||
     '/';
   const isContextual = redirectTo !== '/';
+  const externalReturn = isExternalReturnUrl(redirectTo);
 
-  if (!loading && user) {
+  useEffect(() => {
+    if (loading || !user || !externalReturn) return;
+    let cancelled = false;
+    void (async () => {
+      const token = await ensureAccessToken();
+      if (cancelled) return;
+      window.location.replace(withAccessTokenHash(redirectTo, token));
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [ensureAccessToken, externalReturn, loading, redirectTo, user]);
+
+  if (!loading && user && !externalReturn) {
     return <Navigate to={redirectTo} replace />;
   }
 
@@ -37,7 +55,12 @@ export function LoginPage({ forcedFrom }: { forcedFrom?: string | null }) {
     setError(null);
     try {
       await login(String(form.get('email')), String(form.get('password')));
-      navigate(redirectTo);
+      if (externalReturn) {
+        const token = await ensureAccessToken();
+        window.location.assign(withAccessTokenHash(redirectTo, token));
+      } else {
+        navigate(redirectTo);
+      }
     } catch (e) {
       setError(e instanceof Error && e.message === 'account_disabled' ? 'disabled' : 'credentials');
     } finally {
@@ -102,8 +125,8 @@ export function LoginPage({ forcedFrom }: { forcedFrom?: string | null }) {
           </p>
         ) : null}
 
-        <Button type="submit" className="w-full" disabled={submitting}>
-          {submitting ? t('auth.submitting') : t('auth.submitSignIn')}
+        <Button type="submit" className="w-full" disabled={submitting || (Boolean(user) && externalReturn)}>
+          {submitting || (user && externalReturn) ? t('auth.submitting') : t('auth.submitSignIn')}
         </Button>
       </form>
     </AuthCard>

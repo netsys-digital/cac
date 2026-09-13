@@ -115,6 +115,7 @@ fundingOffersRouter.patch(
               : req.body.bannerLinkUrl === '' || req.body.bannerLinkUrl === null
                 ? null
                 : req.body.bannerLinkUrl,
+          bannerPosition: req.body.bannerPosition,
         },
       });
       void enqueueTranslationIfPublished(offer.status, { entityType: 'funding_offer', entityId: offer.id });

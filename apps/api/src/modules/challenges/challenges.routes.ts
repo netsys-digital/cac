@@ -122,6 +122,7 @@ challengesRouter.patch(
               : req.body.bannerLinkUrl === null || req.body.bannerLinkUrl === ''
                 ? null
                 : String(req.body.bannerLinkUrl).trim(),
+          bannerPosition: req.body.bannerPosition,
           status: req.body.status,
           tags: req.body.tags
             ? {
