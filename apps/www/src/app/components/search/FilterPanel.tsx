@@ -16,7 +16,7 @@ type Props = {
     financing: string;
   };
   options: {
-    countries: Option[];
+    countriesByRegion: Record<string, Option[]>;
     regions: Option[];
     themes: Option[];
     actorTypes: Option[];
@@ -32,19 +32,22 @@ function Select({
   value,
   options,
   onChange,
+  disabled,
 }: {
   label: string;
   value?: string;
   options: Option[];
   onChange: (v: string) => void;
+  disabled?: boolean;
 }) {
   const empty = !value;
   return (
-    <label className="block min-w-0">
+    <label className={`block min-w-0 ${disabled ? 'opacity-60' : ''}`}>
       <span className="sr-only">{label}</span>
       <select
         aria-label={label}
-        className={`w-full rounded-lg border border-cac-line bg-white px-2.5 py-2 text-pequena outline-none ${
+        disabled={disabled}
+        className={`w-full rounded-lg border border-cac-line bg-white px-2.5 py-2 text-pequena outline-none disabled:cursor-not-allowed ${
           empty ? 'text-cac-muted' : 'text-cac-ink'
         }`}
         value={value ?? ''}
@@ -69,19 +72,30 @@ export function FilterPanel({ value, onChange, labels, options }: Props) {
     onChange(next);
   }
 
+  function setRegion(raw: string) {
+    const next = { ...value };
+    if (!raw) delete next.region;
+    else next.region = raw;
+
+    const allowed = raw ? (options.countriesByRegion[raw] ?? []).map((c) => c.value) : [];
+    if (!next.country || !allowed.includes(next.country)) {
+      delete next.country;
+    }
+    onChange(next);
+  }
+
+  const regionSelected = Boolean(value.region);
+  const countryOptions = regionSelected ? (options.countriesByRegion[value.region!] ?? []) : [];
+
   return (
     <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-4">
+      <Select label={labels.region} value={value.region} options={options.regions} onChange={setRegion} />
       <Select
         label={labels.country}
         value={value.country}
-        options={options.countries}
+        options={countryOptions}
         onChange={(v) => set('country', v)}
-      />
-      <Select
-        label={labels.region}
-        value={value.region}
-        options={options.regions}
-        onChange={(v) => set('region', v)}
+        disabled={!regionSelected}
       />
       <Select label={labels.theme} value={value.theme} options={options.themes} onChange={(v) => set('theme', v)} />
       <Select

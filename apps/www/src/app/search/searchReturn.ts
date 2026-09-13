@@ -3,8 +3,8 @@ import type { SearchFilters } from '../api/searchApi';
 const STORAGE_KEY = 'cac.search.return';
 
 export const SEARCH_FILTER_KEYS: Array<keyof SearchFilters> = [
-  'country',
   'region',
+  'country',
   'theme',
   'actorType',
   'sector',

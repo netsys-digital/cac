@@ -15,6 +15,7 @@ import {
   DetailSection,
 } from '../components/CatalogDetail';
 import { DetailConnectionActions } from '../components/DetailConnectionActions';
+import { DetailGuestAuthHint } from '../components/DetailGuestAuthHint';
 import { BackToSearchLink } from '../components/BackToSearchLink';
 import { shell } from '../components/PageChrome';
 import { urls } from '../../config';
@@ -162,7 +163,7 @@ export function ChallengeDetailPage() {
               <DetailSecondaryButton href={`${urls.web}/catalog/technologies/new`}>
                 {t('home.path01')}
               </DetailSecondaryButton>
-              <p className="pt-1 text-pequena leading-snug text-cac-muted">{t('detail.actionsHint')}</p>
+              <DetailGuestAuthHint />
             </DetailActionStack>
 
             <div className="rounded-[16px] border border-dashed border-cac-line bg-[#eff7f3] p-5">

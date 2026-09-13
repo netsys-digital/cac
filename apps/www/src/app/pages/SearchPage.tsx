@@ -54,12 +54,6 @@ const STATIC_OPTIONS = {
     { value: 'ALL', label: 'Todos' },
     { value: 'WITH_OPPORTUNITY', label: 'Com oportunidade' },
   ],
-  countries: [
-    { value: 'BR', label: 'Brasil' },
-    { value: 'NG', label: 'Nigéria' },
-    { value: 'FR', label: 'França' },
-    { value: 'NE', label: 'Níger' },
-  ],
   regions: [
     { value: 'africa', label: 'África' },
     { value: 'asia', label: 'Ásia' },
@@ -68,6 +62,18 @@ const STATIC_OPTIONS = {
     { value: 'south_america', label: 'América do Sul' },
     { value: 'oceania', label: 'Oceania' },
   ],
+  countriesByRegion: {
+    africa: [
+      { value: 'NG', label: 'Nigéria' },
+      { value: 'NE', label: 'Níger' },
+      { value: 'MZ', label: 'Moçambique' },
+    ],
+    asia: [],
+    europe: [{ value: 'FR', label: 'França' }],
+    north_america: [],
+    south_america: [{ value: 'BR', label: 'Brasil' }],
+    oceania: [],
+  },
 };
 
 function contentLabel(type: string, t: (k: string) => string): string {

@@ -20,7 +20,7 @@ function HeroFeature({ iconClass, label }: { iconClass: string; label: string })
   return (
     <div className="flex w-[4.75rem] flex-col items-center gap-2 sm:w-[5.5rem]">
       <i className={`${iconClass} text-[1.85rem] text-cac-green sm:text-[2.1rem]`} aria-hidden />
-      <span className="text-center text-[0.65rem] font-semibold leading-snug text-cac-muted sm:text-mini">
+      <span className="text-center text-[0.58rem] font-semibold leading-snug text-black sm:text-[0.65rem] first-letter:uppercase">
         {label}
       </span>
     </div>
@@ -83,23 +83,13 @@ export function FundingPage() {
             </div>
           </div>
 
-          <div className="cac-fade-up-delay relative flex min-h-[11rem] flex-col items-end justify-center gap-5 self-stretch lg:min-h-[16rem] lg:items-end lg:justify-center lg:pr-2">
+          <div className="cac-fade-up-delay relative flex min-h-[11rem] items-center justify-end self-stretch lg:min-h-[16rem] lg:pr-2">
             <a
               href={`${urls.web}/funding-offers/new`}
               className="inline-flex rounded-full bg-cac-green2 px-6 py-3 text-pequena font-extrabold text-white shadow-[0_14px_32px_rgba(10,36,64,.28)] transition hover:brightness-105"
             >
               {t('funding.publishCta')}
             </a>
-            <p
-              className="max-w-[17rem] rounded-[12px] bg-[rgba(10,36,64,.55)] px-3.5 py-2.5 text-right text-[1.1rem] leading-snug font-semibold text-white backdrop-blur-[3px] sm:max-w-[19rem] sm:text-[1.2rem]"
-              style={{
-                fontFamily: '"Caveat", "Segoe Script", "Comic Sans MS", cursive',
-                textShadow: '0 1px 2px rgba(0,0,0,.45)',
-              }}
-            >
-              {t('funding.heroQuote')}
-              <span className="mt-2 block h-[3px] w-14 ml-auto rounded-full bg-cac-green2" aria-hidden />
-            </p>
           </div>
         </div>
       </section>

@@ -17,7 +17,7 @@ export function DetailFavoriteButton({
   targetId: string;
 }) {
   const { t } = useTranslation();
-  const { user, loading, getAccessToken } = usePortalAuth();
+  const { loading, getAccessToken } = usePortalAuth();
   const [busy, setBusy] = useState(false);
   const [saved, setSaved] = useState(false);
   const [savedId, setSavedId] = useState<string | null>(null);
@@ -128,7 +128,6 @@ export function DetailFavoriteButton({
   }
 
   const label = saved ? t('detail.favorited') : t('detail.favorite');
-  const signedIn = Boolean(user);
 
   return (
     <div className="space-y-1.5">
@@ -150,9 +149,6 @@ export function DetailFavoriteButton({
         <span className={saved ? 'text-[#e11d48]' : ''}>{label}</span>
       </button>
       {error ? <p className="text-mini text-red-700">{error}</p> : null}
-      {!loading && !signedIn ? (
-        <p className="text-mini leading-snug text-cac-muted">{t('detail.favoriteLoginHint')}</p>
-      ) : null}
     </div>
   );
 }

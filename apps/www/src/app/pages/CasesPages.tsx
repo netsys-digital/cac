@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Chip, PageShell, shell } from '../components/PageChrome';
+import { Chip, shell } from '../components/PageChrome';
 import {
   CatalogDetailBody,
   CatalogDetailBanner,
@@ -15,12 +15,15 @@ import {
   DetailSection,
 } from '../components/CatalogDetail';
 import { DetailConnectionActions } from '../components/DetailConnectionActions';
+import { DetailGuestAuthHint } from '../components/DetailGuestAuthHint';
 import { BackToSearchLink } from '../components/BackToSearchLink';
 import { urls } from '../../config';
 import { casesApi, type SuccessCase } from '../api/casesApi';
 import { needTypeLabel } from '../lib/needTypeLabel';
 import { resolveMediaUrl } from '../lib/mediaUrl';
 import { resolveDetailBanner } from '../lib/detailBanner';
+
+const CASES_HERO_IMG = '/images/fundo_casos.png';
 
 export function CasesPage() {
   const { t, i18n } = useTranslation();
@@ -43,55 +46,75 @@ export function CasesPage() {
   }, [t, i18n.language]);
 
   return (
-    <PageShell
-      eyebrow={t('cases.badge')}
-      title={t('cases.title')}
-      actions={
-        <a
-          href={`${urls.web}/cases/new`}
-          className="rounded-[10px] bg-cac-green2 px-3.5 py-2.5 text-pequena font-bold text-white"
+    <div className="bg-cac-bg">
+      <section className="relative overflow-hidden">
+        <div
+          className="absolute inset-0 bg-[#f4f8f9] bg-cover bg-[position:center_center] bg-no-repeat"
+          style={{ backgroundImage: `url(${CASES_HERO_IMG})` }}
+          aria-hidden
+        />
+
+        <div
+          className={`${shell} relative grid items-center gap-8 py-10 md:py-14 lg:grid-cols-[minmax(0,1.05fr)_minmax(0,0.95fr)] lg:gap-10 lg:py-16`}
         >
-          {t('cases.publishCta')}
-        </a>
-      }
-    >
-      <p className="mb-4 max-w-[760px] text-media leading-relaxed text-cac-muted">{t('cases.support')}</p>
-      {error ? <p className="text-pequena text-red-700">{error}</p> : null}
-      <div className="grid gap-3 md:grid-cols-2">
-        {items.map((item) => (
-          <Link
-            key={item.id}
-            to={`/cases/${item.slug}`}
-            className="rounded-[16px] border border-cac-line bg-white p-4 shadow-[0_14px_38px_rgba(10,36,64,.08)] transition hover:-translate-y-0.5"
-          >
-            <div className="h-[120px] overflow-hidden rounded-[12px] bg-gradient-to-br from-[#b8d7bf] to-[#dce9d3]">
-              {resolveMediaUrl(item.coverImageUrl) ||
-              item.media.find((m) => m.kind === 'IMAGE' || m.mimeType?.startsWith('image/')) ? (
-                <img
-                  src={
-                    resolveMediaUrl(item.coverImageUrl) ||
-                    resolveMediaUrl(
-                      item.media.find((m) => m.kind === 'IMAGE' || m.mimeType?.startsWith('image/'))!.url,
-                    )!
-                  }
-                  alt=""
-                  className="h-full w-full object-cover"
-                />
-              ) : null}
-            </div>
-            <h2 className="mt-3 text-media font-bold text-cac-navy">{item.title}</h2>
-            <p className="mt-2 text-pequena leading-relaxed text-cac-muted">{item.summary}</p>
-            <div className="mt-2 flex flex-wrap gap-1">
-              <Chip>{item.country}</Chip>
-              {item.needs.slice(0, 3).map((n) => (
-                <Chip key={n.id}>{needTypeLabel(n.needType, t)}</Chip>
-              ))}
-            </div>
-          </Link>
-        ))}
+          <div className="cac-fade-up min-w-0 max-w-[36rem]">
+            <p className="text-mini font-bold tracking-[1.7px] text-cac-green uppercase">
+              {t('cases.badge')}
+            </p>
+            <h1 className="mt-3 text-extra-grande leading-[1.08] font-bold tracking-[-0.7px] text-cac-navy">
+              {t('cases.title')}
+            </h1>
+            <p className="mt-4 text-media leading-relaxed text-cac-muted">{t('cases.support')}</p>
+            <a
+              href={`${urls.web}/cases/new`}
+              className="mt-7 inline-flex rounded-full bg-cac-green2 px-6 py-3 text-pequena font-extrabold text-white shadow-[0_14px_32px_rgba(10,36,64,.28)] transition hover:brightness-105"
+            >
+              {t('cases.publishCta')}
+            </a>
+          </div>
+
+          <div className="pointer-events-none relative min-h-[10rem] self-stretch lg:min-h-[16rem]" aria-hidden />
+        </div>
+      </section>
+
+      <div className={`${shell} py-8 pb-16 md:py-10 md:pb-[4rem]`}>
+        {error ? <p className="text-pequena text-red-700">{error}</p> : null}
+        <div className="grid gap-3 md:grid-cols-2">
+          {items.map((item) => (
+            <Link
+              key={item.id}
+              to={`/cases/${item.slug}`}
+              className="rounded-[16px] border border-cac-line bg-white p-4 shadow-[0_14px_38px_rgba(10,36,64,.08)] transition hover:-translate-y-0.5"
+            >
+              <div className="h-[120px] overflow-hidden rounded-[12px] bg-gradient-to-br from-[#b8d7bf] to-[#dce9d3]">
+                {resolveMediaUrl(item.coverImageUrl) ||
+                item.media.find((m) => m.kind === 'IMAGE' || m.mimeType?.startsWith('image/')) ? (
+                  <img
+                    src={
+                      resolveMediaUrl(item.coverImageUrl) ||
+                      resolveMediaUrl(
+                        item.media.find((m) => m.kind === 'IMAGE' || m.mimeType?.startsWith('image/'))!.url,
+                      )!
+                    }
+                    alt=""
+                    className="h-full w-full object-cover"
+                  />
+                ) : null}
+              </div>
+              <h2 className="mt-3 text-media font-bold text-cac-navy">{item.title}</h2>
+              <p className="mt-2 text-pequena leading-relaxed text-cac-muted">{item.summary}</p>
+              <div className="mt-2 flex flex-wrap gap-1">
+                <Chip>{item.country}</Chip>
+                {item.needs.slice(0, 3).map((n) => (
+                  <Chip key={n.id}>{needTypeLabel(n.needType, t)}</Chip>
+                ))}
+              </div>
+            </Link>
+          ))}
+        </div>
+        {!items.length && !error ? <p className="text-pequena text-cac-muted">{t('detail.emptyList')}</p> : null}
       </div>
-      {!items.length && !error ? <p className="text-pequena text-cac-muted">{t('detail.emptyList')}</p> : null}
-    </PageShell>
+    </div>
   );
 }
 
@@ -277,7 +300,7 @@ export function CaseDetailPage() {
               <DetailSecondaryButton href={`${urls.web}/cases/new`}>
                 {t('cases.publishCta')}
               </DetailSecondaryButton>
-              <p className="pt-1 text-pequena leading-snug text-cac-muted">{t('detail.actionsHint')}</p>
+              <DetailGuestAuthHint />
             </DetailActionStack>
 
             <div className="rounded-[16px] border border-dashed border-cac-line bg-[#eff7f3] p-5">
