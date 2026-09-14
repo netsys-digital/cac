@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Chip, shell } from '../components/PageChrome';
+import { shell } from '../components/PageChrome';
 import {
   CatalogDetailBody,
   CatalogDetailBanner,
@@ -17,6 +17,7 @@ import {
 import { DetailConnectionActions } from '../components/DetailConnectionActions';
 import { DetailGuestAuthHint } from '../components/DetailGuestAuthHint';
 import { BackToSearchLink } from '../components/BackToSearchLink';
+import { CasesBrowseSection } from '../components/CasesBrowseSection';
 import { urls } from '../../config';
 import { casesApi, type SuccessCase } from '../api/casesApi';
 import { needTypeLabel } from '../lib/needTypeLabel';
@@ -24,26 +25,60 @@ import { resolveMediaUrl } from '../lib/mediaUrl';
 import { resolveDetailBanner } from '../lib/detailBanner';
 
 const CASES_HERO_IMG = '/images/fundo_casos.png';
+const CASE_PUBLISH_URL = `${urls.web}/cases/new`;
+
+const WHY_CARDS = [
+  {
+    icon: 'fa-solid fa-book-open',
+    titleKey: 'cases.why1Title',
+    bodyKey: 'cases.why1Body',
+    bg: 'bg-[#e8f5ec]',
+  },
+  {
+    icon: 'fa-solid fa-users',
+    titleKey: 'cases.why2Title',
+    bodyKey: 'cases.why2Body',
+    bg: 'bg-[#e8f1fb]',
+  },
+  {
+    icon: 'fa-solid fa-lightbulb',
+    titleKey: 'cases.why3Title',
+    bodyKey: 'cases.why3Body',
+    bg: 'bg-[#fbf3e0]',
+  },
+  {
+    icon: 'fa-solid fa-leaf',
+    titleKey: 'cases.why4Title',
+    bodyKey: 'cases.why4Body',
+    bg: 'bg-[#eef7f2]',
+  },
+] as const;
+
+const HOW_STEPS = [
+  {
+    icon: 'fa-solid fa-pen-to-square',
+    titleKey: 'cases.how1Title',
+    bodyKey: 'cases.how1Body',
+  },
+  {
+    icon: 'fa-solid fa-file-lines',
+    titleKey: 'cases.how2Title',
+    bodyKey: 'cases.how2Body',
+  },
+  {
+    icon: 'fa-solid fa-share-nodes',
+    titleKey: 'cases.how3Title',
+    bodyKey: 'cases.how3Body',
+  },
+  {
+    icon: 'fa-solid fa-rocket',
+    titleKey: 'cases.how4Title',
+    bodyKey: 'cases.how4Body',
+  },
+] as const;
 
 export function CasesPage() {
-  const { t, i18n } = useTranslation();
-  const [items, setItems] = useState<SuccessCase[]>([]);
-  const [error, setError] = useState('');
-
-  useEffect(() => {
-    let cancelled = false;
-    void casesApi
-      .list()
-      .then((res) => {
-        if (!cancelled) setItems(res.items);
-      })
-      .catch(() => {
-        if (!cancelled) setError(t('detail.loadError'));
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, [t, i18n.language]);
+  const { t } = useTranslation();
 
   return (
     <div className="bg-cac-bg">
@@ -66,7 +101,7 @@ export function CasesPage() {
             </h1>
             <p className="mt-4 text-media leading-relaxed text-cac-muted">{t('cases.support')}</p>
             <a
-              href={`${urls.web}/cases/new`}
+              href={CASE_PUBLISH_URL}
               className="mt-7 inline-flex rounded-full bg-cac-green2 px-6 py-3 text-pequena font-extrabold text-white shadow-[0_14px_32px_rgba(10,36,64,.28)] transition hover:brightness-105"
             >
               {t('cases.publishCta')}
@@ -77,43 +112,78 @@ export function CasesPage() {
         </div>
       </section>
 
-      <div className={`${shell} py-8 pb-16 md:py-10 md:pb-[4rem]`}>
-        {error ? <p className="text-pequena text-red-700">{error}</p> : null}
-        <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
-          {items.map((item) => (
-            <Link
-              key={item.id}
-              to={`/cases/${item.slug}`}
-              className="rounded-[16px] border border-cac-line bg-white p-4 shadow-[0_14px_38px_rgba(10,36,64,.08)] transition hover:-translate-y-0.5"
-            >
-              <div className="h-[120px] overflow-hidden rounded-[12px] bg-gradient-to-br from-[#b8d7bf] to-[#dce9d3]">
-                {resolveMediaUrl(item.coverImageUrl) ||
-                item.media.find((m) => m.kind === 'IMAGE' || m.mimeType?.startsWith('image/')) ? (
-                  <img
-                    src={
-                      resolveMediaUrl(item.coverImageUrl) ||
-                      resolveMediaUrl(
-                        item.media.find((m) => m.kind === 'IMAGE' || m.mimeType?.startsWith('image/'))!.url,
-                      )!
-                    }
-                    alt=""
-                    className="h-full w-full object-cover"
-                  />
-                ) : null}
+      <CasesBrowseSection />
+
+      <section className={`${shell} py-10 md:py-14`}>
+        <div className="max-w-[42rem]">
+          <h2 className="text-grande font-bold tracking-[-0.4px] text-cac-navy">{t('cases.whyTitle')}</h2>
+          <p className="mt-2 text-media leading-relaxed text-cac-muted">{t('cases.whySupport')}</p>
+        </div>
+        <div className="mt-7 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+          {WHY_CARDS.map((card) => (
+            <article key={card.titleKey} className={`flex items-center gap-4 rounded-[16px] p-5 ${card.bg}`}>
+              <i className={`${card.icon} shrink-0 text-[2.25rem] text-cac-green`} aria-hidden />
+              <div className="min-w-0">
+                <h3 className="text-media font-bold text-cac-navy">{t(card.titleKey)}</h3>
+                <p className="mt-1.5 text-pequena leading-relaxed text-cac-muted">{t(card.bodyKey)}</p>
               </div>
-              <h2 className="mt-3 text-media font-bold text-cac-navy">{item.title}</h2>
-              <p className="mt-2 text-pequena leading-relaxed text-cac-muted">{item.summary}</p>
-              <div className="mt-2 flex flex-wrap gap-1">
-                <Chip>{item.country}</Chip>
-                {item.needs.slice(0, 3).map((n) => (
-                  <Chip key={n.id}>{needTypeLabel(n.needType, t)}</Chip>
-                ))}
-              </div>
-            </Link>
+            </article>
           ))}
         </div>
-        {!items.length && !error ? <p className="text-pequena text-cac-muted">{t('detail.emptyList')}</p> : null}
-      </div>
+      </section>
+
+      <section className={`${shell} pb-10 md:pb-14`}>
+        <div>
+          <h2 className="text-grande font-bold tracking-[-0.4px] text-cac-navy">{t('cases.howTitle')}</h2>
+          <p className="mt-2 text-media leading-relaxed text-cac-muted">{t('cases.howSupport')}</p>
+        </div>
+        <ol className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          {HOW_STEPS.map((step, index) => (
+            <li
+              key={step.titleKey}
+              className="relative flex items-center gap-3.5 rounded-[16px] border border-cac-line bg-white px-4 py-4"
+            >
+              {index < HOW_STEPS.length - 1 ? (
+                <span
+                  className="pointer-events-none absolute top-1/2 right-[-0.7rem] hidden -translate-y-1/2 text-cac-line lg:block"
+                  aria-hidden
+                >
+                  <i className="fa-solid fa-chevron-right text-[0.85rem]" />
+                </span>
+              ) : null}
+              <span className="grid size-9 shrink-0 place-items-center rounded-full bg-cac-green2 text-pequena font-extrabold text-white">
+                {index + 1}
+              </span>
+              <i className={`${step.icon} shrink-0 text-[1.75rem] text-cac-green`} aria-hidden />
+              <div className="min-w-0">
+                <h3 className="text-media font-bold text-cac-navy">{t(step.titleKey)}</h3>
+                <p className="mt-1 text-pequena leading-relaxed text-cac-muted">{t(step.bodyKey)}</p>
+              </div>
+            </li>
+          ))}
+        </ol>
+      </section>
+
+      <section className={`${shell} pb-14 md:pb-16`}>
+        <div className="flex flex-col gap-5 rounded-[18px] bg-[#e7f4ec] px-5 py-6 sm:flex-row sm:items-center sm:justify-between sm:px-7 sm:py-7">
+          <div className="flex min-w-0 items-start gap-4">
+            <i className="fa-solid fa-handshake mt-0.5 text-[1.75rem] text-cac-green" aria-hidden />
+            <div className="min-w-0">
+              <h2 className="text-media font-bold text-cac-navy sm:text-grande">{t('cases.ctaTitle')}</h2>
+              <p className="mt-1.5 max-w-[36rem] text-pequena leading-relaxed text-cac-muted sm:text-media">
+                {t('cases.ctaBody')}
+              </p>
+            </div>
+          </div>
+          <a
+            href={CASE_PUBLISH_URL}
+            className="inline-flex shrink-0 items-center justify-center gap-2 rounded-full bg-cac-green2 px-6 py-3 text-pequena font-extrabold text-white shadow-[0_10px_24px_rgba(10,36,64,.18)] transition hover:brightness-105"
+          >
+            {t('cases.publishCta')}
+            <i className="fa-solid fa-arrow-right text-[0.85rem]" aria-hidden />
+          </a>
+        </div>
+      </section>
     </div>
   );
 }

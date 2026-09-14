@@ -57,8 +57,11 @@ export type SearchResponse = {
   };
   meta: {
     minScore: number;
-    mode: 'hybrid' | 'keyword';
+    mode: 'hybrid' | 'keyword' | 'latest';
     provider: string;
+    page?: number;
+    pageSize?: number;
+    totalPages?: number;
   };
 };
 
@@ -80,11 +83,37 @@ type Candidate = {
   textBlob: string;
   href: string;
   coverImageUrl?: string | null;
+  updatedAt?: Date | string | null;
 };
 
 function asVector(value: unknown): number[] | null {
   if (!Array.isArray(value)) return null;
   return value.map((n) => Number(n)).filter((n) => !Number.isNaN(n));
+}
+
+function updatedMs(value?: Date | string | null): number {
+  if (!value) return 0;
+  const t = value instanceof Date ? value.getTime() : Date.parse(String(value));
+  return Number.isFinite(t) ? t : 0;
+}
+
+function hasActiveSearchFilters(filters: SearchBody['filters']): boolean {
+  if (!filters) return false;
+  if (filters.country?.trim()) return true;
+  if (filters.region?.trim()) return true;
+  if (filters.theme?.trim()) return true;
+  if (filters.actorType?.trim()) return true;
+  if (filters.sector?.trim()) return true;
+  if (filters.maturity?.trim()) return true;
+  if (filters.scale?.trim()) return true;
+  if (filters.financing && filters.financing !== 'ALL') return true;
+  // contentType sozinho ainda é browse por tipo (sem ranqueamento)
+  return false;
+}
+
+/** Sem texto e sem filtros → listar últimas publicações, sem ranqueamento. */
+function isBrowseLatest(query: string, filters: SearchBody['filters']): boolean {
+  return !query.trim() && !hasActiveSearchFilters(filters);
 }
 
 const SEARCH_TYPE_MAP: Record<string, TranslationEntityType> = {
@@ -171,16 +200,18 @@ export async function runSearch(body: SearchBody): Promise<SearchResponse> {
   const query = (body.query ?? '').trim();
   const filters = body.filters ?? {};
   const lang = body.lang ?? 'pt';
-  const limit = body.limit ?? 20;
+  const browseLatest = isBrowseLatest(query, filters);
+  const pageSize = body.limit ?? (browseLatest ? 10 : 20);
+  const page = body.page ?? 1;
   const minScore = env.matchMinScore;
   const weights = getScoreWeights(env.scoreWeights);
   const provider = getEmbeddingProvider();
-  const queryTokens = tokenize(query);
+  const queryTokens = browseLatest ? [] : tokenize(query);
 
   let queryVector: number[] | null = null;
-  let mode: 'hybrid' | 'keyword' = 'keyword';
+  let mode: 'hybrid' | 'keyword' | 'latest' = browseLatest ? 'latest' : 'keyword';
   try {
-    if (query) {
+    if (!browseLatest && query) {
       queryVector = await provider.embed(query);
       mode = provider.name.startsWith('keyword') ? 'keyword' : 'hybrid';
     }
@@ -205,6 +236,7 @@ export async function runSearch(body: SearchBody): Promise<SearchResponse> {
             ...(filters.maturity ? { maturity: filters.maturity as never } : {}),
           },
           include: { tags: true, organization: true, embedding: true },
+          orderBy: { updatedAt: 'desc' },
           take: 100,
         }),
     contentFilter && contentFilter !== 'PROJECT'
@@ -216,6 +248,7 @@ export async function runSearch(body: SearchBody): Promise<SearchResponse> {
             ...(filters.region ? { region: filters.region } : {}),
           },
           include: { organization: true, embedding: true },
+          orderBy: { updatedAt: 'desc' },
           take: 100,
         }),
     contentFilter && contentFilter !== 'ORGANIZATION'
@@ -225,6 +258,7 @@ export async function runSearch(body: SearchBody): Promise<SearchResponse> {
             ...(filters.country ? { country: filters.country } : {}),
             ...(filters.region ? { region: filters.region } : {}),
           },
+          orderBy: { updatedAt: 'desc' },
           take: 100,
         }),
     contentFilter && contentFilter !== 'FUNDER'
@@ -235,6 +269,7 @@ export async function runSearch(body: SearchBody): Promise<SearchResponse> {
             ...(filters.country ? { country: filters.country } : {}),
             ...(filters.region ? { region: filters.region } : {}),
           },
+          orderBy: { updatedAt: 'desc' },
           take: 50,
         }),
     contentFilter && contentFilter !== 'FUNDER'
@@ -246,6 +281,7 @@ export async function runSearch(body: SearchBody): Promise<SearchResponse> {
             ...(filters.region ? { region: filters.region } : {}),
             OR: [{ deadline: null }, { deadline: { gte: new Date() } }],
           },
+          orderBy: { updatedAt: 'desc' },
           take: 50,
         }),
     contentFilter && contentFilter !== 'CHALLENGE'
@@ -257,6 +293,7 @@ export async function runSearch(body: SearchBody): Promise<SearchResponse> {
             ...(filters.region ? { region: filters.region } : {}),
           },
           include: { tags: true, organization: true, embedding: true },
+          orderBy: { updatedAt: 'desc' },
           take: 50,
         }),
     contentFilter && contentFilter !== 'CASE'
@@ -268,6 +305,7 @@ export async function runSearch(body: SearchBody): Promise<SearchResponse> {
             ...(filters.region ? { region: filters.region } : {}),
           },
           include: { organization: true, needs: true },
+          orderBy: { updatedAt: 'desc' },
           take: 50,
         }),
   ]);
@@ -308,6 +346,7 @@ export async function runSearch(body: SearchBody): Promise<SearchResponse> {
       textBlob: `${tech.title} ${tech.summary} ${tech.problemStatement} ${tech.howItWorks} ${tags.join(' ')}`,
       href: `/solutions/${tech.slug}`,
       coverImageUrl: tech.coverImageUrl,
+      updatedAt: tech.updatedAt,
     });
   }
 
@@ -329,6 +368,7 @@ export async function runSearch(body: SearchBody): Promise<SearchResponse> {
       textBlob: `${project.title} ${project.summary} ${project.type}`,
       href: `/projects/${project.slug}`,
       coverImageUrl: project.coverImageUrl,
+      updatedAt: project.updatedAt,
     });
   }
 
@@ -348,6 +388,7 @@ export async function runSearch(body: SearchBody): Promise<SearchResponse> {
       textBlob: `${org.name} ${org.summary ?? ''}`,
       href: `/organizations/${org.slug}`,
       coverImageUrl: org.logoUrl,
+      updatedAt: org.updatedAt,
     });
   }
 
@@ -364,6 +405,7 @@ export async function runSearch(body: SearchBody): Promise<SearchResponse> {
       region: funder.region,
       textBlob: `${funder.name} ${funder.summary}`,
       href: `/funding?tab=directory`,
+      updatedAt: funder.updatedAt,
     });
   }
 
@@ -381,6 +423,7 @@ export async function runSearch(body: SearchBody): Promise<SearchResponse> {
       textBlob: `${offer.title} ${offer.summary} ${offer.whatFunds ?? ''} ${offer.criteria ?? ''}`,
       href: `/funding/${offer.slug}`,
       coverImageUrl: offer.coverImageUrl,
+      updatedAt: offer.updatedAt,
     });
   }
 
@@ -402,6 +445,7 @@ export async function runSearch(body: SearchBody): Promise<SearchResponse> {
       textBlob: `${challenge.title} ${challenge.summary} ${challenge.context ?? ''} ${tags.join(' ')}`,
       href: `/challenges/${challenge.slug}`,
       coverImageUrl: challenge.coverImageUrl,
+      updatedAt: challenge.updatedAt,
     });
   }
 
@@ -422,6 +466,7 @@ export async function runSearch(body: SearchBody): Promise<SearchResponse> {
       textBlob: `${successCase.title} ${successCase.summary} ${successCase.context ?? ''} ${successCase.outcomes ?? ''} ${needTags.join(' ')}`,
       href: `/cases/${successCase.slug}`,
       coverImageUrl: successCase.coverImageUrl,
+      updatedAt: successCase.updatedAt,
     });
   }
 
@@ -432,48 +477,76 @@ export async function runSearch(body: SearchBody): Promise<SearchResponse> {
     candidates.push(...filtered);
   }
 
-  await enrichCandidatesWithTranslations(candidates);
+  if (!browseLatest) {
+    await enrichCandidatesWithTranslations(candidates);
+  }
 
   const scored: SearchResultItem[] = [];
 
-  for (const c of candidates) {
-    const kw = keywordOverlap(queryTokens, c.textBlob);
-    const semantic =
-      queryVector && c.vector?.length ? Math.max(kw, cosineSimilarity(queryVector, c.vector)) : kw;
-    const tags = tagOverlap(queryTokens, c.tags);
-    const region = regionScore(queryTokens, c.country, c.region);
-    const maturity = maturityScore(c.maturity);
-    const need = needScore(c.contentType, queryTokens);
-    const { score, factors } = composeScore({
-      semantic,
-      tags,
-      region,
-      maturity,
-      need,
-      weights,
+  if (browseLatest) {
+    const byRecency = [...candidates].sort((a, b) => {
+      const diff = updatedMs(b.updatedAt) - updatedMs(a.updatedAt);
+      return diff || a.title.localeCompare(b.title);
     });
-    scored.push({
-      id: c.id,
-      slug: c.slug,
-      contentType: c.contentType,
-      title: c.title,
-      summary: c.summary,
-      tags: c.tags,
-      score,
-      factors,
-      href: c.href,
-      country: c.country,
-      region: c.region,
-      organizationName: c.organizationName,
-      coverImageUrl: c.coverImageUrl ?? null,
-    });
+    for (const c of byRecency) {
+      scored.push({
+        id: c.id,
+        slug: c.slug,
+        contentType: c.contentType,
+        title: c.title,
+        summary: c.summary,
+        tags: c.tags,
+        score: 0,
+        factors: [],
+        href: c.href,
+        country: c.country,
+        region: c.region,
+        organizationName: c.organizationName,
+        coverImageUrl: c.coverImageUrl ?? null,
+      });
+    }
+  } else {
+    for (const c of candidates) {
+      const kw = keywordOverlap(queryTokens, c.textBlob);
+      const semantic =
+        queryVector && c.vector?.length ? Math.max(kw, cosineSimilarity(queryVector, c.vector)) : kw;
+      const tags = tagOverlap(queryTokens, c.tags);
+      const region = regionScore(queryTokens, c.country, c.region);
+      const maturity = maturityScore(c.maturity);
+      const need = needScore(c.contentType, queryTokens);
+      const { score, factors } = composeScore({
+        semantic,
+        tags,
+        region,
+        maturity,
+        need,
+        weights,
+      });
+      scored.push({
+        id: c.id,
+        slug: c.slug,
+        contentType: c.contentType,
+        title: c.title,
+        summary: c.summary,
+        tags: c.tags,
+        score,
+        factors,
+        href: c.href,
+        country: c.country,
+        region: c.region,
+        organizationName: c.organizationName,
+        coverImageUrl: c.coverImageUrl ?? null,
+      });
+    }
+
+    applyAnchorCalibration(query, scored);
+    scored.sort((a, b) => b.score - a.score || a.title.localeCompare(b.title));
   }
 
-  applyAnchorCalibration(query, scored);
-  scored.sort((a, b) => b.score - a.score || a.title.localeCompare(b.title));
-
-  const qualified = scored.filter((r) => r.score >= minScore);
-  const visible = qualified.slice(0, limit);
+  const qualified = browseLatest ? scored : scored.filter((r) => r.score >= minScore);
+  const totalPages = Math.max(1, Math.ceil(qualified.length / pageSize) || 1);
+  const safePage = Math.min(Math.max(1, page), totalPages);
+  const visible = qualified.slice((safePage - 1) * pageSize, safePage * pageSize);
 
   // Facets mirror the same pool as `total` (above minScore), so cards stay truthful.
   const facets = {
@@ -484,6 +557,25 @@ export async function runSearch(body: SearchBody): Promise<SearchResponse> {
     cases: qualified.filter((r) => r.contentType === 'CASE').length,
     challenges: qualified.filter((r) => r.contentType === 'CHALLENGE').length,
   };
+
+  if (browseLatest) {
+    const localizedVisible = await localizeSearchResults(visible, lang);
+    return {
+      interpretation: interpretQuery(query, lang),
+      total: qualified.length,
+      facets,
+      results: localizedVisible,
+      paths: { whoCanSolve: [], whoCanFund: [], relatedProjects: [] },
+      meta: {
+        minScore,
+        mode: 'latest',
+        provider: provider.name,
+        page: safePage,
+        pageSize,
+        totalPages,
+      },
+    };
+  }
 
   // Paths from full scored set (above threshold)
   const pathPool = qualified;
@@ -571,6 +663,9 @@ export async function runSearch(body: SearchBody): Promise<SearchResponse> {
       minScore,
       mode,
       provider: provider.name,
+      page: safePage,
+      pageSize,
+      totalPages,
     },
   };
 }

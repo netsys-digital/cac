@@ -35,6 +35,7 @@ export const searchBodySchema = z.object({
   filters: searchFiltersSchema.default({}),
   lang: z.enum(['pt', 'en', 'es']).optional(),
   limit: z.number().int().min(1).max(50).optional(),
+  page: z.number().int().min(1).max(500).optional(),
 });
 
 export type SearchBody = z.infer<typeof searchBodySchema>;

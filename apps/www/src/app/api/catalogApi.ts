@@ -78,6 +78,8 @@ export type Challenge = {
   country?: string | null;
   region?: string | null;
   tags: string[];
+  createdAt?: string;
+  updatedAt?: string;
   organization?: OrgSummary;
 };
 

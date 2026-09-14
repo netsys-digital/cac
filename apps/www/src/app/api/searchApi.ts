@@ -46,13 +46,22 @@ export type SearchResponse = {
     }>;
     relatedProjects: Array<{ id: string; type: string; title: string; score: number; slug?: string }>;
   };
-  meta: { minScore: number; mode: string; provider: string };
+  meta: {
+    minScore: number;
+    mode: string;
+    provider: string;
+    page?: number;
+    pageSize?: number;
+    totalPages?: number;
+  };
 };
 
 export async function postSearch(body: {
   query: string;
   filters?: SearchFilters;
   lang?: 'pt' | 'en' | 'es';
+  limit?: number;
+  page?: number;
 }): Promise<SearchResponse> {
   const res = await fetch(`${urls.api}/api/search`, {
     method: 'POST',

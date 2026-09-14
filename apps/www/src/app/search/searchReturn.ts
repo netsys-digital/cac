@@ -36,7 +36,11 @@ export function filtersFromSearchParams(params: URLSearchParams): SearchFilters 
   return filters;
 }
 
-export function searchParamsFromState(query: string, filters: SearchFilters): URLSearchParams {
+export function searchParamsFromState(
+  query: string,
+  filters: SearchFilters,
+  page?: number,
+): URLSearchParams {
   const next = new URLSearchParams();
   const q = query.trim();
   if (q) next.set('q', q);
@@ -44,6 +48,7 @@ export function searchParamsFromState(query: string, filters: SearchFilters): UR
     const value = filters[key];
     if (value) next.set(key, String(value));
   }
+  if (page && page > 1) next.set('page', String(page));
   return next;
 }
 

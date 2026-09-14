@@ -18,6 +18,7 @@ import {
 } from '../search/searchReturn';
 
 const SEARCH_HERO_IMG = '/images/fundo_busca.png';
+const SEARCH_PAGE_SIZE = 10;
 
 const STATIC_OPTIONS = {
   themes: [
@@ -50,10 +51,7 @@ const STATIC_OPTIONS = {
     { value: 'nacional', label: 'Nacional' },
     { value: 'global', label: 'Global' },
   ],
-  financing: [
-    { value: 'ALL', label: 'Todos' },
-    { value: 'WITH_OPPORTUNITY', label: 'Com oportunidade' },
-  ],
+  financing: [{ value: 'WITH_OPPORTUNITY', label: 'Com oportunidade' }],
   regions: [
     { value: 'africa', label: 'África' },
     { value: 'asia', label: 'Ásia' },
@@ -110,6 +108,7 @@ export function SearchPage() {
   const { getKindForSearch } = useConnectionEngagement();
   const [params, setParams] = useSearchParams();
   const qParam = params.get('q') ?? '';
+  const pageParam = Math.max(1, Number(params.get('page') ?? '1') || 1);
   const filters = useMemo(() => filtersFromSearchParams(params), [params]);
   const [query, setQuery] = useState(qParam);
   const [data, setData] = useState<SearchResponse | null>(null);
@@ -122,6 +121,7 @@ export function SearchPage() {
   const restoredScroll = useRef(false);
 
   const lang = normalizeLanguage(i18n.language);
+  const isLatestMode = data?.meta?.mode === 'latest';
 
   const facetBaseKey = useMemo(() => {
     const { contentType: _ignored, ...rest } = filters;
@@ -144,7 +144,7 @@ export function SearchPage() {
     let cancelled = false;
     setLoading(true);
     setError('');
-    void postSearch({ query: qParam, filters, lang })
+    void postSearch({ query: qParam, filters, lang, page: pageParam, limit: SEARCH_PAGE_SIZE })
       .then((res) => {
         if (cancelled) return;
         setData(res);
@@ -161,13 +161,13 @@ export function SearchPage() {
     return () => {
       cancelled = true;
     };
-  }, [qParam, filters, lang, t]);
+  }, [qParam, filters, lang, pageParam, t]);
 
   useEffect(() => {
     if (!filters.contentType || facetSnapshot) return;
     let cancelled = false;
     const { contentType: _ignored, ...baseFilters } = filters;
-    void postSearch({ query: qParam, filters: baseFilters, lang })
+    void postSearch({ query: qParam, filters: baseFilters, lang, page: 1, limit: SEARCH_PAGE_SIZE })
       .then((res) => {
         if (cancelled) return;
         setFacetSnapshot({ total: res.total, facets: res.facets });
@@ -208,18 +208,18 @@ export function SearchPage() {
     });
   }, [data, t]);
 
-  function commitSearch(nextQuery: string, nextFilters: SearchFilters) {
-    setParams(searchParamsFromState(nextQuery, nextFilters), { replace: false });
+  function commitSearch(nextQuery: string, nextFilters: SearchFilters, page = 1) {
+    setParams(searchParamsFromState(nextQuery, nextFilters, page), { replace: false });
   }
 
   function onSubmit(event: FormEvent) {
     event.preventDefault();
-    commitSearch(query, filters);
+    commitSearch(query, filters, 1);
   }
 
   function onFiltersChange(next: SearchFilters) {
     if (filtersEqual(next, filters)) return;
-    commitSearch(qParam, next);
+    commitSearch(qParam, next, 1);
   }
 
   function onFacetSelect(contentType: string | undefined) {
@@ -227,10 +227,38 @@ export function SearchPage() {
     if (!contentType) delete next.contentType;
     else next.contentType = contentType;
     if (filtersEqual(next, filters)) return;
-    commitSearch(qParam, next);
+    commitSearch(qParam, next, 1);
+  }
+
+  function goToPage(nextPage: number) {
+    const totalPages = data?.meta?.totalPages ?? 1;
+    const safe = Math.min(Math.max(1, nextPage), totalPages);
+    if (safe === pageParam) return;
+    commitSearch(qParam, filters, safe);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
   const facetTotals = facetSnapshot ?? (data ? { total: data.total, facets: data.facets } : null);
+  const pageSize = data?.meta?.pageSize ?? SEARCH_PAGE_SIZE;
+  const currentPage = data?.meta?.page ?? pageParam;
+  const totalPages = data?.meta?.totalPages ?? 1;
+  const rangeStart = data?.total ? (currentPage - 1) * pageSize + 1 : 0;
+  const rangeEnd = data ? Math.min(currentPage * pageSize, data.total) : 0;
+
+  const filterOptions = useMemo(
+    () => ({
+      ...STATIC_OPTIONS,
+      contentTypes: [
+        { value: 'SOLUTION', label: t('search.typeSolution') },
+        { value: 'PROJECT', label: t('search.typeProject') },
+        { value: 'ORGANIZATION', label: t('search.typeOrg') },
+        { value: 'FUNDER', label: t('search.typeFunder') },
+        { value: 'CASE', label: t('search.typeCase') },
+        { value: 'CHALLENGE', label: t('search.typeChallenge') },
+      ],
+    }),
+    [t],
+  );
 
   return (
     <div className="bg-cac-bg">
@@ -280,6 +308,8 @@ export function SearchPage() {
           value={filters}
           onChange={onFiltersChange}
           labels={{
+            all: t('search.filters.all'),
+            contentType: t('search.filters.contentType'),
             country: t('search.filters.country'),
             region: t('search.filters.region'),
             theme: t('search.filters.theme'),
@@ -289,10 +319,10 @@ export function SearchPage() {
             scale: t('search.filters.scale'),
             financing: t('search.filters.financing'),
           }}
-          options={STATIC_OPTIONS}
+          options={filterOptions}
         />
 
-        {data ? (
+        {data && !isLatestMode ? (
           <div className="mt-4 rounded-[12px] border border-cac-line bg-[#eff7f3] px-3 py-2.5 text-pequena text-cac-navy">
             <b>{t('search.interpretationBadge')}</b> {interpretation}
           </div>
@@ -323,12 +353,23 @@ export function SearchPage() {
             <div className="mt-5">
               <div className="mb-3 flex flex-wrap items-end justify-between gap-2">
                 <div>
-                  <h2 className="text-grande font-bold text-cac-navy">{t('search.resultsTitle')}</h2>
+                  <h2 className="text-grande font-bold text-cac-navy">
+                    {t(isLatestMode ? 'search.resultsTitleLatest' : 'search.resultsTitle')}
+                  </h2>
                   <p className="mt-0.5 text-pequena text-cac-muted">
-                    {t('search.resultsHint', { count: data.results.length, total: data.total })}
+                    {isLatestMode
+                      ? t('search.resultsHintLatest', {
+                          start: rangeStart,
+                          end: rangeEnd,
+                          total: data.total,
+                        })
+                      : t('search.resultsHint', {
+                          count: data.results.length,
+                          total: data.total,
+                        })}
                   </p>
                 </div>
-                {data.meta?.minScore != null ? (
+                {!isLatestMode && data.meta?.minScore != null ? (
                   <p className="text-mini text-cac-muted">
                     {t('search.minScoreHint', { score: data.meta.minScore })}
                   </p>
@@ -359,8 +400,8 @@ export function SearchPage() {
                       .filter(Boolean)
                       .join(' · ')}
                     tags={item.tags}
-                    score={`${item.score}%`}
-                    factors={item.factors}
+                    score={isLatestMode ? undefined : `${item.score}%`}
+                    factors={isLatestMode ? undefined : item.factors}
                   />
                 ))}
                 {!data.results.length ? (
@@ -369,20 +410,48 @@ export function SearchPage() {
                   </p>
                 ) : null}
               </div>
+
+              {data.total > pageSize ? (
+                <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
+                  <p className="text-pequena text-cac-muted">
+                    {t('search.pageOf', { page: currentPage, total: totalPages })}
+                  </p>
+                  <div className="flex gap-2">
+                    <button
+                      type="button"
+                      disabled={currentPage <= 1}
+                      onClick={() => goToPage(currentPage - 1)}
+                      className="rounded-[10px] border border-cac-line bg-white px-3 py-2 text-pequena font-bold text-cac-navy disabled:cursor-not-allowed disabled:opacity-40"
+                    >
+                      {t('search.prevPage')}
+                    </button>
+                    <button
+                      type="button"
+                      disabled={currentPage >= totalPages}
+                      onClick={() => goToPage(currentPage + 1)}
+                      className="rounded-[10px] border border-cac-line bg-white px-3 py-2 text-pequena font-bold text-cac-navy disabled:cursor-not-allowed disabled:opacity-40"
+                    >
+                      {t('search.nextPage')}
+                    </button>
+                  </div>
+                </div>
+              ) : null}
             </div>
 
-            <MatchPaths
-              paths={data.paths}
-              labels={{
-                title: t('search.pathsTitle'),
-                solve: t('search.paths.solve'),
-                fund: t('search.paths.fund'),
-                projects: t('search.paths.projects'),
-                empty: t('search.paths.empty'),
-                active: t('search.paths.active'),
-                directory: t('search.paths.directory'),
-              }}
-            />
+            {!isLatestMode ? (
+              <MatchPaths
+                paths={data.paths}
+                labels={{
+                  title: t('search.pathsTitle'),
+                  solve: t('search.paths.solve'),
+                  fund: t('search.paths.fund'),
+                  projects: t('search.paths.projects'),
+                  empty: t('search.paths.empty'),
+                  active: t('search.paths.active'),
+                  directory: t('search.paths.directory'),
+                }}
+              />
+            ) : null}
           </>
         ) : null}
       </div>
