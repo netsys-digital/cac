@@ -52,25 +52,23 @@ export function PublicLayout() {
   return (
     <div className="flex min-h-screen flex-col bg-cac-bg pb-14 font-sans md:pb-0">
       <header className="sticky top-0 z-50 h-[62px] w-full overflow-visible bg-cac-navy text-white">
-        {/* Fundo da logo até a borda esquerda da viewport; logo alinhada ao shell. */}
-        <NavLink
-          to="/"
-          className="absolute top-1/2 left-0 z-20 -translate-y-[42%]"
-          aria-label={brand.name}
-        >
-          <span className="inline-flex items-center rounded-br-[12px] bg-cac-navy py-1.5 pr-3 pl-[max(1.375rem,calc((100vw-1220px)/2+22px))]">
-            <BrandMark
-              name={brand.name}
-              short={brand.short}
-              logoSrc={brand.logo || undefined}
-              variant="dark"
-              size="header"
-            />
-          </span>
-        </NavLink>
-
         <div className={`${shell} relative flex h-full items-center gap-5`}>
-          <div className="w-[min(300px,48vw)] shrink-0" aria-hidden />
+          {/* Logo maior que a faixa: overflow visível, faixa permanece 62px. */}
+          <NavLink
+            to="/"
+            className="relative z-20 flex h-full w-[min(300px,48vw)] shrink-0 items-center"
+            aria-label={brand.name}
+          >
+            <span className="absolute left-0 top-1/2 -translate-y-[42%] rounded-b-[12px] bg-cac-navy px-2.5 py-1.5 pr-3">
+              <BrandMark
+                name={brand.name}
+                short={brand.short}
+                logoSrc={brand.logo || undefined}
+                variant="dark"
+                size="header"
+              />
+            </span>
+          </NavLink>
 
           <nav
             className="hidden min-w-0 flex-1 items-center gap-[3px] overflow-x-auto lg:flex"
