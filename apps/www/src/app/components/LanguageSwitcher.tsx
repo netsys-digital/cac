@@ -65,7 +65,7 @@ export function LanguageSwitcher({
         aria-expanded={open}
         aria-controls={listId}
         aria-label={t('lang.switcher')}
-        className={`${buttonClassName} flex min-w-[2.75rem] flex-col items-center gap-0.5 rounded-md bg-white/15 font-bold tracking-[1px] text-[#90d6b6] transition hover:bg-white/20`}
+        className={`${buttonClassName} flex min-w-[2.5rem] items-center justify-center gap-1 rounded-md bg-white/15 font-bold tracking-[1px] text-[#90d6b6] transition hover:bg-white/20`}
         onClick={() => setOpen((v) => !v)}
       >
         <span>{t(`lang.${current}`)}</span>

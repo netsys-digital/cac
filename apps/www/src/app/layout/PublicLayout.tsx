@@ -10,10 +10,10 @@ import { SiteFooter } from './SiteFooter';
 const shell = 'mx-auto w-full max-w-[1220px] px-[22px]';
 
 const btnBase =
-  'inline-flex items-center justify-center rounded-[10px] px-[14px] py-[11px] text-pequena font-extrabold whitespace-nowrap transition';
+  'inline-flex items-center justify-center rounded-[8px] px-3 py-1.5 text-mini font-extrabold whitespace-nowrap transition';
 
 const navLinkClass =
-  'rounded-lg px-2.5 py-[9px] text-pequena whitespace-nowrap text-[#dbe8ec] hover:bg-white/[0.08]';
+  'rounded-lg px-2 py-1.5 text-mini whitespace-nowrap text-[#dbe8ec] hover:bg-white/[0.08]';
 
 function displayName(name: string) {
   const parts = name.trim().split(/\s+/).filter(Boolean);
@@ -51,21 +51,37 @@ export function PublicLayout() {
 
   return (
     <div className="flex min-h-screen flex-col bg-cac-bg pb-14 font-sans md:pb-0">
-      <header className="sticky top-0 z-50 h-[74px] w-full bg-[rgba(10,36,64,.98)] text-white">
-        <div className={`${shell} flex h-full items-center gap-5`}>
-          <NavLink to="/" className="shrink-0">
+      <header className="sticky top-0 z-50 h-[62px] w-full overflow-visible bg-cac-navy text-white">
+        {/* Fundo da logo até a borda esquerda da viewport; logo alinhada ao shell. */}
+        <NavLink
+          to="/"
+          className="absolute top-1/2 left-0 z-20 -translate-y-[42%]"
+          aria-label={brand.name}
+        >
+          <span className="inline-flex items-center rounded-br-[12px] bg-cac-navy py-1.5 pr-3 pl-[max(1.375rem,calc((100vw-1220px)/2+22px))]">
             <BrandMark
               name={brand.name}
               short={brand.short}
               logoSrc={brand.logo || undefined}
               variant="dark"
+              size="header"
             />
-          </NavLink>
+          </span>
+        </NavLink>
+
+        <div className={`${shell} relative flex h-full items-center gap-5`}>
+          <div className="w-[min(300px,48vw)] shrink-0" aria-hidden />
 
           <nav
             className="hidden min-w-0 flex-1 items-center gap-[3px] overflow-x-auto lg:flex"
             aria-label="Primary"
           >
+            <Link
+              to="/#sobre"
+              className={`${navLinkClass} ${aboutActive ? 'bg-white/[0.08]' : ''}`}
+            >
+              {t('nav.about')}
+            </Link>
             {desktopLinks.map((link) => (
               <NavLink
                 key={link.to}
@@ -77,16 +93,10 @@ export function PublicLayout() {
                 {link.label}
               </NavLink>
             ))}
-            <Link
-              to="/#sobre"
-              className={`${navLinkClass} ${aboutActive ? 'bg-white/[0.08]' : ''}`}
-            >
-              {t('nav.about')}
-            </Link>
           </nav>
 
           <div className="ml-auto flex shrink-0 items-center gap-[10px]">
-            <LanguageSwitcher />
+            <LanguageSwitcher buttonClassName="px-2 py-1 text-mini" />
 
             {!loading && user && name ? (
               <>

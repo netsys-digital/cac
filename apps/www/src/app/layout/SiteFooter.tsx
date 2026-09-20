@@ -84,6 +84,7 @@ export function SiteFooter() {
               short={brand.short}
               logoSrc={brand.logo || undefined}
               variant="dark"
+              size="lg"
             />
             <p className="mt-3 max-w-[380px] text-mini leading-relaxed text-[#cddae0]">
               {t('footer.blurb')}
@@ -135,10 +136,19 @@ export function SiteFooter() {
 
       <div className="border-t border-white/15">
         <div
-          className={`${shell} flex flex-col gap-2 py-4 pb-[4.5rem] text-[12px] leading-snug text-[#9eb0b8] md:pb-4 sm:flex-row sm:items-center sm:justify-between`}
+          className={`${shell} flex flex-col gap-3 py-4 pb-[4.5rem] text-[12px] leading-snug text-[#9eb0b8] md:pb-4 lg:flex-row lg:items-center lg:justify-between lg:gap-4`}
         >
-          <p>{t('footer.copyright', { year, brand: brand.name })}</p>
-          <p className="sm:text-right">{t('footer.legal')}</p>
+          <p className="shrink-0">{t('footer.copyright', { year, brand: brand.name })}</p>
+          <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1.5 lg:justify-center">
+            <span>{t('footer.supportedBy')}</span>
+            <img
+              src="/images/brand/ExtensaBrancaFAPDF.png"
+              alt="FAPDF"
+              className="h-11 w-auto max-w-[220px] object-contain"
+            />
+            <span className="text-[11px] text-[#9eb0b8]">{t('footer.supportedByName')}</span>
+          </div>
+          <p className="shrink-0 lg:text-right">{t('footer.legal')}</p>
         </div>
       </div>
     </footer>

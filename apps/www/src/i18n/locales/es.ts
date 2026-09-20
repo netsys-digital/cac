@@ -531,6 +531,8 @@ export const es = {
       panel: 'Abrir el panel',
     },
     copyright: '© {{year}} {{brand}}. Todos los derechos reservados.',
+    supportedBy: 'Proyecto apoyado por',
+    supportedByName: 'Fundación de Apoyo a la Investigación del Distrito Federal',
     meta: 'Descubrimiento público · publicación con curaduría · conexión sobre el ítem',
     legal: 'Términos de uso | Política de privacidad | Accesibilidad',
   },

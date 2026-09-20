@@ -66,14 +66,15 @@ function JourneyHint() {
 export function AuthLayout() {
   return (
     <div className="min-h-screen bg-cac-bg font-sans">
-      <header className="sticky top-0 z-50 h-[74px] w-full bg-[rgba(10,36,64,.98)] text-white">
-        <Container className="flex h-full items-center gap-5">
-          <a href={urls.www} className="shrink-0" aria-label={brand.name}>
+      <header className="sticky top-0 z-50 h-[74px] w-full overflow-visible bg-[rgba(10,36,64,.98)] text-white">
+        <Container className="relative flex h-full items-center gap-5">
+          <a href={urls.www} className="relative z-10 flex h-full shrink-0 items-center" aria-label={brand.name}>
             <BrandMark
               name={brand.name}
               short={brand.short}
               logoSrc={brand.logo || undefined}
               variant="dark"
+              size="md"
             />
           </a>
 

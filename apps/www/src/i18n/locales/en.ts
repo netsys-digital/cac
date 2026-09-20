@@ -523,6 +523,8 @@ export const en = {
       panel: 'Open the panel',
     },
     copyright: '© {{year}} {{brand}}. All rights reserved.',
+    supportedBy: 'Project supported by',
+    supportedByName: 'Federal District Research Support Foundation',
     meta: 'Public discovery · curated publishing · item-based connections',
     legal: 'Terms of use | Privacy policy | Accessibility',
   },

@@ -3,7 +3,7 @@ import { FONT_SCALE_DEFAULTS } from '@cac/ui';
 export const brand = {
   name: import.meta.env.VITE_APP_BRAND_NAME ?? 'AgriZONE Connect',
   short: import.meta.env.VITE_APP_BRAND_SHORT ?? 'AZC',
-  logo: import.meta.env.VITE_APP_BRAND_LOGO ?? '',
+  logo: import.meta.env.VITE_APP_BRAND_LOGO || '/images/brand/LogoAgrizone.png',
   slug: (import.meta.env.VITE_APP_BRAND_NAME ?? 'AgriZONE Connect').replace(/\s+/g, '').toLowerCase(),
 };
 
