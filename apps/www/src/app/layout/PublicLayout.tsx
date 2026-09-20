@@ -51,23 +51,20 @@ export function PublicLayout() {
 
   return (
     <div className="flex min-h-screen flex-col bg-cac-bg pb-14 font-sans md:pb-0">
-      <header className="sticky top-0 z-50 h-[62px] w-full overflow-visible bg-cac-navy text-white">
-        <div className={`${shell} relative flex h-full items-center gap-5`}>
-          {/* Logo maior que a faixa: overflow visível, faixa permanece 62px. */}
+      <header className="sticky top-0 z-50 h-[72px] w-full bg-cac-navy text-white">
+        <div className={`${shell} flex h-full items-center gap-5`}>
           <NavLink
             to="/"
-            className="relative z-20 flex h-full w-[min(300px,48vw)] shrink-0 items-center"
+            className="flex h-full shrink-0 items-center"
             aria-label={brand.name}
           >
-            <span className="absolute left-0 top-1/2 -translate-y-[42%] rounded-b-[12px] bg-cac-navy px-2.5 py-1.5 pr-3">
-              <BrandMark
-                name={brand.name}
-                short={brand.short}
-                logoSrc={brand.logo || undefined}
-                variant="dark"
-                size="header"
-              />
-            </span>
+            <BrandMark
+              name={brand.name}
+              short={brand.short}
+              logoSrc={brand.logo || undefined}
+              variant="dark"
+              size="header"
+            />
           </NavLink>
 
           <nav

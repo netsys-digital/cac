@@ -92,13 +92,13 @@ export function SiteFooter() {
           </div>
 
           <div className="lg:border-l lg:border-white/15 lg:px-5">
-            <h4 className={headingClass}>{t('footer.explore')}</h4>
-            <FooterNavList items={explore} />
+            <h4 className={headingClass}>{t('footer.about')}</h4>
+            <FooterNavList items={about} />
           </div>
 
           <div className="lg:border-l lg:border-white/15 lg:px-5">
-            <h4 className={headingClass}>{t('footer.about')}</h4>
-            <FooterNavList items={about} />
+            <h4 className={headingClass}>{t('footer.explore')}</h4>
+            <FooterNavList items={explore} />
           </div>
 
           <div className="lg:border-l lg:border-white/15 lg:px-5">

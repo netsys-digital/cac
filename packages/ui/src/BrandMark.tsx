@@ -6,8 +6,8 @@ type BrandMarkProps = {
   variant?: 'light' | 'dark';
   /**
    * Wordmark height.
-   * - md: cabe na faixa de 74px
-   * - header: maior que a faixa (usa overflow no layout)
+   * - md: compacto (56px)
+   * - header: grande, cabe na faixa www (~72px)
    * - lg: footer / áreas amplas
    */
   size?: 'md' | 'header' | 'lg';
@@ -15,8 +15,8 @@ type BrandMarkProps = {
 
 const logoSizeClass = {
   md: 'h-14 w-auto max-w-[260px] object-contain object-left',
-  /** ~90px: vaza da faixa 74px sem forçar altura do header. */
-  header: 'h-[90px] w-auto max-w-[300px] object-contain object-left',
+  /** 64px: presença forte sem ultrapassar a faixa de 72px. */
+  header: 'h-16 w-auto max-w-[280px] object-contain object-left',
   lg: 'h-[4.5rem] w-auto max-w-[320px] object-contain object-left',
 } as const;
 

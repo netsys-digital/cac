@@ -386,7 +386,7 @@ export function DetailOrgCard({
 
 export function DetailActionStack({ children }: PropsWithChildren) {
   return (
-    <div className="sticky top-[90px] space-y-3 rounded-[16px] border border-cac-line bg-white p-5 shadow-[0_10px_28px_rgba(10,36,64,.06)]">
+    <div className="sticky top-[88px] space-y-3 rounded-[16px] border border-cac-line bg-white p-5 shadow-[0_10px_28px_rgba(10,36,64,.06)]">
       {children}
     </div>
   );
