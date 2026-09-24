@@ -126,6 +126,11 @@ export const es = {
         to: '/cases',
       },
     ],
+    challengesTitle: 'Desafíos Climáticos',
+    challengesSupport:
+      'Necesidades reales que buscan soluciones, conocimiento, socios y financiamiento.',
+    challengesAll: 'Ver todos los desafíos',
+    challengesEmpty: 'Ningún desafío publicado aún.',
     videoTitle: 'Soluciones para el clima. Personas para la acción.',
     videoCta: 'Ver el video',
   },

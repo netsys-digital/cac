@@ -121,6 +121,11 @@ export const en = {
         to: '/cases',
       },
     ],
+    challengesTitle: 'Climate Challenges',
+    challengesSupport:
+      'Real needs seeking solutions, knowledge, partners and funding.',
+    challengesAll: 'See all challenges',
+    challengesEmpty: 'No challenges published yet.',
     videoTitle: 'Solutions for the climate. People for action.',
     videoCta: 'Watch the video',
   },

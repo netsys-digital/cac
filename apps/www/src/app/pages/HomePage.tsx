@@ -2,7 +2,10 @@ import { type FormEvent, useEffect, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Trans, useTranslation } from 'react-i18next';
 import { urls } from '../../config';
+import { catalogApi, type Challenge } from '../api/catalogApi';
 import { IconSearch } from '../components/PathIcons';
+import { needTypeLabel } from '../lib/needTypeLabel';
+import { resolveMediaUrl } from '../lib/mediaUrl';
 import { searchParamsFromState } from '../search/searchReturn';
 import { pushRecentSearch } from '../search/recentSearches';
 
@@ -17,6 +20,36 @@ const HIGHLIGHT_IMGS = [
   'https://upload.wikimedia.org/wikipedia/commons/2/22/Partnerships_for_Climate-Smart_Commodities_Success_Stories_%2820241206-USDA-NRCS-6%29.jpg',
   'https://upload.wikimedia.org/wikipedia/commons/5/59/The_Center_for_Regenerative_Agriculture_at_the_University_of_Missouri_recently_hosted_U.S._Department_of_Agriculture_%28USDA%29_Robert_Bonnie_in_Missouri_on_26_June_2024_-_29.jpg',
 ];
+
+const CHALLENGE_BADGE_COLORS = ['bg-[#2f6fed]', 'bg-[#a65a3a]', 'bg-[#1f6b4a]'] as const;
+
+const COUNTRY_LABELS: Record<string, string> = {
+  BR: 'Brasil',
+  NG: 'Nigéria',
+  NE: 'Níger',
+  MZ: 'Moçambique',
+  FR: 'França',
+};
+
+function challengeBadgeColor(tag: string | undefined, index: number) {
+  const key = (tag ?? '').toLowerCase();
+  if (key.includes('água') || key.includes('agua') || key.includes('water')) return 'bg-[#2f6fed]';
+  if (key.includes('solo') || key.includes('soil') || key.includes('degrad')) return 'bg-[#a65a3a]';
+  if (key.includes('bioeconomia') || key.includes('bioeconomy')) return 'bg-[#1f6b4a]';
+  return CHALLENGE_BADGE_COLORS[index % CHALLENGE_BADGE_COLORS.length];
+}
+
+function homeRegionLabel(value: string, t: (key: string) => string) {
+  const map: Record<string, string> = {
+    africa: t('challengeLanding.regionAfrica'),
+    asia: t('challengeLanding.regionAsia'),
+    europe: t('challengeLanding.regionEurope'),
+    north_america: t('challengeLanding.regionNorthAmerica'),
+    south_america: t('challengeLanding.regionSouthAmerica'),
+    oceania: t('challengeLanding.regionOceania'),
+  };
+  return map[value] ?? value.replace(/_/g, ' ');
+}
 
 const CONTENT_TYPES = [
   { value: '', labelKey: 'home.resourceAll' },
@@ -78,6 +111,8 @@ export function HomePage() {
   const [query, setQuery] = useState('');
   const [contentType, setContentType] = useState('');
   const [region, setRegion] = useState('');
+  const [homeChallenges, setHomeChallenges] = useState<Challenge[]>([]);
+  const [challengesLoading, setChallengesLoading] = useState(true);
 
   useEffect(() => {
     if (location.hash !== '#sobre') return;
@@ -88,6 +123,31 @@ export function HomePage() {
       el.scrollIntoView({ behavior: 'smooth', block: 'start' });
     });
   }, [location.hash]);
+
+  useEffect(() => {
+    let cancelled = false;
+    setChallengesLoading(true);
+    catalogApi
+      .listChallenges()
+      .then((res) => {
+        if (cancelled) return;
+        const sorted = [...(res.items ?? [])].sort((a, b) => {
+          const aTime = Date.parse(a.updatedAt ?? a.createdAt ?? '') || 0;
+          const bTime = Date.parse(b.updatedAt ?? b.createdAt ?? '') || 0;
+          return bTime - aTime;
+        });
+        setHomeChallenges(sorted.slice(0, 3));
+      })
+      .catch(() => {
+        if (!cancelled) setHomeChallenges([]);
+      })
+      .finally(() => {
+        if (!cancelled) setChallengesLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const tags = t('home.tags', { returnObjects: true }) as string[];
   const stats = t('home.stats', { returnObjects: true }) as Array<{ value: string; label: string }>;
@@ -423,6 +483,100 @@ export function HomePage() {
                 ))
               : null}
           </div>
+        </div>
+      </section>
+
+      {/* Desafios Climáticos */}
+      <section className="bg-white py-14">
+        <div className={shell}>
+          <div className="mb-6 flex flex-wrap items-start justify-between gap-3">
+            <div className="min-w-0 max-w-[40rem]">
+              <h2 className="text-grande font-bold tracking-[-0.7px] text-cac-navy">
+                {t('home.challengesTitle')}
+              </h2>
+              <p className="mt-2 text-pequena leading-[1.4] text-cac-muted">
+                {t('home.challengesSupport')}
+              </p>
+            </div>
+            <Link
+              to="/challenge"
+              className="shrink-0 text-pequena font-extrabold text-cac-green transition hover:underline"
+            >
+              {t('home.challengesAll')} →
+            </Link>
+          </div>
+
+          {challengesLoading ? (
+            <p className="text-pequena text-cac-muted">{t('detail.loading')}</p>
+          ) : homeChallenges.length ? (
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+              {homeChallenges.map((item, index) => {
+                const cover = resolveMediaUrl(item.coverImageUrl);
+                const themeTag = item.tags?.[0];
+                const sectorTag = item.tags?.[1];
+                const badge = themeTag || needTypeLabel(item.needType, t);
+                const locationLabel = item.region?.trim()
+                  ? homeRegionLabel(item.region.trim(), t)
+                  : item.country
+                    ? COUNTRY_LABELS[item.country] ?? item.country
+                    : null;
+                const sectorLabel = sectorTag || needTypeLabel(item.needType, t);
+                return (
+                  <Link
+                    key={item.id}
+                    to={`/challenges/${item.slug}`}
+                    className="group overflow-hidden rounded-[16px] border border-cac-line bg-white shadow-[0_10px_28px_rgba(10,36,64,.08)] transition hover:-translate-y-0.5"
+                  >
+                    <div className="relative h-40 overflow-hidden bg-gradient-to-br from-[#b8d7bf] to-[#dce9d3]">
+                      {cover ? (
+                        <img
+                          src={cover}
+                          alt=""
+                          className="h-full w-full object-cover transition duration-300 group-hover:scale-[1.03]"
+                        />
+                      ) : null}
+                      <span
+                        className={`absolute top-3 left-3 rounded-md px-2 py-1 text-mini font-extrabold tracking-wide text-white uppercase ${challengeBadgeColor(themeTag, index)}`}
+                      >
+                        {badge}
+                      </span>
+                    </div>
+                    <div className="flex flex-1 flex-col p-4">
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="min-w-0">
+                          <p className="text-media font-bold text-cac-navy">{item.title}</p>
+                          <p className="mt-1.5 line-clamp-3 text-pequena leading-[1.35] text-cac-muted">
+                            {item.summary}
+                          </p>
+                        </div>
+                        <ArrowCircle className="shrink-0" />
+                      </div>
+                      <div className="mt-4 flex flex-wrap gap-x-4 gap-y-1.5 border-t border-cac-line/70 pt-3 text-mini text-cac-muted">
+                        {locationLabel ? (
+                          <span className="inline-flex items-center gap-1.5">
+                            <i className="fa-solid fa-location-dot text-cac-green" aria-hidden />
+                            {locationLabel}
+                          </span>
+                        ) : null}
+                        <span className="inline-flex items-center gap-1.5">
+                          <i className="fa-solid fa-seedling text-cac-green" aria-hidden />
+                          {sectorLabel}
+                        </span>
+                        <span className="inline-flex items-center gap-1.5">
+                          <i className="fa-regular fa-calendar text-cac-green" aria-hidden />
+                          {t('challengeLanding.statusOpen')}
+                        </span>
+                      </div>
+                    </div>
+                  </Link>
+                );
+              })}
+            </div>
+          ) : (
+            <p className="rounded-[12px] border border-dashed border-cac-line bg-cac-bg px-4 py-6 text-pequena text-cac-muted">
+              {t('home.challengesEmpty')}
+            </p>
+          )}
         </div>
       </section>
 
