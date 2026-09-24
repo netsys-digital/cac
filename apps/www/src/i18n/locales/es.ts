@@ -36,7 +36,7 @@ export const es = {
     headlineLead: 'Del desafío climático al',
     headline: 'Del desafío climático al camino de acción.',
     support:
-      'Conectamos <strong>soluciones</strong> a los desafíos climáticos, acercando conocimiento, organizaciones y financiamiento para transformar necesidades reales en acción e impacto.',
+      'Conectando soluciones, conocimiento, organizaciones y financiamiento para enfrentar los desafíos climáticos',
     searchPlaceholder: 'Busque soluciones, financiamientos, desafíos, organizaciones…',
     searchCta: 'Buscar',
     examplesLabel: 'Ejemplos:',
@@ -82,9 +82,9 @@ export const es = {
       { value: '32', label: 'Países alcanzados' },
     ],
     aboutBadge: '¿Qué es AgriZONE Connect?',
-    aboutTitle: 'Un ecosistema global por soluciones climáticas reales',
+    aboutTitle: 'Un ecosistema global de soluciones para los desafíos climáticos',
     aboutBody:
-      'AgriZONE Connect conecta a quienes enfrentan desafíos climáticos con quienes ofrecen soluciones, financiamiento y evidencia — con curaduría y gobernanza.',
+      'AgriZONE Connect acerca <strong>soluciones</strong>, <strong>conocimiento</strong>, <strong>organizaciones</strong> y <strong>oportunidades de financiamiento</strong>, creando conexiones y alianzas para enfrentar los desafíos climáticos y promover una agricultura más resiliente.',
     aboutCta: 'Conozca más sobre AgriZONE Connect',
     pillars: [
       {
@@ -278,13 +278,13 @@ export const es = {
   },
   aboutPage: {
     badge: 'SOBRE',
-    title: 'Conectando desafíos, soluciones y oportunidades para una agricultura más resiliente',
+    title: 'Conectando soluciones y oportunidades en busca de una agricultura más resiliente',
     body1:
-      'Agrizone Connect es una plataforma de conexión que acerca desafíos reales de la agricultura a soluciones, conocimiento, socios y oportunidades de financiamiento capaces de transformarlos en acción.',
+      'Agrizone Connect es una plataforma de conexión que acerca soluciones, conocimiento, organizaciones y oportunidades de financiamiento para enfrentar los desafíos climáticos y contribuir a una agricultura más resiliente.',
     body2:
-      'A partir de la experiencia y la ciencia de Embrapa, la plataforma crea un ambiente abierto a la colaboración, facilitando conexiones entre instituciones de investigación, gobiernos, productores, empresas, startups, financiadores y otros actores del ecosistema de innovación.',
+      'A partir de la experiencia y la ciencia de Embrapa, la plataforma crea un ambiente abierto a la colaboración, ampliando las conexiones entre instituciones de investigación, gobiernos, productores, empresas, startups, financiadores y otros actores del ecosistema de innovación.',
     body3:
-      'Más que presentar tecnologías, Agrizone Connect busca <strong>crear caminos para su implementación, adaptación y escala</strong>, conectando a quien necesita soluciones con quien puede desarrollarlas, apoyarlas o financiarlas.',
+      'Más que presentar tecnologías, Agrizone Connect busca crear caminos para su implementación, adaptación y escala, acercando soluciones y oportunidades y conectando a los actores capaces de desarrollarlas, implementarlas, apoyarlas o financiarlas.',
     tagline: 'Del desafío a la solución. De la conexión a la implementación.',
     cardSolutionsTitle: 'Soluciones',
     cardSolutionsBody: 'Conozca / Publique una solución',
