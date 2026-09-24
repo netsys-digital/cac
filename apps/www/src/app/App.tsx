@@ -1,6 +1,7 @@
 import { Route, Routes } from 'react-router-dom';
 import { PublicLayout } from './layout/PublicLayout';
 import { HomePage } from './pages/HomePage';
+import { AboutPage } from './pages/AboutPage';
 import { SearchPage } from './pages/SearchPage';
 import { TechnologyDetailPage } from './pages/TechnologyDetailPage';
 import { OrganizationPage } from './pages/OrganizationPage';
@@ -16,6 +17,7 @@ export default function App() {
     <Routes>
       <Route element={<PublicLayout />}>
         <Route index element={<HomePage />} />
+        <Route path="sobre" element={<AboutPage />} />
         <Route path="search" element={<SearchPage />} />
         <Route path="funding" element={<FundingPage />} />
         <Route path="funding/:slug" element={<FundingOfferDetailPage />} />

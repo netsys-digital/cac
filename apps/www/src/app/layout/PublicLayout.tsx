@@ -1,4 +1,4 @@
-import { Link, NavLink, Outlet, useLocation } from 'react-router-dom';
+import { NavLink, Outlet, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { BrandMark } from '@cac/ui';
 import { brand, urls } from '../../config';
@@ -28,18 +28,16 @@ export function PublicLayout() {
   const location = useLocation();
 
   const desktopLinks = [
-    { to: '/search', label: t('nav.search') },
+    { to: '/sobre', label: t('nav.about') },
     { to: '/funding', label: t('nav.funding') },
     { to: '/challenge', label: t('nav.challenge') },
     { to: '/offer', label: t('nav.offer') },
     { to: '/cases', label: t('nav.cases') },
   ];
 
-  const aboutActive = location.pathname === '/' && location.hash === '#sobre';
-
   const mobileLinks = [
-    { to: '/', label: t('nav.home'), icon: '⌂' },
-    { to: '/search', label: t('nav.search'), icon: '⌕' },
+    { to: '/sobre', label: t('nav.about'), icon: 'ℹ' },
+    { to: '/funding', label: t('nav.funding'), icon: '◎' },
     { to: '/challenge', label: t('nav.challenge'), icon: '＋' },
     { to: '/cases', label: t('nav.cases'), icon: '◆' },
   ];
@@ -71,12 +69,6 @@ export function PublicLayout() {
             className="hidden min-w-0 flex-1 items-center gap-[3px] overflow-x-auto lg:flex"
             aria-label="Primary"
           >
-            <Link
-              to="/#sobre"
-              className={`${navLinkClass} ${aboutActive ? 'bg-white/[0.08]' : ''}`}
-            >
-              {t('nav.about')}
-            </Link>
             {desktopLinks.map((link) => (
               <NavLink
                 key={link.to}

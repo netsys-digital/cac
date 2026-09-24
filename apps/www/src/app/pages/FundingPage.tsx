@@ -4,6 +4,7 @@ import { FundingBrowseSection } from '../components/FundingBrowseSection';
 import { urls } from '../../config';
 
 const FUNDING_HERO_IMG = '/images/fundo_financiamento.png';
+const FUNDING_PUBLISH_URL = `${urls.web}/funding-offers/new`;
 
 const FUNDING_FEATURE_ICONS = [
   'fa-solid fa-seedling',
@@ -53,6 +54,16 @@ export function FundingPage() {
               {t('funding.title')}
             </h1>
             <p className="mt-4 text-media leading-relaxed text-cac-muted">{t('funding.support')}</p>
+
+            <div className="mt-7 flex flex-wrap gap-3">
+              <a
+                href="#ofertas"
+                className="inline-flex rounded-full border border-cac-navy/20 bg-white/95 px-5 py-2.5 text-pequena font-extrabold text-cac-navy transition hover:border-cac-navy/35 hover:bg-white"
+              >
+                {t('funding.findCta')}
+              </a>
+            </div>
+
             <div className="mt-7 flex flex-wrap gap-4 sm:gap-5">
               {features.map((f) => (
                 <HeroFeature key={f.label} iconClass={f.iconClass} label={f.label} />
@@ -60,14 +71,31 @@ export function FundingPage() {
             </div>
           </div>
 
-          <div className="cac-fade-up-delay relative flex min-h-[11rem] items-center justify-end self-stretch lg:min-h-[16rem] lg:pr-2">
+          <div className="cac-fade-up-delay relative flex min-h-[11rem] items-end justify-end self-stretch pb-1 lg:min-h-[16rem] lg:items-center lg:pr-1">
             <a
-              href={`${urls.web}/funding-offers/new`}
-              className="inline-flex rounded-full bg-cac-green2 px-6 py-3 text-pequena font-extrabold text-white shadow-[0_14px_32px_rgba(10,36,64,.28)] transition hover:brightness-105"
+              href={FUNDING_PUBLISH_URL}
+              className="group w-full max-w-[17.5rem] rounded-[18px] border border-[#e8d7a8]/80 bg-[rgba(255,251,242,.94)] px-5 py-4 backdrop-blur-[6px] transition hover:-translate-y-0.5 hover:border-cac-gold/70 hover:bg-white"
             >
-              {t('funding.publishCta')}
+              <span className="text-[0.65rem] font-extrabold tracking-[1.4px] text-cac-gold uppercase">
+                {t('funding.publishCta')}
+              </span>
+              <span className="mt-2 block text-pequena font-bold leading-snug text-cac-navy">
+                {t('funding.publishInvite')}
+              </span>
+              <span className="mt-3 inline-flex items-center gap-2 text-mini font-bold text-cac-green transition group-hover:gap-2.5">
+                {t('funding.publishAction')}
+                <i className="fa-solid fa-arrow-right text-[0.65rem]" aria-hidden />
+              </span>
             </a>
           </div>
+        </div>
+      </section>
+
+      <section className={`${shell} py-8 md:py-10`}>
+        <div className="cac-fade-up space-y-3 text-media leading-relaxed text-cac-muted">
+          <p>{t('funding.body1')}</p>
+          <p>{t('funding.body2')}</p>
+          <p className="pt-1 text-pequena font-bold text-cac-navy">{t('funding.tagline')}</p>
         </div>
       </section>
 

@@ -12,9 +12,9 @@ export const pt = {
   nav: {
     search: 'Buscar',
     funding: 'Financiamento',
-    challenge: 'Desafio',
-    offer: 'Ofereça',
-    cases: 'Casos',
+    challenge: 'Desafios',
+    offer: 'Soluções',
+    cases: 'Casos de Sucesso',
     about: 'Sobre',
     home: 'Início',
     signIn: 'Entrar',
@@ -36,7 +36,7 @@ export const pt = {
     headlineLead: 'Do desafio climático ao',
     headline: 'Do desafio climático ao caminho de ação.',
     support:
-      'Conectamos <strong>desafios climáticos</strong> a soluções, conhecimento, organizações e financiamento para transformar ação local em impacto global.',
+      'Conectamos <strong>soluções</strong> aos desafios climáticos, aproximando conhecimento, organizações e financiamento para transformar necessidades reais em ação e impacto.',
     searchPlaceholder: 'Busque por soluções, financiamentos, desafios, organizações…',
     searchCta: 'Buscar',
     examplesLabel: 'Exemplos:',
@@ -65,15 +65,15 @@ export const pt = {
       'soluções para seca',
     ],
     path01: 'Encontre uma solução',
-    path01Body: 'Descubra tecnologias e iniciativas prontas para conectar ao seu desafio.',
-    path02: 'Encontre um financiamento',
-    path02Body: 'Acesse ofertas ativas e instituições que apoiam ação climática.',
+    path01Body: 'Descubra tecnologias, conhecimentos e iniciativas para responder a desafios reais.',
+    path02: 'Encontre ou ofereça financiamento',
+    path02Body: 'Conecte soluções e projetos a oportunidades e instituições financiadoras.',
     path03: 'Publique um desafio',
-    path03Body: 'Registre demandas reais e encontre quem pode ajudar a resolvê-las.',
-    path04: 'Publique e divulgue sua solução',
-    path04Body: 'Ganhe visibilidade para tecnologias, projetos e conhecimentos.',
+    path03Body: 'Apresente uma necessidade real e encontre quem pode ajudar a solucioná-la.',
+    path04: 'Apresente sua solução',
+    path04Body: 'Dê visibilidade a tecnologias, conhecimentos e projetos capazes de gerar impacto.',
     path05: 'Conheça casos de sucesso',
-    path05Body: 'Inspire-se com experiências e evidências de implementação.',
+    path05Body: 'Explore experiências de sucesso ou compartilhe resultados que possam inspirar novas ações.',
     stats: [
       { value: '183', label: 'Soluções mapeadas' },
       { value: '74', label: 'Oportunidades de financiamento' },
@@ -130,7 +130,7 @@ export const pt = {
     videoCta: 'Assista ao vídeo',
   },
   search: {
-    badge: '01 • BUSCA',
+    badge: 'BUSCA',
     title: 'Busca principal',
     support:
       'A busca é a principal porta de entrada. Ela consulta conteúdos da plataforma, aplica filtros e devolve score explicável com os 3 caminhos do match.',
@@ -277,10 +277,33 @@ export const pt = {
       scale: 'Em escala',
     },
   },
+  aboutPage: {
+    badge: 'SOBRE',
+    title: 'Conectando desafios, soluções e oportunidades para uma agricultura mais resiliente',
+    body1:
+      'O Agrizone Connect é uma plataforma de conexão que aproxima desafios reais da agricultura de soluções, conhecimento, parceiros e oportunidades de financiamento capazes de transformá-los em ação.',
+    body2:
+      'A partir da experiência e da ciência da Embrapa, a plataforma cria um ambiente aberto à colaboração, facilitando conexões entre instituições de pesquisa, governos, produtores, empresas, startups, financiadores e outros atores do ecossistema de inovação.',
+    body3:
+      'Mais do que apresentar tecnologias, o Agrizone Connect busca <strong>criar caminhos para sua implementação, adaptação e escala</strong>, conectando quem precisa de soluções a quem pode desenvolvê-las, apoiá-las ou financiá-las.',
+    tagline: 'Do desafio à solução. Da conexão à implementação.',
+    cardSolutionsTitle: 'Soluções',
+    cardSolutionsBody: 'Conheça / Publique uma solução',
+    cardFundingTitle: 'Financiamento',
+    cardFundingBody: 'Encontre / Divulgue um financiamento',
+    cardChallengesTitle: 'Desafios',
+    cardChallengesBody: 'Conheça / Publique um desafio',
+    cardCasesTitle: 'Casos de sucesso',
+    cardCasesBody: 'Conheça / Compartilhe um caso de sucesso',
+  },
   challengeLanding: {
-    badge: '03 • DESAFIO',
-    title: 'Publique um desafio',
-    support: 'Registre demandas reais e encontre quem pode ajudar a resolvê-las.',
+    badge: 'DESAFIOS',
+    title: 'Transforme uma necessidade real em oportunidade de colaboração',
+    support:
+      'Compartilhe um <strong>desafio da agricultura</strong>, do território ou do sistema produtivo e conecte-se a instituições, especialistas, empresas e soluções que possam contribuir para enfrentá-lo.',
+    support2:
+      'O Agrizone Connect ajuda a aproximar <strong>quem precisa resolver um problema</strong> de quem possui conhecimento, tecnologia ou capacidade para construir a solução.',
+    tagline: 'Apresente o desafio. Encontre conexões. Construa soluções.',
     publishCta: 'Publique um desafio',
     whyTitle: 'Por que publicar um desafio?',
     whySupport:
@@ -342,10 +365,13 @@ export const pt = {
     pageOf: 'Página {{page}} de {{total}}',
   },
   offerLanding: {
-    badge: '04 • OFEREÇA',
-    title: 'Ofereça',
+    badge: 'SOLUÇÕES',
+    title: 'Conecte sua solução a quem precisa dela',
     support:
-      'Ganhe visibilidade para tecnologias, projetos e conhecimentos prontos para conectar a desafios e financiamento.',
+      'Apresente <strong>tecnologias, conhecimentos, práticas, metodologias e projetos</strong> capazes de responder aos desafios de uma agricultura mais resiliente e sustentável.',
+    support2:
+      'O Agrizone Connect amplia a visibilidade das soluções e cria conexões com <strong>demandas reais, parceiros e oportunidades de financiamento</strong>, favorecendo sua adaptação, implementação e escala.',
+    tagline: 'Compartilhe conhecimento. Encontre parceiros. Amplie o impacto.',
     publishCta: 'Publique sua solução',
     whyTitle: 'Por que publicar sua solução?',
     whySupport:
@@ -396,10 +422,15 @@ export const pt = {
     pageOf: 'Página {{page}} de {{total}}',
   },
   funding: {
-    badge: '02 • FINANCIAMENTO',
-    title: 'Financiamento',
+    badge: 'FINANCIAMENTO',
+    title: 'Conecte soluções a oportunidades de financiamento',
     support:
-      'Explore ofertas ativas, chamadas, editais e oportunidades de financiamento conectadas a soluções e projetos que geram impacto no agro.',
+      'Explore chamadas, editais, programas e outras oportunidades de financiamento voltadas à agricultura, clima, sustentabilidade e inovação.',
+    body1:
+      'O Agrizone Connect aproxima os dois lados dessa conexão: projetos e soluções que buscam recursos e instituições interessadas em identificar e apoiar soluções de impacto.',
+    body2:
+      'Instituições financiadoras também podem divulgar oportunidades, conhecer soluções e projetos disponíveis e encontrar iniciativas alinhadas às suas prioridades.',
+    tagline: 'Encontre oportunidades. Apoie soluções. Viabilize impacto.',
     heroQuote: 'Investimento que impulsiona soluções para um agro mais produtivo e resiliente.',
     feature1: 'Mais oportunidades',
     feature2: 'Conexão com financiadores',
@@ -410,7 +441,11 @@ export const pt = {
     directoryTitle: 'Diretório de financiadores',
     directoryBody: 'Instituições de referência. O diretório não equivale a chamada aberta.',
     directoryWarning: 'Atenção: perfis do diretório não são ofertas ativas e não entram no match de financiamento.',
-    publishCta: 'Publicar oferta',
+    findCta: 'Encontre um financiamento',
+    publishCta: 'Divulgue um financiamento',
+    publishInvite: 'Quer divulgar sua oportunidade de financiamento?',
+    publishAction: 'Clique aqui',
+    publishCtaLong: 'Quer divulgar sua oportunidade de financiamento? Clique aqui',
     deadline: 'Prazo',
     noDeadline: 'Sem prazo definido',
     searchPlaceholder: 'Buscar ofertas, chamadas, editais…',
@@ -444,9 +479,15 @@ export const pt = {
     pageOf: 'Página {{page}} de {{total}}',
   },
   cases: {
-    badge: '05 • CASOS',
-    title: 'Casos de sucesso',
-    support: 'Experiências e evidências que inspiram novos caminhos de ação.',
+    badge: 'CASOS DE SUCESSO',
+    title: 'Da solução ao impacto',
+    support:
+      'Conheça experiências que mostram como <strong>ciência, tecnologia, parcerias e financiamento</strong> podem transformar desafios em resultados concretos.',
+    body1:
+      'Os casos apresentam soluções aplicadas em diferentes contextos e territórios, oferecendo <strong>evidências, aprendizados e referências</strong> que podem inspirar novas implementações e ampliar a escala de experiências bem-sucedidas.',
+    body2:
+      'Instituições e parceiros também podem <strong>compartilhar seus casos de sucesso</strong>, dando visibilidade a experiências, resultados e soluções que possam inspirar ou ser adaptadas e replicadas em outros contextos.',
+    tagline: 'Compartilhe experiências. Demonstre resultados. Inspire novas soluções.',
     publishCta: 'Publique um caso',
     context: 'Contexto',
     outcomes: 'Resultados',
@@ -520,6 +561,7 @@ export const pt = {
       search: 'Buscar e correspondências',
       funding: 'Financiamento',
       challenges: 'Desafios',
+      solutions: 'Soluções',
       cases: 'Casos de sucesso',
       aboutCac: 'O AgriZONE Connect',
       partners: 'Parceiros',

@@ -1,4 +1,4 @@
-import { useTranslation } from 'react-i18next';
+import { Trans, useTranslation } from 'react-i18next';
 import { ChallengeBrowseSection } from '../components/ChallengeBrowseSection';
 import { SolutionBrowseSection } from '../components/SolutionBrowseSection';
 import { shell } from '../components/PageChrome';
@@ -132,7 +132,10 @@ export function PublishChallengeLandingPage() {
               {t('challengeLanding.title')}
             </h1>
             <p className="mt-4 text-media leading-relaxed text-cac-muted">
-              {t('challengeLanding.support')}
+              <Trans
+                i18nKey="challengeLanding.support"
+                components={{ strong: <strong className="font-bold text-cac-navy" /> }}
+              />
             </p>
             <a
               href={CHALLENGE_PUBLISH_URL}
@@ -143,6 +146,18 @@ export function PublishChallengeLandingPage() {
           </div>
 
           <div className="pointer-events-none relative min-h-[10rem] self-stretch lg:min-h-[16rem]" aria-hidden />
+        </div>
+      </section>
+
+      <section className={`${shell} py-8 md:py-10`}>
+        <div className="cac-fade-up space-y-3 text-media leading-relaxed text-cac-muted">
+          <p>
+            <Trans
+              i18nKey="challengeLanding.support2"
+              components={{ strong: <strong className="font-bold text-cac-navy" /> }}
+            />
+          </p>
+          <p className="pt-1 text-pequena font-bold text-cac-navy">{t('challengeLanding.tagline')}</p>
         </div>
       </section>
 
@@ -262,7 +277,10 @@ export function PublishOfferLandingPage() {
               {t('offerLanding.title')}
             </h1>
             <p className="mt-4 text-media leading-relaxed text-cac-muted">
-              {t('offerLanding.support')}
+              <Trans
+                i18nKey="offerLanding.support"
+                components={{ strong: <strong className="font-bold text-cac-navy" /> }}
+              />
             </p>
             <a
               href={SOLUTION_PUBLISH_URL}
@@ -273,6 +291,18 @@ export function PublishOfferLandingPage() {
           </div>
 
           <div className="pointer-events-none relative min-h-[10rem] self-stretch lg:min-h-[16rem]" aria-hidden />
+        </div>
+      </section>
+
+      <section className={`${shell} py-8 md:py-10`}>
+        <div className="cac-fade-up space-y-3 text-media leading-relaxed text-cac-muted">
+          <p>
+            <Trans
+              i18nKey="offerLanding.support2"
+              components={{ strong: <strong className="font-bold text-cac-navy" /> }}
+            />
+          </p>
+          <p className="pt-1 text-pequena font-bold text-cac-navy">{t('offerLanding.tagline')}</p>
         </div>
       </section>
 

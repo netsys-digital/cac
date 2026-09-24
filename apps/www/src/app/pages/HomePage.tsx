@@ -345,7 +345,7 @@ export function HomePage() {
               {t('home.aboutBody')}
             </p>
             <Link
-              to="/search"
+              to="/sobre"
               className="mt-6 inline-flex items-center gap-2 rounded-[12px] bg-cac-green2 px-5 py-3 text-pequena font-extrabold text-white transition hover:brightness-105"
             >
               {t('home.aboutCta')}

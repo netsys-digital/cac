@@ -188,7 +188,7 @@ export function FundingBrowseSection() {
   }
 
   return (
-    <section className={`${shell} py-8 pb-16 md:py-10 md:pb-[4rem]`}>
+    <section id="ofertas" className={`${shell} scroll-mt-24 py-8 pb-16 md:py-10 md:pb-[4rem]`}>
       <div className="mb-4 flex flex-wrap gap-2">
         <button
           type="button"

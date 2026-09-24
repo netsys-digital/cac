@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
-import { useTranslation } from 'react-i18next';
+import { Trans, useTranslation } from 'react-i18next';
 import { shell } from '../components/PageChrome';
 import {
   CatalogDetailBody,
@@ -99,7 +99,12 @@ export function CasesPage() {
             <h1 className="mt-3 text-extra-grande leading-[1.08] font-bold tracking-[-0.7px] text-cac-navy">
               {t('cases.title')}
             </h1>
-            <p className="mt-4 text-media leading-relaxed text-cac-muted">{t('cases.support')}</p>
+            <p className="mt-4 text-media leading-relaxed text-cac-muted">
+              <Trans
+                i18nKey="cases.support"
+                components={{ strong: <strong className="font-bold text-cac-navy" /> }}
+              />
+            </p>
             <a
               href={CASE_PUBLISH_URL}
               className="mt-7 inline-flex rounded-full bg-cac-green2 px-6 py-3 text-pequena font-extrabold text-white shadow-[0_14px_32px_rgba(10,36,64,.28)] transition hover:brightness-105"
@@ -109,6 +114,24 @@ export function CasesPage() {
           </div>
 
           <div className="pointer-events-none relative min-h-[10rem] self-stretch lg:min-h-[16rem]" aria-hidden />
+        </div>
+      </section>
+
+      <section className={`${shell} py-8 md:py-10`}>
+        <div className="cac-fade-up space-y-3 text-media leading-relaxed text-cac-muted">
+          <p>
+            <Trans
+              i18nKey="cases.body1"
+              components={{ strong: <strong className="font-bold text-cac-navy" /> }}
+            />
+          </p>
+          <p>
+            <Trans
+              i18nKey="cases.body2"
+              components={{ strong: <strong className="font-bold text-cac-navy" /> }}
+            />
+          </p>
+          <p className="pt-1 text-pequena font-bold text-cac-navy">{t('cases.tagline')}</p>
         </div>
       </section>
 

@@ -54,14 +54,15 @@ export function SiteFooter() {
   const year = new Date().getFullYear();
 
   const explore: FooterLink[] = [
-    { to: '/search', label: t('footer.links.search') },
     { to: '/funding', label: t('footer.links.funding') },
     { to: '/challenge', label: t('footer.links.challenges') },
+    { to: '/offer', label: t('footer.links.solutions') },
     { to: '/cases', label: t('footer.links.cases') },
+    { to: '/search', label: t('footer.links.search') },
   ];
 
   const about: FooterLink[] = [
-    { to: '/#sobre', label: t('footer.links.aboutCac') },
+    { to: '/sobre', label: t('footer.links.aboutCac') },
     { to: '/#parceiros', label: t('footer.links.partners') },
     { to: '/#noticias', label: t('footer.links.news') },
     { to: '/#contato', label: t('footer.links.contact') },
