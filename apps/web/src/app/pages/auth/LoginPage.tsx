@@ -74,7 +74,6 @@ export function LoginPage({ forcedFrom }: { forcedFrom?: string | null }) {
 
   return (
     <AuthCard
-      badge={t('auth.signInBadge')}
       title={t('auth.signInTitle')}
       subtitle={isContextual ? t('auth.loginContextual') : t('auth.signInSubtitle')}
       footer={

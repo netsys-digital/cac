@@ -76,7 +76,7 @@ export const en = {
     journeyContextualBody:
       'You came from a portal action. After authenticating, we resume exactly where you left off.',
     journeyStep1: 'Create a personal account',
-    journeyStep2: 'Use the dashboard: explore, connect or link to an org',
+    journeyStep2: 'Use the dashboard: explore, connect or link to an organization',
     journeyStep3: 'Publish only after the link is approved',
     principleLabel: 'In short',
     principle: 'Your account is personal. Publishing on behalf of an institution needs an approved link.',

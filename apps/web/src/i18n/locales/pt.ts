@@ -76,7 +76,7 @@ export const pt = {
     journeyContextualBody:
       'Você veio de uma ação no portal. Após autenticar, retomamos exatamente onde parou.',
     journeyStep1: 'Criar conta pessoal',
-    journeyStep2: 'Usar o painel: explorar, conectar ou vincular-se a uma org',
+    journeyStep2: 'Usar o painel: explorar, conectar ou vincular-se a uma organização',
     journeyStep3: 'Publicar só após o vínculo ser aprovado',
     principleLabel: 'Em resumo',
     principle: 'Sua conta é pessoal. Publicar no nome de uma instituição exige vínculo aprovado.',

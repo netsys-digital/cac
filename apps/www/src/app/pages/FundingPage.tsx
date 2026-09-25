@@ -6,33 +6,8 @@ import { urls } from '../../config';
 const FUNDING_HERO_IMG = '/images/fundo_financiamento.png';
 const FUNDING_PUBLISH_URL = `${urls.web}/funding-offers/new`;
 
-const FUNDING_FEATURE_ICONS = [
-  'fa-solid fa-seedling',
-  'fa-solid fa-handshake',
-  'fa-solid fa-chart-line',
-  'fa-solid fa-globe',
-] as const;
-
-function HeroFeature({ iconClass, label }: { iconClass: string; label: string }) {
-  return (
-    <div className="flex w-[4.75rem] flex-col items-center gap-2 sm:w-[5.5rem]">
-      <i className={`${iconClass} text-[1.85rem] text-cac-green sm:text-[2.1rem]`} aria-hidden />
-      <span className="text-center text-[0.58rem] font-semibold leading-snug text-black sm:text-[0.65rem] first-letter:uppercase">
-        {label}
-      </span>
-    </div>
-  );
-}
-
 export function FundingPage() {
   const { t } = useTranslation();
-
-  const features = [
-    { iconClass: FUNDING_FEATURE_ICONS[0], label: t('funding.feature1') },
-    { iconClass: FUNDING_FEATURE_ICONS[1], label: t('funding.feature2') },
-    { iconClass: FUNDING_FEATURE_ICONS[2], label: t('funding.feature3') },
-    { iconClass: FUNDING_FEATURE_ICONS[3], label: t('funding.feature4') },
-  ];
 
   return (
     <div className="bg-cac-bg">
@@ -62,12 +37,6 @@ export function FundingPage() {
               >
                 {t('funding.findCta')}
               </a>
-            </div>
-
-            <div className="mt-7 flex flex-wrap gap-4 sm:gap-5">
-              {features.map((f) => (
-                <HeroFeature key={f.label} iconClass={f.iconClass} label={f.label} />
-              ))}
             </div>
           </div>
 
