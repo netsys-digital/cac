@@ -395,12 +395,12 @@ export function HomePage() {
       <section id="sobre" className="scroll-mt-[74px] bg-white py-16">
         <div className={`${shell} grid items-center gap-10 lg:grid-cols-[1.05fr_.95fr]`}>
           <div>
-            <p className="text-mini font-extrabold tracking-[1.4px] text-cac-navy uppercase">
+            <h2 className="text-grande font-bold tracking-[-0.7px] text-cac-navy">
               {t('home.aboutBadge')}
-            </p>
-            <h2 className="mt-2 max-w-[34rem] text-media leading-[1.08] font-normal tracking-[-0.7px] text-cac-navy">
-              {t('home.aboutTitle')}
             </h2>
+            <p className="mt-2 max-w-[34rem] text-media leading-[1.08] font-normal tracking-[-0.7px] text-cac-navy">
+              {t('home.aboutTitle')}
+            </p>
             <p className="mt-4 max-w-[36rem] text-media leading-relaxed text-cac-muted">
               <Trans
                 i18nKey="home.aboutBody"
