@@ -1,6 +1,11 @@
 import { Router } from 'express';
 import { ContentStatus } from '@cac/shared';
-import { assertCanActForOrganization, organizationIdsForUser } from '../../lib/org-access.js';
+import {
+  assertCanActForOrganization,
+  assertCanActForOrganizationAsAffiliate,
+  organizationIdsForUser,
+} from '../../lib/org-access.js';
+import { findDeletableContent } from '../../lib/content-deletion.js';
 import { param } from '../../lib/params.js';
 import { prisma } from '../../lib/prisma.js';
 import { requireAuth } from '../../middleware/auth.js';
@@ -393,8 +398,38 @@ meRouter.get('/contents', requireAuth, async (req, res, next) => {
       }
     }
 
+    const deletionRows =
+      ids.length > 0
+        ? await prisma.contentDeletionRequest.findMany({
+            where: { targetId: { in: ids }, status: { in: ['REQUESTED', 'REJECTED'] } },
+            include: { requester: { select: { name: true } } },
+            orderBy: { createdAt: 'desc' },
+          })
+        : [];
+    const deletionByTarget = new Map<string, (typeof deletionRows)[number]>();
+    for (const row of deletionRows) {
+      if (!deletionByTarget.has(row.targetId)) deletionByTarget.set(row.targetId, row);
+    }
+
     res.json({
-      items,
+      items: items.map((item) => {
+        const d = deletionByTarget.get(item.id);
+        return {
+          ...item,
+          deletionRequest: d
+            ? {
+                id: d.id,
+                status: d.status,
+                reason: d.reason,
+                reviewNote: d.reviewNote,
+                createdAt: d.createdAt,
+                reviewedAt: d.reviewedAt,
+                requesterName: d.requester.name,
+                isMine: d.requesterUserId === req.auth!.sub,
+              }
+            : null,
+        };
+      }),
       counts,
       facets: {
         organizations: [...orgMap.entries()]
@@ -571,11 +606,97 @@ meRouter.delete('/contents/:kind/:id', requireAuth, async (req, res, next) => {
       return;
     }
 
-    if (kind === 'TECHNOLOGY') await prisma.technology.delete({ where: { id } });
-    else if (kind === 'CHALLENGE') await prisma.challenge.delete({ where: { id } });
-    else if (kind === 'FUNDING_OFFER') await prisma.fundingOffer.delete({ where: { id } });
-    else await prisma.successCase.delete({ where: { id } });
+    await prisma.$transaction(async (tx) => {
+      await tx.contentDeletionRequest.updateMany({
+        where: { targetType: kind, targetId: id, status: 'REQUESTED' },
+        data: { status: 'CANCELLED' },
+      });
+      if (kind === 'TECHNOLOGY') await tx.technology.delete({ where: { id } });
+      else if (kind === 'CHALLENGE') await tx.challenge.delete({ where: { id } });
+      else if (kind === 'FUNDING_OFFER') await tx.fundingOffer.delete({ where: { id } });
+      else await tx.successCase.delete({ where: { id } });
+    });
 
+    res.status(204).end();
+  } catch (error) {
+    next(error);
+  }
+});
+
+const DELETION_REASON_MIN = 10;
+const DELETION_REASON_MAX = 2000;
+
+/** Membro/representante solicita exclusão de publicação da sua org; curadoria decide. */
+meRouter.post('/contents/:kind/:id/deletion-request', requireAuth, async (req, res, next) => {
+  try {
+    const kind = param(req.params.kind).toUpperCase();
+    const id = param(req.params.id);
+    if (!isKind(kind)) {
+      res.status(400).json({ error: 'invalid_kind' });
+      return;
+    }
+    const rawReason = (req.body as { reason?: unknown } | undefined)?.reason;
+    const reason = typeof rawReason === 'string' ? rawReason.trim() : '';
+    if (reason.length < DELETION_REASON_MIN || reason.length > DELETION_REASON_MAX) {
+      res.status(400).json({ error: 'reason_invalid', min: DELETION_REASON_MIN, max: DELETION_REASON_MAX });
+      return;
+    }
+
+    const content = await findDeletableContent(kind, id);
+    if (!content) {
+      res.status(404).json({ error: 'not_found' });
+      return;
+    }
+    await assertCanActForOrganizationAsAffiliate(req.auth!.sub, content.organizationId);
+
+    const open = await prisma.contentDeletionRequest.findFirst({
+      where: { targetType: kind, targetId: id, status: 'REQUESTED' },
+    });
+    if (open) {
+      res.status(409).json({ error: 'deletion_already_requested' });
+      return;
+    }
+
+    const item = await prisma.contentDeletionRequest.create({
+      data: {
+        targetType: kind,
+        targetId: id,
+        targetTitle: content.title,
+        organizationId: content.organizationId,
+        requesterUserId: req.auth!.sub,
+        reason,
+      },
+    });
+    res.status(201).json({ item });
+  } catch (error) {
+    next(error);
+  }
+});
+
+/** Solicitante cancela a própria solicitação ainda pendente. */
+meRouter.delete('/contents/:kind/:id/deletion-request', requireAuth, async (req, res, next) => {
+  try {
+    const kind = param(req.params.kind).toUpperCase();
+    const id = param(req.params.id);
+    if (!isKind(kind)) {
+      res.status(400).json({ error: 'invalid_kind' });
+      return;
+    }
+    const open = await prisma.contentDeletionRequest.findFirst({
+      where: { targetType: kind, targetId: id, status: 'REQUESTED' },
+    });
+    if (!open) {
+      res.status(404).json({ error: 'not_found' });
+      return;
+    }
+    if (open.requesterUserId !== req.auth!.sub) {
+      res.status(403).json({ error: 'forbidden' });
+      return;
+    }
+    await prisma.contentDeletionRequest.update({
+      where: { id: open.id },
+      data: { status: 'CANCELLED' },
+    });
     res.status(204).end();
   } catch (error) {
     next(error);

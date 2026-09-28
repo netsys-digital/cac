@@ -128,6 +128,8 @@ model User {
   connectionsRequested  Connection[]               @relation("ConnectionRequesterUser")
   savedItems            SavedItem[]
   follows               Follow[]
+  deletionRequests      ContentDeletionRequest[]   @relation("DeletionRequester")
+  deletionReviews       ContentDeletionRequest[]   @relation("DeletionReviewer")
 }
 
 model RefreshToken {
@@ -177,6 +179,7 @@ model Organization {
   connectionsRequested   Connection[]  @relation("ConnectionRequester")
   connectionsReceived    Connection[]  @relation("ConnectionTarget")
   follows                Follow[]
+  deletionRequests       ContentDeletionRequest[]
 
   @@index([verificationStatus])
 }
@@ -212,6 +215,36 @@ model OrgRepresentationRequest {
   @@unique([userId, organizationId])
   @@index([status])
   @@index([organizationId])
+}
+
+enum DeletionRequestStatus {
+  REQUESTED
+  APPROVED
+  REJECTED
+  CANCELLED
+}
+
+model ContentDeletionRequest {
+  id              String                @id @default(uuid()) @db.Uuid
+  targetType      ConnectionTargetType
+  targetId        String                @db.Uuid
+  targetTitle     String
+  organizationId  String                @db.Uuid
+  requesterUserId String                @db.Uuid
+  reason          String
+  status          DeletionRequestStatus @default(REQUESTED)
+  reviewerUserId  String?               @db.Uuid
+  reviewNote      String?
+  reviewedAt      DateTime?
+  createdAt       DateTime              @default(now())
+  updatedAt       DateTime              @updatedAt
+  organization    Organization          @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  requester       User                  @relation("DeletionRequester", fields: [requesterUserId], references: [id], onDelete: Cascade)
+  reviewer        User?                 @relation("DeletionReviewer", fields: [reviewerUserId], references: [id], onDelete: SetNull)
+
+  @@index([status])
+  @@index([organizationId])
+  @@index([targetType, targetId])
 }
 
 model Domain {

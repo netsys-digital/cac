@@ -26,9 +26,10 @@ function kindLabel(kind: string, t: (key: string) => string) {
 export function CuratorDashboardPage() {
   const { t } = useTranslation();
   const { user } = useAuth();
-  const { loading, pendingContent, pendingReps, kpis, contentCount, repCount } = useStaffTasks();
+  const { loading, pendingContent, pendingReps, kpis, contentCount, deletionCount, repCount } =
+    useStaffTasks();
   const firstName = user?.name?.trim().split(/\s+/)[0] || t('roles.CURADOR');
-  const totalTasks = contentCount + repCount;
+  const totalTasks = contentCount + deletionCount + repCount;
 
   if (loading && !kpis) {
     return (
@@ -106,6 +107,11 @@ export function CuratorDashboardPage() {
           </div>
 
           <ul className="mt-4 flex-1 space-y-2">
+            {deletionCount > 0 ? (
+              <li className="rounded-xl border border-red-200 bg-red-50 px-3 py-2.5 text-media font-bold text-red-900">
+                {t('admin.deletionQueue')} · {deletionCount}
+              </li>
+            ) : null}
             {pendingContent.slice(0, 4).map((item) => (
               <li
                 key={`${item.kind}-${item.id}`}

@@ -59,7 +59,8 @@ export function AppShell() {
   const { t } = useTranslation();
   const { user, logout } = useAuth();
   const { canPublish, gate, isStaff, isAdmin, isCurator } = useRepresentation();
-  const { contentCount, repCount } = useStaffTasks();
+  const { contentCount: reviewCount, deletionCount, repCount } = useStaffTasks();
+  const contentCount = reviewCount + deletionCount;
   const crumbs = useBreadcrumbs();
 
   const displayName = (() => {

@@ -35,6 +35,22 @@ export type PendingItem = {
   updatedAt: string;
 };
 
+export type DeletionRequestItem = {
+  id: string;
+  kind: string;
+  targetId: string;
+  targetTitle: string;
+  reason: string;
+  status: 'REQUESTED' | 'APPROVED' | 'REJECTED' | 'CANCELLED';
+  reviewNote?: string | null;
+  reviewedAt?: string | null;
+  createdAt: string;
+  contentStatus: string | null;
+  organization: { id: string; name: string; slug: string };
+  requester: { id: string; name: string; email: string };
+  reviewer?: { id: string; name: string } | null;
+};
+
 export type SavedItemTarget = {
   title: string;
   slug: string | null;
@@ -96,8 +112,27 @@ export const connectionsApi = {
     api<{ items: Array<{ id: string; organization?: { name: string; slug: string } }> }>('/api/follows', {
       accessToken: token,
     }),
-  adminPending: (token: string) =>
-    api<{ items: PendingItem[] }>('/api/admin/pending', { accessToken: token }),
+  adminPending: (token: string, status?: 'ALL' | 'DRAFT' | 'IN_REVIEW' | 'PUBLISHED' | 'ARCHIVED') =>
+    api<{ items: PendingItem[] }>(
+      `/api/admin/pending${status ? `?status=${status}` : ''}`,
+      { accessToken: token },
+    ),
+  adminDeleteContent: (token: string, kind: string, id: string) =>
+    api<void>(`/api/admin/contents/${kind}/${id}`, { method: 'DELETE', accessToken: token }),
+  adminDeletionRequests: (token: string) =>
+    api<{ items: DeletionRequestItem[] }>('/api/admin/deletion-requests', { accessToken: token }),
+  approveDeletionRequest: (token: string, id: string, note?: string) =>
+    api<{ item: unknown }>(`/api/admin/deletion-requests/${id}/approve`, {
+      method: 'POST',
+      accessToken: token,
+      body: JSON.stringify({ note: note ?? '' }),
+    }),
+  rejectDeletionRequest: (token: string, id: string, note: string) =>
+    api<{ item: unknown }>(`/api/admin/deletion-requests/${id}/reject`, {
+      method: 'POST',
+      accessToken: token,
+      body: JSON.stringify({ note }),
+    }),
   publishPending: (token: string, kind: string, id: string, note?: string) =>
     api<{ item: unknown }>(`/api/admin/pending/${kind}/${id}/publish`, {
       method: 'POST',

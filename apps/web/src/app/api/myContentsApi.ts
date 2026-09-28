@@ -11,6 +11,17 @@ export type ContentMetrics = {
   viewsTracked: boolean;
 };
 
+export type ContentDeletionRequestSummary = {
+  id: string;
+  status: 'REQUESTED' | 'REJECTED';
+  reason: string;
+  reviewNote?: string | null;
+  createdAt: string;
+  reviewedAt?: string | null;
+  requesterName: string;
+  isMine: boolean;
+};
+
 export type MyContentItem = {
   kind: ContentKind;
   id: string;
@@ -25,6 +36,7 @@ export type MyContentItem = {
   updatedAt: string;
   editPath: string;
   metrics: ContentMetrics;
+  deletionRequest?: ContentDeletionRequestSummary | null;
 };
 
 export type MyContentsResponse = {
@@ -92,6 +104,17 @@ export const myContentsApi = {
     }),
   remove: (token: string, kind: ContentKind, id: string) =>
     api<void>(`/api/me/contents/${kind}/${id}`, { method: 'DELETE', accessToken: token }),
+  requestDeletion: (token: string, kind: ContentKind, id: string, reason: string) =>
+    api<{ item: unknown }>(`/api/me/contents/${kind}/${id}/deletion-request`, {
+      method: 'POST',
+      accessToken: token,
+      body: JSON.stringify({ reason }),
+    }),
+  cancelDeletionRequest: (token: string, kind: ContentKind, id: string) =>
+    api<void>(`/api/me/contents/${kind}/${id}/deletion-request`, {
+      method: 'DELETE',
+      accessToken: token,
+    }),
   listMyOrganizations: (token: string) =>
     api<{
       items: Array<{

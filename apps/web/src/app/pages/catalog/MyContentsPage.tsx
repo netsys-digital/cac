@@ -4,12 +4,16 @@ import { useTranslation } from 'react-i18next';
 import { Button, useDialog } from '@cac/ui';
 import { formatDateTime } from '@cac/shared';
 import { useAuth } from '../../auth/AuthContext';
+import { useRepresentation } from '../../auth/RepresentationContext';
 import {
   myContentsApi,
   type ContentKind,
   type ContentMetrics,
   type MyContentItem,
 } from '../../api/myContentsApi';
+import { Modal } from '../../components/Modal';
+
+const DELETION_REASON_MIN = 10;
 
 const KINDS: Array<ContentKind | 'ALL'> = [
   'ALL',
@@ -60,8 +64,13 @@ function MetricCard({ label, value, hint }: { label: string; value: string | num
 export function MyContentsPage() {
   const { t, i18n } = useTranslation();
   const { accessToken } = useAuth();
+  const { isStaff } = useRepresentation();
   const dialog = useDialog();
   const [items, setItems] = useState<MyContentItem[]>([]);
+  const [deletionTarget, setDeletionTarget] = useState<MyContentItem | null>(null);
+  const [deletionReason, setDeletionReason] = useState('');
+  const [deletionError, setDeletionError] = useState('');
+  const [deletionBusy, setDeletionBusy] = useState(false);
   const [counts, setCounts] = useState({ DRAFT: 0, IN_REVIEW: 0, PUBLISHED: 0, ARCHIVED: 0 });
   const [organizations, setOrganizations] = useState<Array<{ id: string; name: string }>>([]);
   const [countries, setCountries] = useState<string[]>([]);
@@ -154,6 +163,55 @@ export function MyContentsPage() {
     try {
       await myContentsApi.remove(accessToken, item.kind, item.id);
       setMessage(t('mine.deleted'));
+      await load();
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'error');
+    }
+  }
+
+  function openDeletionRequest(item: MyContentItem) {
+    setDeletionTarget(item);
+    setDeletionReason('');
+    setDeletionError('');
+  }
+
+  async function submitDeletionRequest() {
+    if (!accessToken || !deletionTarget) return;
+    const reason = deletionReason.trim();
+    if (reason.length < DELETION_REASON_MIN) {
+      setDeletionError(t('mine.deletionReasonTooShort', { min: DELETION_REASON_MIN }));
+      return;
+    }
+    setDeletionBusy(true);
+    setDeletionError('');
+    try {
+      await myContentsApi.requestDeletion(accessToken, deletionTarget.kind, deletionTarget.id, reason);
+      setDeletionTarget(null);
+      setMessage(t('mine.deletionRequested'));
+      await load();
+    } catch (e) {
+      setDeletionError(
+        e instanceof Error && e.message.includes('deletion_already_requested')
+          ? t('mine.deletionAlreadyRequested')
+          : t('mine.deletionRequestError'),
+      );
+    } finally {
+      setDeletionBusy(false);
+    }
+  }
+
+  async function cancelDeletionRequest(item: MyContentItem) {
+    if (!accessToken) return;
+    const ok = await dialog.confirm({
+      title: t('mine.deletionCancel'),
+      message: t('mine.deletionCancelConfirm'),
+      confirmLabel: t('mine.deletionCancel'),
+    });
+    if (!ok) return;
+    setMessage('');
+    try {
+      await myContentsApi.cancelDeletionRequest(accessToken, item.kind, item.id);
+      setMessage(t('mine.deletionCancelled'));
       await load();
     } catch (e) {
       setError(e instanceof Error ? e.message : 'error');
@@ -361,6 +419,23 @@ export function MyContentsPage() {
                         {item.curationNote}
                       </p>
                     ) : null}
+                    {item.deletionRequest?.status === 'REQUESTED' ? (
+                      <p className="mt-2 rounded-lg border border-amber-200 bg-amber-50 px-2.5 py-2 text-pequena leading-snug text-amber-900">
+                        <span className="font-bold">
+                          {t('mine.deletionPendingLabel', {
+                            name: item.deletionRequest.requesterName,
+                            date: formatDateTime(item.deletionRequest.createdAt, i18n.language),
+                          })}
+                          :{' '}
+                        </span>
+                        {item.deletionRequest.reason}
+                      </p>
+                    ) : item.deletionRequest?.status === 'REJECTED' ? (
+                      <p className="mt-2 rounded-lg border border-red-200 bg-red-50 px-2.5 py-2 text-pequena leading-snug text-red-900">
+                        <span className="font-bold">{t('mine.deletionRejectedLabel')}: </span>
+                        {item.deletionRequest.reviewNote}
+                      </p>
+                    ) : null}
                   </div>
 
                   <div className="flex flex-nowrap gap-2 overflow-x-auto pb-0.5">
@@ -400,6 +475,19 @@ export function MyContentsPage() {
                         {t('mine.delete')}
                       </Button>
                     )}
+                    {!isStaff && item.status !== 'DRAFT' ? (
+                      item.deletionRequest?.status === 'REQUESTED' ? (
+                        item.deletionRequest.isMine ? (
+                          <Button variant="ghost" onClick={() => void cancelDeletionRequest(item)}>
+                            {t('mine.deletionCancel')}
+                          </Button>
+                        ) : null
+                      ) : (
+                        <Button variant="ghost" onClick={() => openDeletionRequest(item)}>
+                          {t('mine.deletionRequest')}
+                        </Button>
+                      )
+                    ) : null}
                   </div>
                 </li>
               );
@@ -407,6 +495,61 @@ export function MyContentsPage() {
           </ul>
         )}
       </div>
+
+      <Modal
+        open={Boolean(deletionTarget)}
+        onClose={() => setDeletionTarget(null)}
+        mode="edit"
+        badge={t('mine.deletionBadge')}
+        title={t('mine.deletionTitle')}
+        description={
+          deletionTarget
+            ? `${t(`mine.kind.${deletionTarget.kind}`)} · ${deletionTarget.title} · ${deletionTarget.organizationName}`
+            : undefined
+        }
+        size="md"
+        dismissible={!deletionBusy}
+        footer={
+          <>
+            <Button
+              type="button"
+              variant="secondary"
+              disabled={deletionBusy}
+              onClick={() => setDeletionTarget(null)}
+            >
+              {t('common.cancel')}
+            </Button>
+            <Button type="button" disabled={deletionBusy} onClick={() => void submitDeletionRequest()}>
+              {deletionBusy ? t('common.working') : t('mine.deletionSubmit')}
+            </Button>
+          </>
+        }
+      >
+        <div className="space-y-3">
+          <p className="text-media leading-relaxed text-cac-muted">{t('mine.deletionIntro')}</p>
+          {deletionError ? (
+            <p className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-pequena text-red-800">
+              {deletionError}
+            </p>
+          ) : null}
+          <label className="block">
+            <span className="text-pequena font-bold tracking-wide text-cac-navy uppercase">
+              {t('mine.deletionReasonLabel')}
+            </span>
+            <textarea
+              className="mt-1.5 min-h-[120px] w-full rounded-xl border border-cac-line bg-white px-3 py-2 text-media text-cac-navy outline-none ring-cac-green focus:ring-2"
+              placeholder={t('mine.deletionReasonPlaceholder')}
+              value={deletionReason}
+              maxLength={2000}
+              onChange={(e) => setDeletionReason(e.target.value)}
+              disabled={deletionBusy}
+            />
+            <span className="mt-1 block text-pequena text-cac-muted">
+              {t('mine.deletionReasonHint', { min: DELETION_REASON_MIN })}
+            </span>
+          </label>
+        </div>
+      </Modal>
     </div>
   );
 }

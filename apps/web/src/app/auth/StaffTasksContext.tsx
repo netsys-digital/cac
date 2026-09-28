@@ -18,6 +18,7 @@ type StaffTasksValue = {
   pendingReps: RepresentationRequest[];
   kpis: Record<string, number> | null;
   contentCount: number;
+  deletionCount: number;
   repCount: number;
   refresh: () => Promise<void>;
 };
@@ -31,28 +32,33 @@ export function StaffTasksProvider({ children }: PropsWithChildren) {
   const [pendingContent, setPendingContent] = useState<PendingItem[]>([]);
   const [pendingReps, setPendingReps] = useState<RepresentationRequest[]>([]);
   const [kpis, setKpis] = useState<Record<string, number> | null>(null);
+  const [deletionCount, setDeletionCount] = useState(0);
 
   const refresh = useCallback(async () => {
     if (!accessToken || !isStaff) {
       setPendingContent([]);
       setPendingReps([]);
       setKpis(null);
+      setDeletionCount(0);
       return;
     }
     setLoading(true);
     try {
-      const [pending, reps, kpiRes] = await Promise.all([
+      const [pending, reps, kpiRes, deletions] = await Promise.all([
         connectionsApi.adminPending(accessToken),
         catalogApi.adminRepresentations(accessToken),
         connectionsApi.kpis(accessToken),
+        connectionsApi.adminDeletionRequests(accessToken).catch(() => ({ items: [] })),
       ]);
       setPendingContent(pending.items);
       setPendingReps(reps.items);
       setKpis(kpiRes.kpis);
+      setDeletionCount(deletions.items.length);
     } catch {
       setPendingContent([]);
       setPendingReps([]);
       setKpis(null);
+      setDeletionCount(0);
     } finally {
       setLoading(false);
     }
@@ -69,10 +75,11 @@ export function StaffTasksProvider({ children }: PropsWithChildren) {
       pendingReps,
       kpis,
       contentCount: pendingContent.length,
+      deletionCount,
       repCount: pendingReps.length,
       refresh,
     }),
-    [loading, pendingContent, pendingReps, kpis, refresh],
+    [loading, pendingContent, pendingReps, kpis, deletionCount, refresh],
   );
 
   return <StaffTasksContext.Provider value={value}>{children}</StaffTasksContext.Provider>;

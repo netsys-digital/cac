@@ -14,6 +14,12 @@ import { prisma } from '../../lib/prisma.js';
 import { requireAuth, requireRole } from '../../middleware/auth.js';
 import { validateBody } from '../../middleware/validate.js';
 import { param } from '../../lib/params.js';
+import {
+  deleteContentTx,
+  findDeletableContent,
+  isDeletableKind,
+  type DeletableKind,
+} from '../../lib/content-deletion.js';
 import { adminUsersRouter } from './admin-users.routes.js';
 import { enqueueTranslation } from '../../lib/translation/index.js';
 import type { TranslationEntityType } from '../../lib/translation/fields.js';
@@ -517,35 +523,26 @@ adminRouter.delete('/domains/:id', async (req, res, next) => {
   }
 });
 
-/** Unified curation queue: technologies, challenges, projects, funding offers IN_REVIEW */
-adminRouter.get('/pending', async (_req, res, next) => {
+const CURATION_STATUSES = ['DRAFT', 'IN_REVIEW', 'PUBLISHED', 'ARCHIVED'] as const;
+type CurationStatus = (typeof CURATION_STATUSES)[number];
+
+/** Unified curation queue (default IN_REVIEW; `?status=ALL|DRAFT|PUBLISHED|ARCHIVED` for staff browsing). */
+adminRouter.get('/pending', async (req, res, next) => {
   try {
+    const rawStatus = typeof req.query.status === 'string' ? req.query.status.toUpperCase() : 'IN_REVIEW';
+    if (rawStatus !== 'ALL' && !(CURATION_STATUSES as readonly string[]).includes(rawStatus)) {
+      res.status(400).json({ error: 'invalid_status' });
+      return;
+    }
+    const where = rawStatus === 'ALL' ? {} : { status: rawStatus as CurationStatus };
+    const orderBy = rawStatus === 'IN_REVIEW' ? ({ updatedAt: 'asc' } as const) : ({ updatedAt: 'desc' } as const);
+    const take = rawStatus === 'IN_REVIEW' ? undefined : 200;
     const [technologies, challenges, projects, fundingOffers, successCases] = await Promise.all([
-      prisma.technology.findMany({
-        where: { status: 'IN_REVIEW' },
-        include: { organization: true },
-        orderBy: { updatedAt: 'asc' },
-      }),
-      prisma.challenge.findMany({
-        where: { status: 'IN_REVIEW' },
-        include: { organization: true },
-        orderBy: { updatedAt: 'asc' },
-      }),
-      prisma.project.findMany({
-        where: { status: 'IN_REVIEW' },
-        include: { organization: true },
-        orderBy: { updatedAt: 'asc' },
-      }),
-      prisma.fundingOffer.findMany({
-        where: { status: 'IN_REVIEW' },
-        include: { organization: true },
-        orderBy: { updatedAt: 'asc' },
-      }),
-      prisma.successCase.findMany({
-        where: { status: 'IN_REVIEW' },
-        include: { organization: true },
-        orderBy: { updatedAt: 'asc' },
-      }),
+      prisma.technology.findMany({ where, include: { organization: true }, orderBy, take }),
+      prisma.challenge.findMany({ where, include: { organization: true }, orderBy, take }),
+      prisma.project.findMany({ where, include: { organization: true }, orderBy, take }),
+      prisma.fundingOffer.findMany({ where, include: { organization: true }, orderBy, take }),
+      prisma.successCase.findMany({ where, include: { organization: true }, orderBy, take }),
     ]);
     const items = [
       ...technologies.map((t) => ({
@@ -613,7 +610,11 @@ adminRouter.get('/pending', async (_req, res, next) => {
         organization: s.organization,
         updatedAt: s.updatedAt,
       })),
-    ].sort((a, b) => a.updatedAt.getTime() - b.updatedAt.getTime());
+    ].sort((a, b) =>
+      rawStatus === 'IN_REVIEW'
+        ? a.updatedAt.getTime() - b.updatedAt.getTime()
+        : b.updatedAt.getTime() - a.updatedAt.getTime(),
+    );
     res.json({ items });
   } catch (error) {
     next(error);
@@ -747,6 +748,142 @@ adminRouter.post('/pending/:kind/:id/reject', async (req, res, next) => {
       return;
     }
     res.json(result);
+  } catch (error) {
+    next(error);
+  }
+});
+
+/** Staff hard-delete of any publication (any status, any organization). */
+adminRouter.delete('/contents/:kind/:id', async (req, res, next) => {
+  try {
+    const kind = param(req.params.kind).toUpperCase();
+    const id = param(req.params.id);
+    if (!isDeletableKind(kind)) {
+      res.status(400).json({ error: 'invalid_kind' });
+      return;
+    }
+    const content = await findDeletableContent(kind, id);
+    if (!content) {
+      res.status(404).json({ error: 'not_found' });
+      return;
+    }
+
+    await prisma.$transaction((tx) => deleteContentTx(tx, kind, id, req.auth!.sub));
+
+    res.status(204).end();
+  } catch (error) {
+    next(error);
+  }
+});
+
+const deletionRequestInclude = {
+  organization: { select: { id: true, name: true, slug: true } },
+  requester: { select: { id: true, name: true, email: true } },
+  reviewer: { select: { id: true, name: true } },
+} as const;
+
+/** Member-submitted deletion requests (default REQUESTED). */
+adminRouter.get('/deletion-requests', async (req, res, next) => {
+  try {
+    const rawStatus = typeof req.query.status === 'string' ? req.query.status.toUpperCase() : 'REQUESTED';
+    const allowed = ['REQUESTED', 'APPROVED', 'REJECTED', 'CANCELLED'];
+    if (rawStatus !== 'ALL' && !allowed.includes(rawStatus)) {
+      res.status(400).json({ error: 'invalid_status' });
+      return;
+    }
+    const items = await prisma.contentDeletionRequest.findMany({
+      where: rawStatus === 'ALL' ? {} : { status: rawStatus as 'REQUESTED' },
+      include: deletionRequestInclude,
+      orderBy: { createdAt: rawStatus === 'REQUESTED' ? 'asc' : 'desc' },
+      take: 200,
+    });
+
+    const statusByTarget = new Map<string, string>();
+    await Promise.all(
+      items
+        .filter((r) => r.status === 'REQUESTED' && isDeletableKind(r.targetType))
+        .map(async (r) => {
+          const content = await findDeletableContent(r.targetType as DeletableKind, r.targetId);
+          if (content) statusByTarget.set(r.targetId, content.status);
+        }),
+    );
+
+    res.json({
+      items: items.map((r) => ({
+        ...r,
+        kind: r.targetType,
+        contentStatus: statusByTarget.get(r.targetId) ?? null,
+      })),
+    });
+  } catch (error) {
+    next(error);
+  }
+});
+
+/** Approve: hard-deletes the publication (optional note). */
+adminRouter.post('/deletion-requests/:id/approve', async (req, res, next) => {
+  try {
+    const request = await prisma.contentDeletionRequest.findUnique({ where: { id: param(req.params.id) } });
+    if (!request) {
+      res.status(404).json({ error: 'not_found' });
+      return;
+    }
+    if (request.status !== 'REQUESTED') {
+      res.status(400).json({ error: 'invalid_status' });
+      return;
+    }
+    const kind = request.targetType;
+    if (!isDeletableKind(kind)) {
+      res.status(400).json({ error: 'invalid_kind' });
+      return;
+    }
+    const note = readCurationNote(req.body) || null;
+    const content = await findDeletableContent(kind, request.targetId);
+
+    await prisma.$transaction(async (tx) => {
+      if (content) {
+        await deleteContentTx(tx, kind, request.targetId, req.auth!.sub, note);
+      } else {
+        await tx.contentDeletionRequest.update({
+          where: { id: request.id },
+          data: { status: 'APPROVED', reviewerUserId: req.auth!.sub, reviewNote: note, reviewedAt: new Date() },
+        });
+      }
+    });
+
+    const item = await prisma.contentDeletionRequest.findUnique({
+      where: { id: request.id },
+      include: deletionRequestInclude,
+    });
+    res.json({ item });
+  } catch (error) {
+    next(error);
+  }
+});
+
+/** Reject: publication stays; justification required for the requester. */
+adminRouter.post('/deletion-requests/:id/reject', async (req, res, next) => {
+  try {
+    const note = readCurationNote(req.body);
+    if (!note) {
+      res.status(400).json({ error: 'note_required' });
+      return;
+    }
+    const request = await prisma.contentDeletionRequest.findUnique({ where: { id: param(req.params.id) } });
+    if (!request) {
+      res.status(404).json({ error: 'not_found' });
+      return;
+    }
+    if (request.status !== 'REQUESTED') {
+      res.status(400).json({ error: 'invalid_status' });
+      return;
+    }
+    const item = await prisma.contentDeletionRequest.update({
+      where: { id: request.id },
+      data: { status: 'REJECTED', reviewerUserId: req.auth!.sub, reviewNote: note, reviewedAt: new Date() },
+      include: deletionRequestInclude,
+    });
+    res.json({ item });
   } catch (error) {
     next(error);
   }
