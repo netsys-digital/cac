@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Button, useDialog } from '@cac/ui';
 import { formatDateTime } from '@cac/shared';
@@ -47,6 +47,87 @@ function curationNoteLabel(status: string, t: (key: string) => string) {
   if (status === 'DRAFT') return t('mine.curationNoteReturned');
   if (status === 'PUBLISHED') return t('mine.curationNoteApproved');
   return t('mine.curationNoteTitle');
+}
+
+type ActionTone = 'default' | 'green' | 'danger';
+
+const actionToneClass: Record<ActionTone, string> = {
+  default: 'text-cac-navy hover:border-cac-navy/40 hover:bg-[#f7faf8]',
+  green: 'text-cac-green hover:border-cac-green/50 hover:bg-cac-green3/40',
+  danger: 'text-red-700 hover:border-red-300 hover:bg-red-50',
+};
+
+const actionBaseClass =
+  'inline-flex size-10 items-center justify-center rounded-full border border-cac-line bg-white transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cac-green disabled:opacity-50';
+
+function IconAction({
+  label,
+  tone = 'default',
+  onClick,
+  children,
+}: {
+  label: string;
+  tone?: ActionTone;
+  onClick: () => void;
+  children: ReactNode;
+}) {
+  return (
+    <button
+      type="button"
+      title={label}
+      aria-label={label}
+      onClick={onClick}
+      className={`${actionBaseClass} ${actionToneClass[tone]}`}
+    >
+      {children}
+    </button>
+  );
+}
+
+function IconEdit() {
+  return (
+    <svg viewBox="0 0 24 24" className="size-5" fill="none" stroke="currentColor" strokeWidth="1.8">
+      <path d="M4 20h4L19 9a2.1 2.1 0 0 0-4-4L4 16v4Z" strokeLinejoin="round" />
+      <path d="m13.5 6.5 4 4" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+function IconReopen() {
+  return (
+    <svg viewBox="0 0 24 24" className="size-5" fill="none" stroke="currentColor" strokeWidth="1.8">
+      <path d="M4 5v5h5" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M5.1 14.5A7.5 7.5 0 1 0 6.3 7L4 10" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
+function IconTrash() {
+  return (
+    <svg viewBox="0 0 24 24" className="size-5" fill="none" stroke="currentColor" strokeWidth="1.8">
+      <path d="M4 7h16M9.5 7V4.5h5V7M6.5 7l1 13h9l1-13" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M10 11v5.5M14 11v5.5" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+function IconTrashRequest() {
+  return (
+    <svg viewBox="0 0 24 24" className="size-5" fill="none" stroke="currentColor" strokeWidth="1.8">
+      <path d="M3.5 7h11M7 7V4.5h4.5V7M5.5 7l.9 12.5h5.6" strokeLinecap="round" strokeLinejoin="round" />
+      <circle cx="17.5" cy="16.5" r="4" />
+      <path d="M17.5 14.5v2l1.3 1" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
+function IconCancelRequest() {
+  return (
+    <svg viewBox="0 0 24 24" className="size-5" fill="none" stroke="currentColor" strokeWidth="1.8">
+      <circle cx="12" cy="12" r="8.5" />
+      <path d="m9 9 6 6M15 9l-6 6" strokeLinecap="round" />
+    </svg>
+  );
 }
 
 function MetricCard({ label, value, hint }: { label: string; value: string | number; hint?: string }) {
@@ -462,30 +543,42 @@ export function MyContentsPage() {
                     />
                   </div>
 
-                  <div className="flex flex-wrap gap-2 md:justify-end">
-                    <Link to={item.editPath}>
-                      <Button variant="secondary">{t('mine.edit')}</Button>
+                  <div className="flex flex-nowrap gap-2 md:justify-end">
+                    <Link
+                      to={item.editPath}
+                      title={t('mine.edit')}
+                      aria-label={t('mine.edit')}
+                      className={`${actionBaseClass} ${actionToneClass.default}`}
+                    >
+                      <IconEdit />
                     </Link>
                     {item.status !== 'DRAFT' ? (
-                      <Button variant="outline" onClick={() => void withdraw(item)}>
-                        {t('mine.withdraw')}
-                      </Button>
+                      <IconAction label={t('mine.withdraw')} tone="green" onClick={() => void withdraw(item)}>
+                        <IconReopen />
+                      </IconAction>
                     ) : (
-                      <Button variant="ghost" onClick={() => void remove(item)}>
-                        {t('mine.delete')}
-                      </Button>
+                      <IconAction label={t('mine.delete')} tone="danger" onClick={() => void remove(item)}>
+                        <IconTrash />
+                      </IconAction>
                     )}
                     {!isStaff && item.status !== 'DRAFT' ? (
                       item.deletionRequest?.status === 'REQUESTED' ? (
                         item.deletionRequest.isMine ? (
-                          <Button variant="ghost" onClick={() => void cancelDeletionRequest(item)}>
-                            {t('mine.deletionCancel')}
-                          </Button>
+                          <IconAction
+                            label={t('mine.deletionCancel')}
+                            onClick={() => void cancelDeletionRequest(item)}
+                          >
+                            <IconCancelRequest />
+                          </IconAction>
                         ) : null
                       ) : (
-                        <Button variant="ghost" onClick={() => openDeletionRequest(item)}>
-                          {t('mine.deletionRequest')}
-                        </Button>
+                        <IconAction
+                          label={t('mine.deletionRequest')}
+                          tone="danger"
+                          onClick={() => openDeletionRequest(item)}
+                        >
+                          <IconTrashRequest />
+                        </IconAction>
                       )
                     ) : null}
                   </div>
