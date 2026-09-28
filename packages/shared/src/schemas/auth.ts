@@ -12,6 +12,16 @@ export const loginBodySchema = z.object({
   password: z.string().min(1),
 });
 
+export const forgotPasswordBodySchema = z.object({
+  email: z.string().email(),
+  lang: z.enum(['pt', 'en', 'es']).optional(),
+});
+
+export const resetPasswordBodySchema = z.object({
+  token: z.string().min(32).max(256),
+  password: z.string().min(8).max(128),
+});
+
 export const authUserSchema = z.object({
   id: z.string().uuid(),
   email: z.string().email(),
@@ -35,6 +45,8 @@ export const authTokensResponseSchema = z.object({
 
 export type RegisterBody = z.infer<typeof registerBodySchema>;
 export type LoginBody = z.infer<typeof loginBodySchema>;
+export type ForgotPasswordBody = z.infer<typeof forgotPasswordBodySchema>;
+export type ResetPasswordBody = z.infer<typeof resetPasswordBodySchema>;
 export type AuthUser = z.infer<typeof authUserSchema>;
 export type MeResponse = z.infer<typeof meResponseSchema>;
 export type AuthTokensResponse = z.infer<typeof authTokensResponseSchema>;

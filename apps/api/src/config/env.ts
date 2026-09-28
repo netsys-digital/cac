@@ -39,9 +39,21 @@ export const env = {
   connectionExpiryDays: Number(process.env.CONNECTION_EXPIRY_DAYS ?? 15),
   smtpHost: process.env.SMTP_HOST ?? '',
   smtpPort: Number(process.env.SMTP_PORT ?? 587),
+  /** true = TLS implícito (465); false = STARTTLS (587). Vazio → deduz pela porta. */
+  smtpSecure: process.env.SMTP_SECURE
+    ? ['1', 'true'].includes(process.env.SMTP_SECURE.toLowerCase())
+    : Number(process.env.SMTP_PORT ?? 587) === 465,
   smtpUser: process.env.SMTP_USER ?? '',
   smtpPass: process.env.SMTP_PASS ?? '',
   smtpFrom: process.env.SMTP_FROM_EMAIL ?? 'noreply@climateactionconnect.org',
+  smtpFromName: process.env.SMTP_FROM_NAME ?? process.env.APP_BRAND_NAME ?? 'AgriZONE Connect',
+  smtpTimeoutMs: Number(process.env.SMTP_TIMEOUT_MS ?? 30_000),
+  /** Logo do e-mail: arquivo local (anexo CID) ou URL pública. Vazio → logo padrão do gestor. */
+  mailLogoPath: process.env.MAIL_LOGO_PATH ?? '',
+  mailLogoUrl: process.env.MAIL_LOGO_URL ?? '',
+  publicWebUrl: (process.env.PUBLIC_WEB_URL ?? 'http://localhost:5178').replace(/\/$/, ''),
+  publicWwwUrl: (process.env.PUBLIC_WWW_URL ?? 'http://localhost:5179').replace(/\/$/, ''),
+  passwordResetTtlMinutes: Number(process.env.PASSWORD_RESET_TTL_MINUTES ?? 60),
   defaultLang: (process.env.DEFAULT_LANG ?? 'pt').toLowerCase().split(',')[0].trim() || 'pt',
   supportedLangs: (process.env.SUPPORTED_LANGS ?? 'pt,en,es')
     .split(',')

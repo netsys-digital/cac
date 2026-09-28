@@ -30,6 +30,7 @@ export function LoginPage({ forcedFrom }: { forcedFrom?: string | null }) {
     '/';
   const isContextual = redirectTo !== '/';
   const externalReturn = isExternalReturnUrl(redirectTo);
+  const passwordReset = Boolean((location.state as { passwordReset?: boolean } | null)?.passwordReset);
 
   useEffect(() => {
     if (loading || !user || !externalReturn) return;
@@ -97,6 +98,18 @@ export function LoginPage({ forcedFrom }: { forcedFrom?: string | null }) {
         </div>
       ) : null}
 
+      {passwordReset ? (
+        <div className="flex items-start gap-3 rounded-[12px] border border-cac-green/30 bg-cac-green3 px-3 py-3" role="status">
+          <span className="mt-0.5 grid size-7 shrink-0 place-items-center rounded-full bg-cac-green2 text-pequena font-bold text-white">
+            ✓
+          </span>
+          <div>
+            <p className="text-pequena font-bold text-cac-navy">{t('auth.resetDoneTitle')}</p>
+            <p className="mt-1 text-pequena leading-snug text-cac-muted">{t('auth.resetDoneBody')}</p>
+          </div>
+        </div>
+      ) : null}
+
       <form onSubmit={onSubmit} className="space-y-3.5">
         <Input label={t('auth.email')} name="email" type="email" required autoComplete="email" />
         <div className="relative">
@@ -116,6 +129,11 @@ export function LoginPage({ forcedFrom }: { forcedFrom?: string | null }) {
           >
             {showPassword ? t('auth.hidePassword') : t('auth.showPassword')}
           </button>
+        </div>
+        <div className="-mt-1 text-right">
+          <Link to="/forgot-password" className="text-pequena font-bold text-cac-green hover:underline">
+            {t('auth.forgotLink')}
+          </Link>
         </div>
 
         {error ? (

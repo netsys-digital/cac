@@ -8,6 +8,8 @@ import { AppShell } from './layout/AppShell';
 import { LoginPage } from './pages/auth/LoginPage';
 import { RegisterPage } from './pages/auth/RegisterPage';
 import { AuthBridgePage } from './pages/auth/AuthBridgePage';
+import { ForgotPasswordPage } from './pages/auth/ForgotPasswordPage';
+import { ResetPasswordPage } from './pages/auth/ResetPasswordPage';
 import { HomePage } from './pages/HomePage';
 import { RepresentationListPage } from './pages/org/RepresentationListPage';
 import { RepresentationWizardPage } from './pages/org/RepresentationWizardPage';
@@ -54,6 +56,8 @@ export default function App() {
       <Route element={<AuthLayout />}>
         <Route path="/login" element={<LoginWithReturn />} />
         <Route path="/register" element={<RegisterPage />} />
+        <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+        <Route path="/reset-password" element={<ResetPasswordPage />} />
       </Route>
       <Route path="/auth/bridge" element={<AuthBridgePage />} />
       <Route

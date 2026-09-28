@@ -1,5 +1,10 @@
-import { Router } from 'express';
-import { loginBodySchema, registerBodySchema } from '@cac/shared';
+import { Router, type Request } from 'express';
+import {
+  forgotPasswordBodySchema,
+  loginBodySchema,
+  registerBodySchema,
+  resetPasswordBodySchema,
+} from '@cac/shared';
 import { prisma } from '../../lib/prisma.js';
 import { requireAuth } from '../../middleware/auth.js';
 import { validateBody } from '../../middleware/validate.js';
@@ -15,8 +20,22 @@ import {
   toAuthUser,
   verifyPassword,
 } from './auth.service.js';
+import {
+  hitRateLimit,
+  isResetTokenValid,
+  requestPasswordReset,
+  resetPassword,
+} from './password-reset.service.js';
 
 export const authRouter = Router();
+
+const RESET_WINDOW_MS = 15 * 60 * 1000;
+
+function clientIp(req: Request): string {
+  const forwarded = req.headers['x-forwarded-for'];
+  const first = (Array.isArray(forwarded) ? forwarded[0] : forwarded)?.split(',')[0]?.trim();
+  return first || req.ip || 'unknown';
+}
 
 authRouter.post('/register', validateBody(registerBodySchema), async (req, res, next) => {
   try {
@@ -147,6 +166,58 @@ authRouter.post('/logout', async (req, res, next) => {
     }
     clearRefreshCookie(res);
     res.status(204).send();
+  } catch (error) {
+    next(error);
+  }
+});
+
+authRouter.post('/forgot-password', validateBody(forgotPasswordBodySchema), async (req, res, next) => {
+  try {
+    const { email, lang } = req.body as { email: string; lang?: 'pt' | 'en' | 'es' };
+    const ipLimited = hitRateLimit(`forgot:ip:${clientIp(req)}`, 10, RESET_WINDOW_MS);
+    const emailLimited = hitRateLimit(`forgot:email:${email.toLowerCase()}`, 3, RESET_WINDOW_MS);
+    if (ipLimited) {
+      res.status(429).json({ error: 'too_many_requests' });
+      return;
+    }
+    if (!emailLimited) await requestPasswordReset(email, lang);
+    res.json({ ok: true });
+  } catch (error) {
+    next(error);
+  }
+});
+
+authRouter.get('/reset-password/validate', async (req, res, next) => {
+  try {
+    const token = typeof req.query.token === 'string' ? req.query.token : '';
+    if (hitRateLimit(`reset-validate:ip:${clientIp(req)}`, 30, RESET_WINDOW_MS)) {
+      res.status(429).json({ error: 'too_many_requests' });
+      return;
+    }
+    if (token.length < 32) {
+      res.json({ valid: false });
+      return;
+    }
+    res.json(await isResetTokenValid(token));
+  } catch (error) {
+    next(error);
+  }
+});
+
+authRouter.post('/reset-password', validateBody(resetPasswordBodySchema), async (req, res, next) => {
+  try {
+    const { token, password } = req.body as { token: string; password: string };
+    if (hitRateLimit(`reset:ip:${clientIp(req)}`, 20, RESET_WINDOW_MS)) {
+      res.status(429).json({ error: 'too_many_requests' });
+      return;
+    }
+    const ok = await resetPassword(token, password);
+    if (!ok) {
+      res.status(400).json({ error: 'invalid_or_expired_token' });
+      return;
+    }
+    clearRefreshCookie(res);
+    res.json({ ok: true });
   } catch (error) {
     next(error);
   }
