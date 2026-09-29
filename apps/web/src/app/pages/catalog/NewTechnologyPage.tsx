@@ -11,10 +11,14 @@ import {
   NeedOrgPublishKind,
 } from '../../components/forms/LinkedOrganizationField';
 import {
-  pickCoverFile,
-  RepresentativeImageField,
-} from '../../components/forms/RepresentativeImageField';
-import { RegionCountryFields } from '../../components/forms/RegionCountryFields';
+  pickBannerFile,
+  pickBannerLink,
+  pickBannerPosition,
+} from '../../components/forms/BannerImageField';
+import { MediaBlock } from '../../components/forms/MediaBlock';
+import { pickPublicationFiles, PublicationsField } from '../../components/forms/PublicationsField';
+import { pickCoverFile } from '../../components/forms/RepresentativeImageField';
+import { pickTechnicalSheet, TechnicalSheetBlock } from '../../components/forms/TechnicalSheetBlock';
 import { useMyOrganizations } from '../../hooks/useMyOrganizations';
 
 function parseTags(raw: FormDataEntryValue | null): string[] {
@@ -60,6 +64,9 @@ export function NewTechnologyPage() {
       return;
     }
     const cover = pickCoverFile(form);
+    const banner = pickBannerFile(form);
+    const publications = pickPublicationFiles(form);
+    const formEl = e.currentTarget;
     try {
       const created = await catalogApi.createTechnology(accessToken, {
         title: String(form.get('title')),
@@ -67,18 +74,27 @@ export function NewTechnologyPage() {
         problemStatement: String(form.get('problemStatement')),
         howItWorks: String(form.get('howItWorks')),
         videoUrl: String(form.get('videoUrl') || '').trim() || undefined,
+        bannerLinkUrl: pickBannerLink(form),
+        bannerPosition: pickBannerPosition(form),
         organizationId: orgId,
         country: String(form.get('country')),
         region: String(form.get('region')),
         maturity: String(form.get('maturity')),
         tags,
+        ...pickTechnicalSheet(form),
       });
       if (cover) {
         await catalogApi.uploadCover(accessToken, 'technologies', created.technology.id, cover);
       }
+      if (banner) {
+        await catalogApi.uploadBanner(accessToken, 'technologies', created.technology.id, banner);
+      }
+      for (const file of publications) {
+        await catalogApi.uploadTechnologyMedia(accessToken, created.technology.id, file);
+      }
       await catalogApi.submitTechnology(accessToken, created.technology.id);
       setMessage(t('catalog.techSubmitted', { slug: created.technology.slug }));
-      e.currentTarget.reset();
+      formEl.reset();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'error');
     }
@@ -135,18 +151,8 @@ export function NewTechnologyPage() {
         <TextArea label={t('catalog.how')} hint={t('catalog.howHint')} name="howItWorks" required rows={4} />
       </FieldFull>
       <FieldFull>
-        <RepresentativeImageField />
+        <PublicationsField />
       </FieldFull>
-      <FieldFull>
-        <Input
-          label={t('catalog.videoUrl')}
-          hint={t('catalog.videoUrlHint')}
-          name="videoUrl"
-          type="url"
-          placeholder="https://www.youtube.com/watch?v=…"
-        />
-      </FieldFull>
-      <RegionCountryFields defaultRegion="south_america" defaultCountry="BR" />
       <SelectField
         label={t('catalog.maturity')}
         hint={t('catalog.maturityHint')}
@@ -169,6 +175,16 @@ export function NewTechnologyPage() {
           required
         />
       </FieldFull>
+      <TechnicalSheetBlock />
+      <MediaBlock>
+        <Input
+          label={t('catalog.videoUrl')}
+          hint={t('catalog.videoUrlHint')}
+          name="videoUrl"
+          type="url"
+          placeholder="https://www.youtube.com/watch?v=…"
+        />
+      </MediaBlock>
     </FormPage>
   );
 }

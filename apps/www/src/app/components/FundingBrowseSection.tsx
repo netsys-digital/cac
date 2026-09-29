@@ -6,6 +6,13 @@ import { fundingApi, type FundingOffer, type FunderProfile } from '../api/fundin
 import { shell } from './PageChrome';
 import { resolveMediaUrl } from '../lib/mediaUrl';
 import { useSavedFavoriteKeys } from '../hooks/useSavedFavoriteKeys';
+import {
+  useResetOnChange,
+  useSyncUrlParams,
+  useUrlInitialState,
+  useUrlPageState,
+} from '../search/urlState';
+import { BackLink } from './BackLink';
 
 const PAGE_SIZE = 9;
 
@@ -69,14 +76,33 @@ export function FundingBrowseSection() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(true);
 
-  const [query, setQuery] = useState('');
-  const [country, setCountry] = useState('');
-  const [region, setRegion] = useState('');
-  const [deadlineFilter, setDeadlineFilter] = useState<DeadlineFilter>('');
-  const [moreOpen, setMoreOpen] = useState(false);
-  const [sort, setSort] = useState<SortKey>('recent');
-  const [view, setView] = useState<ViewMode>('grid');
-  const [page, setPage] = useState(1);
+  const [query, setQuery] = useUrlInitialState('q', '');
+  const [country, setCountry] = useUrlInitialState('country', '');
+  const [region, setRegion] = useUrlInitialState('region', '');
+  const [deadlineFilter, setDeadlineFilter] = useUrlInitialState<DeadlineFilter>('deadline', '', [
+    '',
+    'with',
+    'open',
+  ]);
+  const [moreOpen, setMoreOpen] = useState(Boolean(deadlineFilter));
+  const [sort, setSort] = useUrlInitialState<SortKey>('sort', 'recent', [
+    'recent',
+    'deadline',
+    'title_asc',
+    'title_desc',
+  ]);
+  const [view, setView] = useUrlInitialState<ViewMode>('view', 'grid', ['grid', 'list']);
+  const [page, setPage] = useUrlPageState();
+
+  useSyncUrlParams({
+    q: query.trim(),
+    country,
+    region,
+    deadline: deadlineFilter,
+    sort: sort === 'recent' ? null : sort,
+    view: view === 'grid' ? null : view,
+    page: page > 1 ? page : null,
+  });
 
   useEffect(() => {
     let cancelled = false;
@@ -164,9 +190,7 @@ export function FundingBrowseSection() {
 
   const filtered = tab === 'active' ? filteredOffers : filteredFunders;
 
-  useEffect(() => {
-    setPage(1);
-  }, [query, country, region, deadlineFilter, sort, tab]);
+  useResetOnChange(JSON.stringify([query, country, region, deadlineFilter, sort, tab]), () => setPage(1));
 
   const total = filtered.length;
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
@@ -476,9 +500,7 @@ export function FundingBrowseSection() {
         </div>
       ) : null}
 
-      <Link to="/search" className="mt-6 inline-block text-pequena font-bold text-cac-green">
-        {t('detail.backSearch')}
-      </Link>
+      <BackLink className="mt-6 inline-flex items-center gap-2 text-pequena font-bold text-cac-green" />
     </section>
   );
 }

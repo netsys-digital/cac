@@ -458,7 +458,7 @@ meRouter.get('/contents/:kind/:id', requireAuth, async (req, res, next) => {
     if (kind === 'TECHNOLOGY') {
       const row = await prisma.technology.findUnique({
         where: { id },
-        include: { tags: true, organization: true },
+        include: { tags: true, organization: true, media: { orderBy: { createdAt: 'asc' } } },
       });
       if (row) {
         organizationId = row.organizationId;

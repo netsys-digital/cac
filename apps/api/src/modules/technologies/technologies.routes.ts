@@ -1,4 +1,4 @@
-﻿import { Router } from 'express';
+import { Router } from 'express';
 import {
   ContentStatus,
   createTechnologyBodySchema,
@@ -44,6 +44,29 @@ function normalizeVideoUrl(value: unknown): string | null | undefined {
   if (value === undefined) return undefined;
   if (value === null || value === '') return null;
   return String(value).trim();
+}
+
+function nullableText(value: unknown): string | null | undefined {
+  if (value === undefined) return undefined;
+  if (value === null) return null;
+  return String(value).trim() || null;
+}
+
+function technicalSheetData(body: Record<string, unknown>) {
+  const developedWithPartners = body.developedWithPartners as boolean | null | undefined;
+  return {
+    developedWithPartners,
+    partnerInstitutions:
+      developedWithPartners === false ? null : nullableText(body.partnerInstitutions),
+    methodology: nullableText(body.methodology),
+    launchYear: body.launchYear as number | null | undefined,
+    state: nullableText(body.state),
+    biome: nullableText(body.biome),
+    responsibleUnit: nullableText(body.responsibleUnit),
+    accessInfo: nullableText(body.accessInfo),
+    keywords: body.keywords as string[] | undefined,
+    officialUrl: nullableText(body.officialUrl),
+  };
 }
 
 technologiesRouter.get('/', async (req, res, next) => {
@@ -108,11 +131,14 @@ technologiesRouter.post('/', requireAuth, validateBody(createTechnologyBodySchem
         problemStatement: req.body.problemStatement,
         howItWorks: req.body.howItWorks,
         videoUrl: normalizeVideoUrl(req.body.videoUrl) ?? null,
+        bannerLinkUrl: normalizeVideoUrl(req.body.bannerLinkUrl) ?? null,
+        bannerPosition: req.body.bannerPosition,
         organizationId: req.body.organizationId,
         country: req.body.country,
         region: req.body.region,
         climateAction: req.body.climateAction,
         maturity: req.body.maturity,
+        ...technicalSheetData(req.body),
         status: ContentStatus.DRAFT,
         tags: req.body.tags?.length
           ? { create: req.body.tags.map((tag: string) => ({ tag })) }
@@ -157,6 +183,7 @@ technologiesRouter.patch(
           region: req.body.region,
           climateAction: req.body.climateAction,
           maturity: req.body.maturity,
+          ...technicalSheetData(req.body),
           slug: req.body.slug,
           tags: req.body.tags
             ? {

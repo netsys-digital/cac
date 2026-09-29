@@ -16,8 +16,9 @@ import {
 } from '../components/CatalogDetail';
 import { DetailConnectionActions } from '../components/DetailConnectionActions';
 import { DetailGuestAuthHint } from '../components/DetailGuestAuthHint';
-import { BackToSearchLink } from '../components/BackToSearchLink';
+import { BackLink } from '../components/BackLink';
 import { shell } from '../components/PageChrome';
+import { TechnicalSheetCard } from '../components/TechnicalSheetCard';
 import { urls } from '../../config';
 import { resolveMediaUrl } from '../lib/mediaUrl';
 import { resolveDetailBanner } from '../lib/detailBanner';
@@ -55,7 +56,7 @@ export function TechnologyDetailPage() {
       <div className={`${shell} py-12`}>
         <h1 className="text-extra-grande font-bold text-cac-navy">{t('detail.notFound')}</h1>
         <div className="mt-4">
-          <BackToSearchLink className="inline-flex items-center gap-2 rounded-[10px] border border-cac-line bg-white px-3.5 py-2.5 text-pequena font-bold text-cac-navy" />
+          <BackLink className="inline-flex items-center gap-2 rounded-[10px] border border-cac-line bg-white px-3.5 py-2.5 text-pequena font-bold text-cac-navy" />
         </div>
       </div>
     );
@@ -85,6 +86,9 @@ export function TechnologyDetailPage() {
     item.media?.find((m) => m.kind === 'VIDEO' || m.mimeType?.startsWith('video/'))?.url ||
     null;
   const relatedVideo = resolveMediaUrl(relatedVideoRaw) ?? relatedVideoRaw;
+  const publications = item.media?.filter((m) => m.kind === 'PDF') ?? [];
+  let sectionIndex = 2;
+  const nextIndex = () => String(++sectionIndex).padStart(2, '0');
   const banner = resolveDetailBanner(item, item.organization, 'TECHNOLOGY');
   const bannerEl = (
     <CatalogDetailBanner
@@ -105,8 +109,8 @@ export function TechnologyDetailPage() {
         topBanner={banner.position === 'ABOVE_HERO' ? bannerEl : undefined}
         chips={
           <>
-            {item.country ? <DetailHeroChip>{item.country}</DetailHeroChip> : null}
             {item.region ? <DetailHeroChip>{item.region}</DetailHeroChip> : null}
+            {item.country ? <DetailHeroChip>{item.country}</DetailHeroChip> : null}
             {climate ? <DetailHeroChip>{climate}</DetailHeroChip> : null}
             {maturity ? <DetailHeroChip>{maturity}</DetailHeroChip> : null}
           </>
@@ -125,8 +129,29 @@ export function TechnologyDetailPage() {
               <p>{item.howItWorks}</p>
             </DetailSection>
 
+            {publications.length ? (
+              <DetailSection title={t('detail.publications')} index={nextIndex()}>
+                <ul className="space-y-2">
+                  {publications.map((pub) => (
+                    <li key={pub.id}>
+                      <a
+                        href={resolveMediaUrl(pub.url) ?? pub.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-3 rounded-[12px] border border-cac-line bg-[#fbfcfb] px-3.5 py-2.5 text-pequena font-bold text-cac-navy transition hover:border-cac-green/50 hover:text-cac-green"
+                      >
+                        <i className="fa-solid fa-file-pdf text-[1.1rem] text-red-700" aria-hidden />
+                        <span className="min-w-0 flex-1 truncate">{pub.filename}</span>
+                        <i className="fa-solid fa-download text-[0.85rem] text-cac-muted" aria-hidden />
+                      </a>
+                    </li>
+                  ))}
+                </ul>
+              </DetailSection>
+            ) : null}
+
             {item.tags.length ? (
-              <DetailSection title={t('detail.topics')} index="03">
+              <DetailSection title={t('detail.topics')} index={nextIndex()}>
                 <div className="flex flex-wrap gap-1.5">
                   {item.tags.map((tag) => (
                     <DetailMetaChip key={tag}>{tag}</DetailMetaChip>
@@ -135,7 +160,7 @@ export function TechnologyDetailPage() {
               </DetailSection>
             ) : null}
 
-            <DetailSection title={t('detail.nextSteps')} index="04">
+            <DetailSection title={t('detail.nextSteps')} index={nextIndex()}>
               <p className="text-cac-muted">{t('detail.nextStepsBody')}</p>
               <ul className="mt-4 space-y-2.5 text-pequena text-cac-navy">
                 <li className="flex gap-2">
@@ -197,6 +222,8 @@ export function TechnologyDetailPage() {
                 {t('detail.pathFunding')} →
               </Link>
             </div>
+
+            <TechnicalSheetCard item={item} />
           </aside>
         </div>
         {banner.position === 'ABOVE_FOOTER' ? bannerEl : null}

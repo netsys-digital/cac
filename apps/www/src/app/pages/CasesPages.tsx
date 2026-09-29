@@ -16,7 +16,7 @@ import {
 } from '../components/CatalogDetail';
 import { DetailConnectionActions } from '../components/DetailConnectionActions';
 import { DetailGuestAuthHint } from '../components/DetailGuestAuthHint';
-import { BackToSearchLink } from '../components/BackToSearchLink';
+import { BackLink } from '../components/BackLink';
 import { CasesBrowseSection } from '../components/CasesBrowseSection';
 import { urls } from '../../config';
 import { casesApi, type SuccessCase } from '../api/casesApi';
@@ -239,7 +239,7 @@ export function CaseDetailPage() {
       <div className={`${shell} py-12`}>
         <h1 className="text-extra-grande font-bold text-cac-navy">{t('detail.notFound')}</h1>
         <div className="mt-4">
-          <BackToSearchLink className="inline-flex items-center gap-2 rounded-[10px] border border-cac-line bg-white px-3.5 py-2.5 text-pequena font-bold text-cac-navy" />
+          <BackLink className="inline-flex items-center gap-2 rounded-[10px] border border-cac-line bg-white px-3.5 py-2.5 text-pequena font-bold text-cac-navy" />
         </div>
       </div>
     );
@@ -275,8 +275,8 @@ export function CaseDetailPage() {
         topBanner={banner.position === 'ABOVE_HERO' ? bannerEl : undefined}
         chips={
           <>
-            <DetailHeroChip>{item.country}</DetailHeroChip>
             {item.region ? <DetailHeroChip>{item.region}</DetailHeroChip> : null}
+            <DetailHeroChip>{item.country}</DetailHeroChip>
             {item.needs.slice(0, 3).map((n) => (
               <DetailHeroChip key={n.id}>{needTypeLabel(n.needType, t)}</DetailHeroChip>
             ))}

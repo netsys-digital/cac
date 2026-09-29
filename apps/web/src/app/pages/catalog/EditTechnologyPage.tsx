@@ -11,7 +11,13 @@ import {
   pickCoverFile,
   RepresentativeImageField,
 } from '../../components/forms/RepresentativeImageField';
-import { RegionCountryFields } from '../../components/forms/RegionCountryFields';
+import {
+  type ExistingPublication,
+  pickPublicationFiles,
+  pickRemovedPublications,
+  PublicationsField,
+} from '../../components/forms/PublicationsField';
+import { pickTechnicalSheet, TechnicalSheetBlock } from '../../components/forms/TechnicalSheetBlock';
 
 function parseTags(raw: FormDataEntryValue | null): string[] {
   return String(raw || '')
@@ -77,7 +83,14 @@ export function EditTechnologyPage() {
         region: String(form.get('region')),
         maturity: String(form.get('maturity')),
         tags,
+        ...pickTechnicalSheet(form),
       });
+      for (const mediaId of pickRemovedPublications(form)) {
+        await catalogApi.deleteTechnologyMedia(accessToken, id, mediaId);
+      }
+      for (const file of pickPublicationFiles(form)) {
+        await catalogApi.uploadTechnologyMedia(accessToken, id, file);
+      }
       const cover = pickCoverFile(form);
       if (cover) {
         await catalogApi.uploadCover(accessToken, 'technologies', id, cover);
@@ -111,6 +124,9 @@ export function EditTechnologyPage() {
   }
 
   const tags = Array.isArray(item.tags) ? (item.tags as string[]).join(', ') : '';
+  const publications = (Array.isArray(item.media) ? (item.media as Array<ExistingPublication & { kind: string }>) : [])
+    .filter((m) => m.kind === 'PDF');
+  const str = (key: string) => (item[key] == null ? null : String(item[key]));
 
   return (
     <FormPage
@@ -152,6 +168,9 @@ export function EditTechnologyPage() {
               <TextArea label={t('catalog.how')} hint={t('catalog.howHint')} name="howItWorks" required rows={4} defaultValue={String(item.howItWorks)} />
             </FieldFull>
             <FieldFull>
+              <PublicationsField key={publications.map((p) => p.id).join(',')} existing={publications} />
+            </FieldFull>
+            <FieldFull>
               <Input
                 label={t('catalog.videoUrl')}
                 hint={t('catalog.videoUrlHint')}
@@ -161,10 +180,6 @@ export function EditTechnologyPage() {
                 defaultValue={item.videoUrl ? String(item.videoUrl) : ''}
               />
             </FieldFull>
-            <RegionCountryFields
-              defaultRegion={String(item.region || 'south_america')}
-              defaultCountry={String(item.country || 'BR')}
-            />
             <SelectField
               label={t('catalog.maturity')}
               hint={t('catalog.maturityHint')}
@@ -181,6 +196,23 @@ export function EditTechnologyPage() {
             <FieldFull>
               <Input label={t('catalog.tags')} hint={t('catalog.tagsHint')} name="tags" required defaultValue={tags} />
             </FieldFull>
+            <TechnicalSheetBlock
+              defaults={{
+                developedWithPartners:
+                  typeof item.developedWithPartners === 'boolean' ? item.developedWithPartners : null,
+                partnerInstitutions: str('partnerInstitutions'),
+                methodology: str('methodology'),
+                launchYear: typeof item.launchYear === 'number' ? item.launchYear : null,
+                region: str('region'),
+                country: str('country'),
+                state: str('state'),
+                biome: str('biome'),
+                responsibleUnit: str('responsibleUnit'),
+                accessInfo: str('accessInfo'),
+                keywords: Array.isArray(item.keywords) ? (item.keywords as string[]) : [],
+                officialUrl: str('officialUrl'),
+              }}
+            />
           </>
         ),
         media: (

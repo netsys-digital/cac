@@ -1,5 +1,5 @@
 import { type FormEvent, useEffect, useMemo, useRef, useState } from 'react';
-import { useLocation, useSearchParams } from 'react-router-dom';
+import { useLocation, useNavigationType, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { postSearch, type SearchFilters, type SearchResponse } from '../api/searchApi';
 import { shell, ResultCard } from '../components/PageChrome';
@@ -104,6 +104,7 @@ function filtersEqual(a: SearchFilters, b: SearchFilters) {
 export function SearchPage() {
   const { t, i18n } = useTranslation();
   const location = useLocation();
+  const navigationType = useNavigationType();
   const { isFavorited, reload: reloadFavorites } = useSavedFavoriteKeys();
   const { getKindForSearch } = useConnectionEngagement();
   const [params, setParams] = useSearchParams();
@@ -183,6 +184,7 @@ export function SearchPage() {
   useEffect(() => {
     if (loading || !data || restoredScroll.current) return;
     const shouldRestore =
+      navigationType === 'POP' ||
       (location.state as { restoreSearchScroll?: boolean } | null)?.restoreSearchScroll === true;
     if (!shouldRestore) return;
     const y = consumeSearchScroll();
@@ -191,7 +193,7 @@ export function SearchPage() {
     requestAnimationFrame(() => {
       window.scrollTo({ top: y, behavior: 'auto' });
     });
-  }, [loading, data, location.state]);
+  }, [loading, data, location.state, navigationType]);
 
   useEffect(() => {
     saveSearchReturn(`${location.pathname}${location.search}`);
@@ -394,8 +396,8 @@ export function SearchPage() {
                     meta={[
                       contentLabel(item.contentType, t),
                       item.organizationName,
-                      item.country,
                       item.region,
+                      item.country,
                     ]
                       .filter(Boolean)
                       .join(' · ')}

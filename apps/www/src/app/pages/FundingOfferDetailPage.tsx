@@ -17,7 +17,7 @@ import {
 } from '../components/CatalogDetail';
 import { DetailConnectionActions } from '../components/DetailConnectionActions';
 import { DetailGuestAuthHint } from '../components/DetailGuestAuthHint';
-import { BackToSearchLink } from '../components/BackToSearchLink';
+import { BackLink } from '../components/BackLink';
 import { shell } from '../components/PageChrome';
 import { urls } from '../../config';
 import { resolveDetailBanner } from '../lib/detailBanner';
@@ -50,7 +50,7 @@ export function FundingOfferDetailPage() {
       <div className={`${shell} py-12`}>
         <h1 className="text-extra-grande font-bold text-cac-navy">{t('detail.notFound')}</h1>
         <div className="mt-4">
-          <BackToSearchLink className="inline-flex items-center gap-2 rounded-[10px] border border-cac-line bg-white px-3.5 py-2.5 text-pequena font-bold text-cac-navy" />
+          <BackLink className="inline-flex items-center gap-2 rounded-[10px] border border-cac-line bg-white px-3.5 py-2.5 text-pequena font-bold text-cac-navy" />
         </div>
       </div>
     );
@@ -72,11 +72,11 @@ export function FundingOfferDetailPage() {
       value: deadlineLabel ?? t('funding.noDeadline'),
       icon: 'fa-solid fa-calendar-days',
     },
-    item.country
-      ? { label: t('search.filters.country'), value: item.country, icon: 'fa-solid fa-flag' }
-      : null,
     item.region
       ? { label: t('search.filters.region'), value: item.region, icon: 'fa-solid fa-globe' }
+      : null,
+    item.country
+      ? { label: t('search.filters.country'), value: item.country, icon: 'fa-solid fa-flag' }
       : null,
   ].filter((c): c is { label: string; value: string; icon: string } => Boolean(c));
 

@@ -12,9 +12,12 @@ import {
   NeedOrgPublishKind,
 } from '../../components/forms/LinkedOrganizationField';
 import {
-  pickCoverFile,
-  RepresentativeImageField,
-} from '../../components/forms/RepresentativeImageField';
+  pickBannerFile,
+  pickBannerLink,
+  pickBannerPosition,
+} from '../../components/forms/BannerImageField';
+import { MediaBlock } from '../../components/forms/MediaBlock';
+import { pickCoverFile } from '../../components/forms/RepresentativeImageField';
 import { RegionCountryFields } from '../../components/forms/RegionCountryFields';
 import { useMyOrganizations } from '../../hooks/useMyOrganizations';
 
@@ -49,6 +52,8 @@ export function NewCasePage() {
       return;
     }
     const cover = pickCoverFile(form);
+    const banner = pickBannerFile(form);
+    const formEl = e.currentTarget;
     const needs = String(form.get('needs') || '')
       .split(',')
       .map((s) => s.trim())
@@ -73,13 +78,18 @@ export function NewCasePage() {
         region: String(form.get('region')),
         needs,
         evidenceNotes,
+        bannerLinkUrl: pickBannerLink(form),
+        bannerPosition: pickBannerPosition(form),
       });
       if (cover) {
         await catalogApi.uploadCover(accessToken, 'success-cases', created.successCase.id, cover);
       }
+      if (banner) {
+        await catalogApi.uploadBanner(accessToken, 'success-cases', created.successCase.id, banner);
+      }
       await fundingWizardApi.submitCase(accessToken, created.successCase.id);
       setMessage(t('catalog.caseSubmitted', { slug: created.successCase.slug }));
-      e.currentTarget.reset();
+      formEl.reset();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'error');
     }
@@ -124,9 +134,6 @@ export function NewCasePage() {
         <TextArea label={t('catalog.summary')} hint={t('catalog.summaryHint')} name="summary" required rows={3} />
       </FieldFull>
       <FieldFull>
-        <RepresentativeImageField />
-      </FieldFull>
-      <FieldFull>
         <TextArea label={t('catalog.context')} hint={t('catalog.contextHint')} name="context" required rows={4} />
       </FieldFull>
       <FieldFull>
@@ -149,6 +156,7 @@ export function NewCasePage() {
           placeholder="evidência 1 | evidência 2"
         />
       </FieldFull>
+      <MediaBlock />
     </FormPage>
   );
 }

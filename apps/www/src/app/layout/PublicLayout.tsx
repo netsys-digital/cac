@@ -4,6 +4,7 @@ import { BrandMark } from '@cac/ui';
 import { brand, urls } from '../../config';
 import { usePortalAuth } from '../auth/PortalAuthContext';
 import { LanguageSwitcher } from '../components/LanguageSwitcher';
+import { useTrackNavigationOrigin } from '../search/navigationOrigin';
 import { SiteFooter } from './SiteFooter';
 
 /** Conteúdo centralizado — classes no app para o Tailwind escanear. */
@@ -26,6 +27,7 @@ export function PublicLayout() {
   const { t } = useTranslation();
   const { user, loading } = usePortalAuth();
   const location = useLocation();
+  useTrackNavigationOrigin();
 
   const desktopLinks = [
     { to: '/sobre', label: t('nav.about') },

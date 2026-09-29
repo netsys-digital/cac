@@ -58,9 +58,11 @@ export function saveSearchReturn(href?: string, scrollY?: number) {
       href ??
       `${window.location.pathname}${window.location.search}${window.location.hash}`;
     if (!path.startsWith('/search')) return;
+    const previous = readSearchReturn();
+    const keptScroll = previous?.href === path ? previous.scrollY : undefined;
     const state: SearchReturnState = {
       href: path,
-      scrollY: scrollY ?? window.scrollY,
+      scrollY: scrollY ?? keptScroll ?? window.scrollY,
       savedAt: Date.now(),
     };
     sessionStorage.setItem(STORAGE_KEY, JSON.stringify(state));

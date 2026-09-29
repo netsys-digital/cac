@@ -6,6 +6,12 @@ import { shell } from './PageChrome';
 import { needTypeLabel } from '../lib/needTypeLabel';
 import { resolveMediaUrl } from '../lib/mediaUrl';
 import { useSavedFavoriteKeys } from '../hooks/useSavedFavoriteKeys';
+import {
+  useResetOnChange,
+  useSyncUrlParams,
+  useUrlInitialState,
+  useUrlPageState,
+} from '../search/urlState';
 
 const PAGE_SIZE = 9;
 
@@ -44,6 +50,7 @@ const COUNTRY_LABELS: Record<string, string> = {
 };
 
 type SortKey = 'recent' | 'title_asc' | 'title_desc';
+const SORT_KEYS: readonly SortKey[] = ['recent', 'title_asc', 'title_desc'];
 type ViewMode = 'grid' | 'list';
 
 function matchesText(haystack: string, needle: string) {
@@ -90,16 +97,28 @@ export function ChallengeBrowseSection() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(true);
 
-  const [query, setQuery] = useState('');
-  const [country, setCountry] = useState('');
-  const [theme, setTheme] = useState('');
-  const [sector, setSector] = useState('');
-  const [needType, setNeedType] = useState('');
-  const [region, setRegion] = useState('');
-  const [moreOpen, setMoreOpen] = useState(false);
-  const [sort, setSort] = useState<SortKey>('recent');
-  const [view, setView] = useState<ViewMode>('grid');
-  const [page, setPage] = useState(1);
+  const [query, setQuery] = useUrlInitialState('q', '');
+  const [country, setCountry] = useUrlInitialState('country', '');
+  const [theme, setTheme] = useUrlInitialState('theme', '');
+  const [sector, setSector] = useUrlInitialState('sector', '');
+  const [needType, setNeedType] = useUrlInitialState('need', '');
+  const [region, setRegion] = useUrlInitialState('region', '');
+  const [moreOpen, setMoreOpen] = useState(Boolean(theme || sector || needType));
+  const [sort, setSort] = useUrlInitialState<SortKey>('sort', 'recent', SORT_KEYS);
+  const [view, setView] = useUrlInitialState<ViewMode>('view', 'grid', ['grid', 'list']);
+  const [page, setPage] = useUrlPageState();
+
+  useSyncUrlParams({
+    q: query.trim(),
+    country,
+    region,
+    theme,
+    sector,
+    need: needType,
+    sort: sort === 'recent' ? null : sort,
+    view: view === 'grid' ? null : view,
+    page: page > 1 ? page : null,
+  });
 
   useEffect(() => {
     let cancelled = false;
@@ -167,9 +186,7 @@ export function ChallengeBrowseSection() {
     return next;
   }, [items, query, country, region, needType, theme, sector, sort]);
 
-  useEffect(() => {
-    setPage(1);
-  }, [query, country, region, needType, theme, sector, sort]);
+  useResetOnChange(JSON.stringify([query, country, region, needType, theme, sector, sort]), () => setPage(1));
 
   const total = filtered.length;
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));

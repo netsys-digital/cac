@@ -12,9 +12,12 @@ import {
   NeedOrgPublishKind,
 } from '../../components/forms/LinkedOrganizationField';
 import {
-  pickCoverFile,
-  RepresentativeImageField,
-} from '../../components/forms/RepresentativeImageField';
+  pickBannerFile,
+  pickBannerLink,
+  pickBannerPosition,
+} from '../../components/forms/BannerImageField';
+import { MediaBlock } from '../../components/forms/MediaBlock';
+import { pickCoverFile } from '../../components/forms/RepresentativeImageField';
 import { RegionCountryFields } from '../../components/forms/RegionCountryFields';
 import { useMyOrganizations } from '../../hooks/useMyOrganizations';
 
@@ -49,6 +52,8 @@ export function NewFundingOfferPage() {
       return;
     }
     const cover = pickCoverFile(form);
+    const banner = pickBannerFile(form);
+    const formEl = e.currentTarget;
     try {
       const created = await fundingWizardApi.createOffer(accessToken, {
         title: String(form.get('title')),
@@ -61,13 +66,18 @@ export function NewFundingOfferPage() {
         organizationId: orgId,
         country: String(form.get('country')),
         region: String(form.get('region')),
+        bannerLinkUrl: pickBannerLink(form),
+        bannerPosition: pickBannerPosition(form),
       });
       if (cover) {
         await catalogApi.uploadCover(accessToken, 'funding-offers', created.offer.id, cover);
       }
+      if (banner) {
+        await catalogApi.uploadBanner(accessToken, 'funding-offers', created.offer.id, banner);
+      }
       await fundingWizardApi.submitOffer(accessToken, created.offer.id);
       setMessage(t('catalog.offerSubmitted', { slug: created.offer.slug }));
-      e.currentTarget.reset();
+      formEl.reset();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'error');
     }
@@ -112,9 +122,6 @@ export function NewFundingOfferPage() {
         <TextArea label={t('catalog.summary')} hint={t('catalog.summaryHint')} name="summary" required rows={3} />
       </FieldFull>
       <FieldFull>
-        <RepresentativeImageField />
-      </FieldFull>
-      <FieldFull>
         <TextArea
           label={t('catalog.whatFunds')}
           hint={t('catalog.whatFundsHint')}
@@ -143,6 +150,7 @@ export function NewFundingOfferPage() {
         <Input label={t('catalog.officialUrl')} hint={t('catalog.officialUrlHint')} name="officialUrl" />
       </FieldFull>
       <RegionCountryFields defaultRegion="south_america" defaultCountry="BR" />
+      <MediaBlock />
     </FormPage>
   );
 }

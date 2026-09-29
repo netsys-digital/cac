@@ -9,7 +9,7 @@ import {
   DetailOrgCard,
   DetailSection,
 } from '../components/CatalogDetail';
-import { BackToSearchLink } from '../components/BackToSearchLink';
+import { BackLink } from '../components/BackLink';
 import { shell } from '../components/PageChrome';
 import { resolveMediaUrl } from '../lib/mediaUrl';
 
@@ -39,7 +39,7 @@ export function ProjectDetailPage() {
       <div className={`${shell} py-12`}>
         <h1 className="text-extra-grande font-bold text-cac-navy">{t('detail.notFound')}</h1>
         <div className="mt-4">
-          <BackToSearchLink className="inline-flex items-center gap-2 rounded-[10px] border border-cac-line bg-white px-3.5 py-2.5 text-pequena font-bold text-cac-navy" />
+          <BackLink className="inline-flex items-center gap-2 rounded-[10px] border border-cac-line bg-white px-3.5 py-2.5 text-pequena font-bold text-cac-navy" />
         </div>
       </div>
     );
@@ -56,8 +56,8 @@ export function ProjectDetailPage() {
         chips={
           <>
             <DetailHeroChip>{item.type}</DetailHeroChip>
-            {item.country ? <DetailHeroChip>{item.country}</DetailHeroChip> : null}
             {item.region ? <DetailHeroChip>{item.region}</DetailHeroChip> : null}
+            {item.country ? <DetailHeroChip>{item.country}</DetailHeroChip> : null}
           </>
         }
       />

@@ -11,7 +11,7 @@ export const TRANSLATION_ENTITY_TYPES = [
 export type TranslationEntityType = (typeof TRANSLATION_ENTITY_TYPES)[number];
 
 export const SCALAR_FIELDS: Record<TranslationEntityType, string[]> = {
-  technology: ['title', 'summary', 'problemStatement', 'howItWorks'],
+  technology: ['title', 'summary', 'problemStatement', 'howItWorks', 'methodology', 'accessInfo'],
   challenge: ['title', 'summary', 'context'],
   project: ['title', 'summary'],
   organization: ['summary'],

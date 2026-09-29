@@ -11,9 +11,12 @@ import {
   NeedOrgPublishKind,
 } from '../../components/forms/LinkedOrganizationField';
 import {
-  pickCoverFile,
-  RepresentativeImageField,
-} from '../../components/forms/RepresentativeImageField';
+  pickBannerFile,
+  pickBannerLink,
+  pickBannerPosition,
+} from '../../components/forms/BannerImageField';
+import { MediaBlock } from '../../components/forms/MediaBlock';
+import { pickCoverFile } from '../../components/forms/RepresentativeImageField';
 import { RegionCountryFields } from '../../components/forms/RegionCountryFields';
 import { useMyOrganizations } from '../../hooks/useMyOrganizations';
 
@@ -60,6 +63,8 @@ export function NewChallengePage() {
       return;
     }
     const cover = pickCoverFile(form);
+    const banner = pickBannerFile(form);
+    const formEl = e.currentTarget;
     try {
       const created = await catalogApi.createChallenge(accessToken, {
         title: String(form.get('title')),
@@ -70,14 +75,19 @@ export function NewChallengePage() {
         country: String(form.get('country')),
         region: String(form.get('region')),
         tags,
+        bannerLinkUrl: pickBannerLink(form),
+        bannerPosition: pickBannerPosition(form),
         status: 'DRAFT',
       });
       if (cover) {
         await catalogApi.uploadCover(accessToken, 'challenges', created.challenge.id, cover);
       }
+      if (banner) {
+        await catalogApi.uploadBanner(accessToken, 'challenges', created.challenge.id, banner);
+      }
       await catalogApi.submitChallenge(accessToken, created.challenge.id);
       setMessage(t('catalog.challengeSubmitted'));
-      e.currentTarget.reset();
+      formEl.reset();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'error');
     }
@@ -130,9 +140,6 @@ export function NewChallengePage() {
           rows={4}
         />
       </FieldFull>
-      <FieldFull>
-        <RepresentativeImageField />
-      </FieldFull>
       <SelectField
         label={t('catalog.needType')}
         hint={t('catalog.needTypeHint')}
@@ -158,6 +165,7 @@ export function NewChallengePage() {
           required
         />
       </FieldFull>
+      <MediaBlock />
     </FormPage>
   );
 }

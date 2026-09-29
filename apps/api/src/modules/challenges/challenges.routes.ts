@@ -1,4 +1,4 @@
-﻿import { Router } from 'express';
+import { Router } from 'express';
 import { ContentStatus, createChallengeBodySchema, updateChallengeBodySchema } from '@cac/shared';
 import { assertCanActForOrganization, assertCanPublishKind } from '../../lib/org-access.js';
 import { prisma } from '../../lib/prisma.js';
@@ -77,6 +77,8 @@ challengesRouter.post('/', requireAuth, validateBody(createChallengeBodySchema),
         organizationId: req.body.organizationId,
         country: req.body.country,
         region: req.body.region,
+        bannerLinkUrl: req.body.bannerLinkUrl ? String(req.body.bannerLinkUrl).trim() || null : null,
+        bannerPosition: req.body.bannerPosition,
         status,
         tags: req.body.tags?.length
           ? { create: req.body.tags.map((tag: string) => ({ tag })) }

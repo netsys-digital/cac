@@ -59,6 +59,16 @@ export type Technology = {
   region?: string | null;
   climateAction?: string | null;
   maturity?: string | null;
+  developedWithPartners?: boolean | null;
+  partnerInstitutions?: string | null;
+  methodology?: string | null;
+  launchYear?: number | null;
+  state?: string | null;
+  biome?: string | null;
+  responsibleUnit?: string | null;
+  accessInfo?: string | null;
+  keywords?: string[];
+  officialUrl?: string | null;
   tags: string[];
   media?: TechnologyMedia[];
   organization?: OrgSummary;

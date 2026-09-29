@@ -116,6 +116,24 @@ mediaRouter.post(
   },
 );
 
+mediaRouter.delete('/technologies/:id/media/:mediaId', requireAuth, async (req, res, next) => {
+  try {
+    const media = await prisma.technologyMedia.findFirst({
+      where: { id: param(req.params.mediaId), technologyId: param(req.params.id) },
+      include: { technology: { select: { organizationId: true } } },
+    });
+    if (!media) {
+      res.status(404).json({ error: 'not_found' });
+      return;
+    }
+    await assertCanActForOrganization(req.auth!.sub, media.technology.organizationId, req.auth!.role);
+    await prisma.technologyMedia.delete({ where: { id: media.id } });
+    res.status(204).end();
+  } catch (error) {
+    next(error);
+  }
+});
+
 type CoverKind = 'technologies' | 'challenges' | 'projects' | 'funding-offers' | 'success-cases';
 
 async function loadCoverTarget(kind: CoverKind, id: string) {

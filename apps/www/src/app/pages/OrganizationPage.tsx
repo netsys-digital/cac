@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react';
-import { Link, useParams } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { catalogApi, type OrgSummary, type Technology } from '../api/catalogApi';
 import { Chip, PageShell, ResultCard, shell } from '../components/PageChrome';
+import { BackLink } from '../components/BackLink';
 import { OrgLogo } from '../components/CatalogDetail';
 import { resolveMediaUrl } from '../lib/mediaUrl';
 
@@ -73,9 +74,7 @@ export function OrganizationPage() {
         ))}
         {!techs.length ? <p className="text-pequena text-cac-muted">{t('detail.emptyList')}</p> : null}
       </div>
-      <Link to="/search" className="mt-6 inline-block text-pequena font-bold text-cac-green">
-        {t('detail.backSearch')}
-      </Link>
+      <BackLink className="mt-6 inline-flex items-center gap-2 text-pequena font-bold text-cac-green" />
     </PageShell>
   );
 }

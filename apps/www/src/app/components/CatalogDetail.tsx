@@ -2,7 +2,7 @@ import type { PropsWithChildren, ReactNode } from 'react';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Chip, shell } from './PageChrome';
-import { BackToSearchLink } from './BackToSearchLink';
+import { BackLink } from './BackLink';
 import { isDirectVideoFile, toVideoEmbedUrl } from '../lib/videoEmbed';
 import { resolveMediaUrl } from '../lib/mediaUrl';
 
@@ -138,7 +138,7 @@ export function CatalogDetailHero({
           <div className="flex min-w-0 flex-col">
             {showBack ? (
               <div className="mb-6">
-                <BackToSearchLink />
+                <BackLink />
               </div>
             ) : null}
             <p className="text-mini font-bold tracking-[1.8px] text-[#90d6b6] uppercase">

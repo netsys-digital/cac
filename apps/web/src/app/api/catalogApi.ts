@@ -287,4 +287,14 @@ export const catalogApi = {
       body,
     });
   },
+  uploadTechnologyMedia: (token: string, id: string, file: File) => {
+    const body = new FormData();
+    body.append('file', file);
+    return api<{ media: { id: string; url: string; kind: string; filename: string } }>(
+      `/api/technologies/${id}/media`,
+      { method: 'POST', accessToken: token, body },
+    );
+  },
+  deleteTechnologyMedia: (token: string, id: string, mediaId: string) =>
+    api<void>(`/api/technologies/${id}/media/${mediaId}`, { method: 'DELETE', accessToken: token }),
 };

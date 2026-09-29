@@ -84,6 +84,8 @@ successCasesRouter.post('/', requireAuth, validateBody(createSuccessCaseBodySche
         country: req.body.country,
         region: req.body.region,
         organizationId: req.body.organizationId,
+        bannerLinkUrl: req.body.bannerLinkUrl ? String(req.body.bannerLinkUrl).trim() || null : null,
+        bannerPosition: req.body.bannerPosition,
         status: ContentStatus.DRAFT,
         needs: req.body.needs?.length
           ? {
