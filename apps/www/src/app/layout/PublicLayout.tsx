@@ -11,7 +11,7 @@ import { SiteFooter } from './SiteFooter';
 const shell = 'mx-auto w-full max-w-[1220px] px-[22px]';
 
 const btnBase =
-  'inline-flex items-center justify-center rounded-[8px] px-3 py-1.5 text-mini font-extrabold whitespace-nowrap transition';
+  'inline-flex h-9 items-center justify-center gap-2 rounded-[10px] px-3.5 text-mini font-extrabold whitespace-nowrap transition';
 
 const navLinkClass =
   'rounded-lg px-2 py-1.5 text-mini whitespace-nowrap text-[#dbe8ec] hover:bg-white/[0.08]';
@@ -21,6 +21,14 @@ function displayName(name: string) {
   if (parts.length === 0) return '';
   if (parts.length === 1) return parts[0];
   return `${parts[0]} ${parts[parts.length - 1]}`;
+}
+
+function initials(name: string) {
+  const parts = name.trim().split(/\s+/).filter(Boolean);
+  if (parts.length === 0) return '?';
+  const first = parts[0][0] ?? '';
+  const last = parts.length > 1 ? (parts[parts.length - 1][0] ?? '') : '';
+  return `${first}${last}`.toUpperCase();
 }
 
 export function PublicLayout() {
@@ -84,29 +92,34 @@ export function PublicLayout() {
             ))}
           </nav>
 
-          <div className="ml-auto flex shrink-0 items-center gap-[10px]">
-            <LanguageSwitcher buttonClassName="px-2 py-1 text-mini" />
+          <div className="ml-auto flex shrink-0 items-center gap-2">
+            <LanguageSwitcher />
 
             {!loading && user && name ? (
               <>
                 <a
                   href={urls.web}
-                  className="hidden min-w-0 max-w-[180px] flex-col items-end leading-tight text-right sm:flex"
+                  className="hidden h-9 min-w-0 max-w-[220px] items-center gap-2.5 rounded-[10px] py-1 pr-3 pl-1 transition hover:bg-white/[0.07] sm:flex"
                   title={user.name}
                 >
-                  <span className="truncate text-pequena font-semibold text-white">{name}</span>
-                  <span className="text-mini font-medium tracking-wide text-[#90d6b6]">
-                    {t(`roles.${user.role}`, { defaultValue: user.role })}
+                  <span
+                    className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[linear-gradient(145deg,#2e9e6b,#1a4d4a)] text-[0.7rem] font-extrabold tracking-wide text-white ring-2 ring-[#90d6b6]/30"
+                    aria-hidden
+                  >
+                    {initials(user.name)}
+                  </span>
+                  <span className="flex min-w-0 flex-col leading-[1.15]">
+                    <span className="truncate text-mini font-bold text-white">{name}</span>
+                    <span className="truncate text-[0.68rem] font-semibold tracking-[0.3px] text-[#90d6b6]">
+                      {t(`roles.${user.role}`, { defaultValue: user.role })}
+                    </span>
                   </span>
                 </a>
-                <span
-                  className="hidden h-7 w-px shrink-0 bg-[rgba(255,255,255,.28)] sm:block"
-                  aria-hidden
-                />
                 <a
                   href={urls.web}
-                  className={`${btnBase} bg-cac-green2 text-white hover:brightness-105`}
+                  className={`${btnBase} bg-cac-green2 text-white shadow-[0_4px_14px_rgba(46,158,107,.35)] hover:brightness-110`}
                 >
+                  <i className="fa-solid fa-table-columns text-[0.8rem]" aria-hidden />
                   {t('nav.panel')}
                 </a>
               </>
@@ -114,13 +127,13 @@ export function PublicLayout() {
               <>
                 <a
                   href={signInHref}
-                  className={`${btnBase} border border-[rgba(255,255,255,.22)] bg-transparent text-white hover:bg-white/10`}
+                  className={`${btnBase} border border-white/20 bg-white/[0.04] text-white hover:border-white/30 hover:bg-white/10`}
                 >
                   {t('nav.signIn')}
                 </a>
                 <a
                   href={signUpHref}
-                  className={`${btnBase} bg-cac-green2 text-white hover:brightness-105 max-[620px]:hidden`}
+                  className={`${btnBase} bg-cac-green2 text-white shadow-[0_4px_14px_rgba(46,158,107,.35)] hover:brightness-110 max-[620px]:hidden`}
                 >
                   {t('nav.signUp')}
                 </a>
