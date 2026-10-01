@@ -12,6 +12,7 @@ const REGION_KEYS: Record<string, string> = {
 };
 
 const LONG_TEXT_LIMIT = 220;
+const BR_STATE_COUNT = 27;
 
 function countryName(code: string, lang: string) {
   try {
@@ -107,7 +108,11 @@ export function TechnicalSheetCard({ item }: { item: Technology }) {
   if (item.launchYear) facts.push({ icon: 'fa-solid fa-calendar', label: t('detail.sheet.launchYear'), value: String(item.launchYear) });
   if (region) facts.push({ icon: 'fa-solid fa-earth-americas', label: t('detail.sheet.region'), value: region });
   if (item.country) facts.push({ icon: 'fa-solid fa-flag', label: t('detail.sheet.country'), value: countryName(item.country, i18n.language) });
-  if (item.state) facts.push({ icon: 'fa-solid fa-location-dot', label: t('detail.sheet.state'), value: item.state });
+  if (item.state && item.country?.toUpperCase() === 'BR') {
+    const states = splitList(item.state);
+    const value = states.length >= BR_STATE_COUNT ? t('detail.sheet.allStates') : states.join(', ');
+    facts.push({ icon: 'fa-solid fa-location-dot', label: t('detail.sheet.state'), value, wide: value.length > 18 });
+  }
   if (item.biome) facts.push({ icon: 'fa-solid fa-leaf', label: t('detail.sheet.biome'), value: item.biome, wide: item.biome.length > 18 });
   if (item.responsibleUnit) facts.push({ icon: 'fa-solid fa-building', label: t('detail.sheet.responsibleUnit'), value: item.responsibleUnit, wide: true });
   // Grade de 2 colunas: um item curto sobrando no fim ocupa a linha inteira.

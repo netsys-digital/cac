@@ -2,13 +2,39 @@ import { useId, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Input, TextArea } from '@cac/ui';
 import { FieldFull } from './FormPage';
+import { type MultiSelectOption, MultiSelectField } from './MultiSelectField';
 import { RegionCountryFields } from './RegionCountryFields';
 
 const BIOMES = ['Amazônia', 'Caatinga', 'Cerrado', 'Mata Atlântica', 'Pampa', 'Pantanal'];
 
-const BR_STATES = [
-  'AC', 'AL', 'AP', 'AM', 'BA', 'CE', 'DF', 'ES', 'GO', 'MA', 'MT', 'MS', 'MG', 'PA',
-  'PB', 'PR', 'PE', 'PI', 'RJ', 'RN', 'RS', 'RO', 'RR', 'SC', 'SP', 'SE', 'TO',
+const BR_STATES: MultiSelectOption[] = [
+  { value: 'AC', label: 'Acre' },
+  { value: 'AL', label: 'Alagoas' },
+  { value: 'AP', label: 'Amapá' },
+  { value: 'AM', label: 'Amazonas' },
+  { value: 'BA', label: 'Bahia' },
+  { value: 'CE', label: 'Ceará' },
+  { value: 'DF', label: 'Distrito Federal' },
+  { value: 'ES', label: 'Espírito Santo' },
+  { value: 'GO', label: 'Goiás' },
+  { value: 'MA', label: 'Maranhão' },
+  { value: 'MT', label: 'Mato Grosso' },
+  { value: 'MS', label: 'Mato Grosso do Sul' },
+  { value: 'MG', label: 'Minas Gerais' },
+  { value: 'PA', label: 'Pará' },
+  { value: 'PB', label: 'Paraíba' },
+  { value: 'PR', label: 'Paraná' },
+  { value: 'PE', label: 'Pernambuco' },
+  { value: 'PI', label: 'Piauí' },
+  { value: 'RJ', label: 'Rio de Janeiro' },
+  { value: 'RN', label: 'Rio Grande do Norte' },
+  { value: 'RS', label: 'Rio Grande do Sul' },
+  { value: 'RO', label: 'Rondônia' },
+  { value: 'RR', label: 'Roraima' },
+  { value: 'SC', label: 'Santa Catarina' },
+  { value: 'SP', label: 'São Paulo' },
+  { value: 'SE', label: 'Sergipe' },
+  { value: 'TO', label: 'Tocantins' },
 ];
 
 type PartnersChoice = 'yes' | 'no' | '';
@@ -65,11 +91,12 @@ type Props = {
 export function TechnicalSheetBlock({ defaults = {} }: Props) {
   const { t } = useTranslation();
   const biomeListId = useId();
-  const stateListId = useId();
   const partnersGroupId = useId();
   const [partners, setPartners] = useState<PartnersChoice>(
     defaults.developedWithPartners === true ? 'yes' : defaults.developedWithPartners === false ? 'no' : '',
   );
+  const [country, setCountry] = useState(defaults.country || 'BR');
+  const isBrazil = country.toUpperCase() === 'BR';
   const currentYear = new Date().getFullYear();
 
   const choices: { value: Exclude<PartnersChoice, ''>; label: string }[] = [
@@ -164,27 +191,27 @@ export function TechnicalSheetBlock({ defaults = {} }: Props) {
           <RegionCountryFields
             defaultRegion={defaults.region || 'south_america'}
             defaultCountry={defaults.country || 'BR'}
+            onCountryChange={setCountry}
           />
 
-          <Input
-            label={t('catalog.sheetState')}
-            hint={t('catalog.sheetStateHint')}
-            name="state"
-            list={stateListId}
-            defaultValue={defaults.state ?? ''}
-          />
-          <datalist id={stateListId}>
-            {BR_STATES.map((uf) => (
-              <option key={uf} value={uf} />
-            ))}
-          </datalist>
-          <Input
-            label={t('catalog.sheetBiome')}
-            hint={t('catalog.sheetBiomeHint')}
-            name="biome"
-            list={biomeListId}
-            defaultValue={defaults.biome ?? ''}
-          />
+          {isBrazil ? (
+            <MultiSelectField
+              label={t('catalog.sheetState')}
+              hint={t('catalog.sheetStateHint')}
+              name="state"
+              options={BR_STATES}
+              defaultValue={splitList(defaults.state ?? '')}
+            />
+          ) : null}
+          <div className={isBrazil ? '' : 'sm:col-span-2'}>
+            <Input
+              label={t('catalog.sheetBiome')}
+              hint={t('catalog.sheetBiomeHint')}
+              name="biome"
+              list={biomeListId}
+              defaultValue={defaults.biome ?? ''}
+            />
+          </div>
           <datalist id={biomeListId}>
             {BIOMES.map((biome) => (
               <option key={biome} value={biome} />

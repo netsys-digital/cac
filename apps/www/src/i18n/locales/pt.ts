@@ -253,6 +253,7 @@ export const pt = {
       country: 'País',
       region: 'Região',
       state: 'Estado',
+      allStates: 'Todos os estados',
       biome: 'Bioma',
       responsibleUnit: 'Unidade responsável',
       accessInfo: 'Onde encontrar / Como acessar',

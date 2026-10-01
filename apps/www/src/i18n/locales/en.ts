@@ -248,6 +248,7 @@ export const en = {
       country: 'Country',
       region: 'Region',
       state: 'State',
+      allStates: 'All states',
       biome: 'Biome',
       responsibleUnit: 'Responsible unit',
       accessInfo: 'Where to find / How to access',
