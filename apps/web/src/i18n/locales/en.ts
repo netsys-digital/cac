@@ -774,7 +774,7 @@ export const en = {
     attachmentTitle: 'Title (optional)',
     attachmentTitlePlaceholder: 'E.g.: Team in the field',
     attachmentDescription: 'Description (optional)',
-    attachmentDescriptionPlaceholder: 'Short description, up to {{max}} characters',
+    attachmentDescriptionPlaceholder: 'Describe the content of this file',
     callCardTitle: 'Call card',
     callCardHint:
       'How this publication appears in the home highlights and listings. Empty fields fall back to the publication title, summary and representative image.',

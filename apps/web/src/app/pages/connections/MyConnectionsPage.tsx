@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
+import { TEXT_LIMITS } from '@cac/shared';
 import { Button } from '@cac/ui';
 import { useAuth } from '../../auth/AuthContext';
 import { connectionsApi, type Connection } from '../../api/connectionsApi';
@@ -409,7 +410,7 @@ export function MyConnectionsPage() {
                   if (declineError) setDeclineError('');
                 }}
                 rows={4}
-                maxLength={1000}
+                maxLength={TEXT_LIMITS.message}
                 disabled={declineBusy}
                 className="mt-1.5 w-full resize-y rounded-[12px] border border-cac-line bg-white px-3 py-2 text-media text-cac-navy outline-none focus:border-cac-green"
                 placeholder={t('conn.declineReasonHint')}

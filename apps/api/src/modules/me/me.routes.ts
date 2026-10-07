@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { ContentStatus } from '@cac/shared';
+import { ContentStatus, TEXT_LIMITS } from '@cac/shared';
 import {
   assertCanActForOrganization,
   assertCanActForOrganizationAsAffiliate,
@@ -624,7 +624,7 @@ meRouter.delete('/contents/:kind/:id', requireAuth, async (req, res, next) => {
 });
 
 const DELETION_REASON_MIN = 10;
-const DELETION_REASON_MAX = 2000;
+const DELETION_REASON_MAX = TEXT_LIMITS.message;
 
 /** Membro/representante solicita exclusão de publicação da sua org; curadoria decide. */
 meRouter.post('/contents/:kind/:id/deletion-request', requireAuth, async (req, res, next) => {

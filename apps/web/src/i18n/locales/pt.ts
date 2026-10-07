@@ -777,7 +777,7 @@ export const pt = {
     attachmentTitle: 'Título (opcional)',
     attachmentTitlePlaceholder: 'Ex.: Equipe em campo',
     attachmentDescription: 'Descrição (opcional)',
-    attachmentDescriptionPlaceholder: 'Breve descrição, até {{max}} caracteres',
+    attachmentDescriptionPlaceholder: 'Descreva o conteúdo deste arquivo',
     callCardTitle: 'Card de chamada',
     callCardHint:
       'Como esta publicação aparece nos destaques da home e nas listagens. Campos vazios usam o título, o resumo e a imagem representativa da publicação.',

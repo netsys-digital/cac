@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useId, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { TEXT_LIMITS } from '@cac/shared';
 import { Input, TextArea } from '@cac/ui';
 import {
   catalogApi,
@@ -14,8 +15,8 @@ export const GALLERY_MAX = 20;
 export const GALLERY_MAX_BYTES = 8 * 1024 * 1024;
 export const DOCUMENTS_MAX = 10;
 export const DOCUMENTS_MAX_BYTES = 20 * 1024 * 1024;
-export const ATTACHMENT_TITLE_MAX = 200;
-export const ATTACHMENT_DESCRIPTION_MAX = 500;
+export const ATTACHMENT_TITLE_MAX = TEXT_LIMITS.attachmentTitle;
+export const ATTACHMENT_DESCRIPTION_MAX = TEXT_LIMITS.attachmentDescription;
 
 const GALLERY_ACCEPT = 'image/jpeg,image/png,image/webp,image/gif';
 const DOCUMENT_EXTENSIONS = ['pdf', 'doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx', 'odt', 'ods', 'odp', 'rtf', 'txt', 'csv'];
@@ -184,10 +185,10 @@ function MetaFields({
         name={descriptionName}
         defaultValue={defaultDescription ?? ''}
         maxLength={ATTACHMENT_DESCRIPTION_MAX}
-        rows={2}
-        placeholder={t('catalog.attachmentDescriptionPlaceholder', { max: ATTACHMENT_DESCRIPTION_MAX })}
+        rows={3}
+        placeholder={t('catalog.attachmentDescriptionPlaceholder')}
         disabled={disabled}
-        className="min-h-[60px] py-1.5"
+        className="min-h-[72px] py-1.5"
       />
     </div>
   );

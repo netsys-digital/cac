@@ -1,12 +1,13 @@
 import { useEffect, useId, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { TEXT_LIMITS } from '@cac/shared';
 import { Input, TextArea } from '@cac/ui';
 import { catalogApi, type CallCardKind } from '../../api/catalogApi';
 import { FieldFull } from './FormPage';
 import { resolveMediaUrl } from './RepresentativeImageField';
 
-const TITLE_MAX = 200;
-const SUMMARY_MAX = 400;
+const TITLE_MAX = TEXT_LIMITS.cardTitle;
+const SUMMARY_MAX = TEXT_LIMITS.cardSummary;
 
 /** Lê o arquivo do card de chamada do FormData (campo `cardImage`). */
 export function pickCardImageFile(form: FormData): File | null {

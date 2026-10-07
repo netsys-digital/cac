@@ -416,21 +416,32 @@ export function DetailPrimaryButton({
 
 export function DetailSecondaryButton({
   href,
+  to,
   children,
   icon,
   done,
-}: PropsWithChildren<{ href: string; icon?: string; done?: boolean }>) {
-  return (
-    <a
-      href={href}
-      className={`flex w-full items-center justify-center gap-2 rounded-[12px] border px-4 py-3 text-pequena font-bold transition ${
-        done
-          ? 'border-cac-green/45 bg-[#eef7f1] text-cac-green'
-          : 'border-cac-line bg-[#f7faf8] text-cac-navy hover:border-cac-green/40 hover:bg-white'
-      }`}
-    >
+}: PropsWithChildren<{ href?: string; to?: string; icon?: string; done?: boolean }>) {
+  const className = `flex w-full items-center justify-center gap-2 rounded-[12px] border px-4 py-3 text-pequena font-bold transition ${
+    done
+      ? 'border-cac-green/45 bg-[#eef7f1] text-cac-green'
+      : 'border-cac-line bg-[#f7faf8] text-cac-navy hover:border-cac-green/40 hover:bg-white'
+  }`;
+  const content = (
+    <>
       {icon ? <i className={`${icon} text-[1.05rem]`} aria-hidden /> : null}
       {children}
+    </>
+  );
+  if (to) {
+    return (
+      <Link to={to} className={className}>
+        {content}
+      </Link>
+    );
+  }
+  return (
+    <a href={href} className={className}>
+      {content}
     </a>
   );
 }

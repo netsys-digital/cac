@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { ConnectionObjective, ConnectionTargetType } from '../enums.js';
+import { TEXT_LIMITS } from './limits.js';
 
 export const createConnectionBodySchema = z.object({
   requesterOrgId: z.string().uuid(),
@@ -18,11 +19,11 @@ export const createConnectionBodySchema = z.object({
     ConnectionObjective.PARTNERSHIP,
     ConnectionObjective.FUNDING,
   ]),
-  message: z.string().max(2000).optional(),
+  message: z.string().max(TEXT_LIMITS.message).optional(),
 });
 
 export const declineConnectionBodySchema = z.object({
-  reason: z.string().trim().min(10).max(1000),
+  reason: z.string().trim().min(10).max(TEXT_LIMITS.message),
 });
 
 export const savedItemBodySchema = z.object({

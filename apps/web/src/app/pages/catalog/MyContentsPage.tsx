@@ -2,7 +2,7 @@ import { Link } from 'react-router-dom';
 import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Button, useDialog } from '@cac/ui';
-import { formatDateTime } from '@cac/shared';
+import { formatDateTime, TEXT_LIMITS } from '@cac/shared';
 import { useAuth } from '../../auth/AuthContext';
 import { useRepresentation } from '../../auth/RepresentationContext';
 import {
@@ -633,7 +633,7 @@ export function MyContentsPage() {
               className="mt-1.5 min-h-[120px] w-full rounded-xl border border-cac-line bg-white px-3 py-2 text-media text-cac-navy outline-none ring-cac-green focus:ring-2"
               placeholder={t('mine.deletionReasonPlaceholder')}
               value={deletionReason}
-              maxLength={2000}
+              maxLength={TEXT_LIMITS.message}
               onChange={(e) => setDeletionReason(e.target.value)}
               disabled={deletionBusy}
             />

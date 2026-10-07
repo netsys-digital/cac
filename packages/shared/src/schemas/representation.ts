@@ -1,10 +1,11 @@
 import { z } from 'zod';
 import { BannerPosition, OrgPublishKind, RepresentationStatus } from '../enums.js';
+import { TEXT_LIMITS } from './limits.js';
 
 export const createRepresentationBodySchema = z.object({
-  unit: z.string().min(2).max(200),
-  linkRole: z.string().min(2).max(120),
-  interest: z.string().min(10).max(2000),
+  unit: z.string().min(2).max(TEXT_LIMITS.title),
+  linkRole: z.string().min(2).max(TEXT_LIMITS.title),
+  interest: z.string().min(10).max(TEXT_LIMITS.mediumText),
 });
 
 export const approveRepresentationBodySchema = z.object({
@@ -26,8 +27,8 @@ const orgBannerPositionSchema = z
   .optional();
 
 export const updateOrganizationAdminBodySchema = z.object({
-  name: z.string().min(2).max(200).optional(),
-  summary: z.string().min(10).max(2000).optional().nullable(),
+  name: z.string().min(2).max(TEXT_LIMITS.title).optional(),
+  summary: z.string().min(10).max(TEXT_LIMITS.summary).optional().nullable(),
   country: z.string().length(2).optional().nullable(),
   region: z.string().min(2).max(64).optional().nullable(),
   website: z.string().url().optional().or(z.literal('')).nullable(),

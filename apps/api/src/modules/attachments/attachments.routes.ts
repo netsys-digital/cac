@@ -4,7 +4,7 @@ import path from 'node:path';
 import { Router, type NextFunction, type Request, type Response } from 'express';
 import jwt from 'jsonwebtoken';
 import multer from 'multer';
-import { ContentStatus } from '@cac/shared';
+import { ContentStatus, TEXT_LIMITS } from '@cac/shared';
 import { env } from '../../config/env.js';
 import { canActForOrganization, assertCanActForOrganization } from '../../lib/org-access.js';
 import { prisma } from '../../lib/prisma.js';
@@ -51,8 +51,8 @@ const ENTITY_TYPE: Record<Kind, string> = {
   'success-cases': 'SUCCESS_CASE',
 };
 
-export const ATTACHMENT_TITLE_MAX = 200;
-export const ATTACHMENT_DESCRIPTION_MAX = 500;
+export const ATTACHMENT_TITLE_MAX = TEXT_LIMITS.attachmentTitle;
+export const ATTACHMENT_DESCRIPTION_MAX = TEXT_LIMITS.attachmentDescription;
 
 /** Título/descrição opcionais: vazio vira `null`, excedente é cortado no limite. */
 function parseMeta(body: unknown): { title: string | null; description: string | null } {

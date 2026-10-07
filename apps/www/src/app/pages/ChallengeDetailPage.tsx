@@ -176,7 +176,7 @@ export function ChallengeDetailPage() {
                 targetId={item.id}
               />
               <DetailFavoriteButton targetType="CHALLENGE" targetId={item.id} />
-              <DetailSecondaryButton href={`${urls.web}/catalog/technologies/new`}>
+              <DetailSecondaryButton to="/offer" icon="fa-solid fa-lightbulb">
                 {t('home.path01')}
               </DetailSecondaryButton>
               <DetailGuestAuthHint />

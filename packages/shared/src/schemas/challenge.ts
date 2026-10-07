@@ -1,17 +1,18 @@
 import { z } from 'zod';
 import { BannerPosition, ContentStatus, NeedType } from '../enums.js';
 import { callCardFields } from './callCard.js';
+import { TEXT_LIMITS } from './limits.js';
 
 export const createChallengeBodySchema = z.object({
-  title: z.string().min(3).max(200),
+  title: z.string().min(3).max(TEXT_LIMITS.title),
   slug: z
     .string()
     .min(2)
     .max(160)
     .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/)
     .optional(),
-  summary: z.string().min(10).max(2000),
-  context: z.string().min(10).max(5000),
+  summary: z.string().min(10).max(TEXT_LIMITS.summary),
+  context: z.string().min(10).max(TEXT_LIMITS.longText),
   needType: z.enum([
     NeedType.TECHNOLOGY,
     NeedType.KNOWLEDGE,

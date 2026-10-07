@@ -1,8 +1,9 @@
 import { z } from 'zod';
 import { ContentStatus, ProjectType } from '../enums.js';
+import { TEXT_LIMITS } from './limits.js';
 
 export const createProjectBodySchema = z.object({
-  title: z.string().min(3).max(200),
+  title: z.string().min(3).max(TEXT_LIMITS.title),
   slug: z.string().min(2).max(160).regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/).optional(),
   type: z.enum([
     ProjectType.PROJECT,
@@ -10,7 +11,7 @@ export const createProjectBodySchema = z.object({
     ProjectType.POLICY,
     ProjectType.PROGRAMME,
   ]),
-  summary: z.string().min(10).max(2000),
+  summary: z.string().min(10).max(TEXT_LIMITS.summary),
   organizationId: z.string().uuid(),
   country: z.string().length(2),
   region: z.string().min(2).max(64),

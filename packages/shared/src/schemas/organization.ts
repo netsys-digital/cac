@@ -1,10 +1,11 @@
 import { z } from 'zod';
 import { BannerPosition, OrgVerificationStatus } from '../enums.js';
+import { TEXT_LIMITS } from './limits.js';
 
 export const createOrganizationBodySchema = z.object({
-  name: z.string().min(2).max(200),
+  name: z.string().min(2).max(TEXT_LIMITS.title),
   slug: z.string().min(2).max(120).regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/).optional(),
-  summary: z.string().min(10).max(2000),
+  summary: z.string().min(10).max(TEXT_LIMITS.summary),
   country: z.string().length(2),
   region: z.string().min(2).max(64),
   website: z.string().url().optional().or(z.literal('')),

@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import { BannerPosition, ClimateAction, ContentStatus, Maturity } from '../enums.js';
 import { callCardFields } from './callCard.js';
+import { TEXT_LIMITS } from './limits.js';
 
 const bannerPositionSchema = z
   .enum([BannerPosition.ABOVE_HERO, BannerPosition.BELOW_HERO, BannerPosition.ABOVE_FOOTER])
@@ -18,11 +19,11 @@ const optionalHttpUrl = z
   });
 
 export const createTechnologyBodySchema = z.object({
-  title: z.string().min(3).max(200),
+  title: z.string().min(3).max(TEXT_LIMITS.title),
   slug: z.string().min(2).max(160).regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/).optional(),
-  summary: z.string().min(10).max(2000),
-  problemStatement: z.string().min(10).max(5000),
-  howItWorks: z.string().min(10).max(5000),
+  summary: z.string().min(10).max(TEXT_LIMITS.summary),
+  problemStatement: z.string().min(10).max(TEXT_LIMITS.longText),
+  howItWorks: z.string().min(10).max(TEXT_LIMITS.longText),
   videoUrl: z
     .string()
     .max(500)
@@ -55,13 +56,13 @@ export const createTechnologyBodySchema = z.object({
   ]),
   tags: z.array(z.string().min(1).max(64)).min(1).max(20),
   developedWithPartners: z.boolean().optional().nullable(),
-  partnerInstitutions: optionalText(2000),
-  methodology: optionalText(5000),
+  partnerInstitutions: optionalText(TEXT_LIMITS.mediumText),
+  methodology: optionalText(TEXT_LIMITS.longText),
   launchYear: z.number().int().min(1900).max(2100).optional().nullable(),
-  state: optionalText(120),
-  biome: optionalText(200),
-  responsibleUnit: optionalText(300),
-  accessInfo: optionalText(2000),
+  state: optionalText(TEXT_LIMITS.shortText),
+  biome: optionalText(TEXT_LIMITS.shortText),
+  responsibleUnit: optionalText(TEXT_LIMITS.shortText),
+  accessInfo: optionalText(TEXT_LIMITS.mediumText),
   keywords: z.array(z.string().min(1).max(64)).max(30).optional(),
   officialUrl: optionalHttpUrl,
   ...callCardFields,
