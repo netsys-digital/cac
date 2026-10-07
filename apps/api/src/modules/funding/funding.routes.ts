@@ -9,6 +9,7 @@ import {
 import { assertCanActForOrganization, assertCanPublishKind } from '../../lib/org-access.js';
 import { prisma } from '../../lib/prisma.js';
 import { slugify } from '../../lib/slug.js';
+import { callCardData } from '../../lib/call-card.js';
 import { requireAuth, requireRole } from '../../middleware/auth.js';
 import { validateBody } from '../../middleware/validate.js';
 import { isUuid, param } from '../../lib/params.js';
@@ -84,6 +85,7 @@ fundingOffersRouter.post('/', requireAuth, validateBody(createFundingOfferBodySc
         organizationId: req.body.organizationId,
         bannerLinkUrl: req.body.bannerLinkUrl ? String(req.body.bannerLinkUrl).trim() || null : null,
         bannerPosition: req.body.bannerPosition,
+        ...callCardData(req.body),
         status: ContentStatus.DRAFT,
       },
     });
@@ -118,6 +120,7 @@ fundingOffersRouter.patch(
                 ? null
                 : req.body.bannerLinkUrl,
           bannerPosition: req.body.bannerPosition,
+          ...callCardData(req.body),
         },
       });
       void enqueueTranslationIfPublished(offer.status, { entityType: 'funding_offer', entityId: offer.id });

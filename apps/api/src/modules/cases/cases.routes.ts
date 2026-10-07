@@ -8,6 +8,7 @@ import {
 import { assertCanActForOrganization, assertCanPublishKind } from '../../lib/org-access.js';
 import { prisma } from '../../lib/prisma.js';
 import { slugify } from '../../lib/slug.js';
+import { callCardData } from '../../lib/call-card.js';
 import { requireAuth, requireRole } from '../../middleware/auth.js';
 import { validateBody } from '../../middleware/validate.js';
 import { isUuid, param } from '../../lib/params.js';
@@ -86,6 +87,7 @@ successCasesRouter.post('/', requireAuth, validateBody(createSuccessCaseBodySche
         organizationId: req.body.organizationId,
         bannerLinkUrl: req.body.bannerLinkUrl ? String(req.body.bannerLinkUrl).trim() || null : null,
         bannerPosition: req.body.bannerPosition,
+        ...callCardData(req.body),
         status: ContentStatus.DRAFT,
         needs: req.body.needs?.length
           ? {
@@ -146,6 +148,7 @@ successCasesRouter.patch(
                 ? null
                 : rest.bannerLinkUrl,
           bannerPosition: rest.bannerPosition as never,
+          ...callCardData(rest),
           ...(needs
             ? {
                 needs: {

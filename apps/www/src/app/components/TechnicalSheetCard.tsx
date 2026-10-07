@@ -1,6 +1,7 @@
 import { type ReactNode, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { Technology } from '../api/catalogApi';
+import { RichText } from '../lib/richText';
 
 const REGION_KEYS: Record<string, string> = {
   africa: 'offerLanding.regionAfrica',
@@ -65,13 +66,15 @@ function ExpandableText({ text }: { text: string }) {
   const long = text.length > LONG_TEXT_LIMIT;
   return (
     <>
-      <p
-        className={`text-pequena leading-relaxed whitespace-pre-line text-cac-ink/85 ${
-          long && !open ? 'line-clamp-4' : ''
+      <div
+        className={`relative text-pequena leading-relaxed text-cac-ink/85 ${
+          long && !open
+            ? 'max-h-[6.6rem] overflow-hidden after:absolute after:inset-x-0 after:bottom-0 after:h-8 after:bg-gradient-to-t after:from-white after:content-[""]'
+            : ''
         }`}
       >
-        {text}
-      </p>
+        <RichText text={text} className="!space-y-2" />
+      </div>
       {long ? (
         <button
           type="button"

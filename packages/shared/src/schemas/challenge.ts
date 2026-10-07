@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { BannerPosition, ContentStatus, NeedType } from '../enums.js';
+import { callCardFields } from './callCard.js';
 
 export const createChallengeBodySchema = z.object({
   title: z.string().min(3).max(200),
@@ -38,6 +39,7 @@ export const createChallengeBodySchema = z.object({
   status: z
     .enum([ContentStatus.DRAFT, ContentStatus.IN_REVIEW, ContentStatus.PUBLISHED])
     .optional(),
+  ...callCardFields,
 });
 
 export const updateChallengeBodySchema = createChallengeBodySchema

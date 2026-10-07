@@ -5,6 +5,7 @@ import { Chip, shell } from './PageChrome';
 import { BackLink } from './BackLink';
 import { isDirectVideoFile, toVideoEmbedUrl } from '../lib/videoEmbed';
 import { resolveMediaUrl } from '../lib/mediaUrl';
+import { plainText, RichInline } from '../lib/richText';
 
 function orgInitials(name: string) {
   const letters = name
@@ -148,7 +149,9 @@ export function CatalogDetailHero({
               {title}
             </h1>
             {summary ? (
-              <p className="mt-4 text-media leading-relaxed text-[#dbe8ec]">{summary}</p>
+              <p className="mt-4 text-media leading-relaxed text-[#dbe8ec] [&_a]:text-white [&_strong]:text-white">
+                <RichInline text={summary} />
+              </p>
             ) : null}
             {chips ? <div className="mt-5 flex flex-wrap gap-1.5">{chips}</div> : null}
           </div>
@@ -377,7 +380,7 @@ export function DetailOrgCard({
         </div>
         <h3 className="mt-2 text-media font-bold text-cac-navy">{name}</h3>
         {summary ? (
-          <p className="mt-1.5 line-clamp-3 text-pequena leading-snug text-cac-muted">{summary}</p>
+          <p className="mt-1.5 line-clamp-3 text-pequena leading-snug text-cac-muted">{plainText(summary)}</p>
         ) : null}
       </div>
     </Link>

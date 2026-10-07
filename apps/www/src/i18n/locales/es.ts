@@ -106,26 +106,12 @@ export const es = {
     ],
     highlightsTitle: 'Destacados de la plataforma',
     highlightsAll: 'Ver todos los destacados',
-    highlights: [
-      {
-        badge: 'Solución',
-        title: 'Recuperación de pastizales en sequía',
-        body: 'Prácticas y tecnologías para ganadería resiliente en climas extremos.',
-        to: '/search?q=recuperaci%C3%B3n%20de%20pastizales&contentType=SOLUTION',
-      },
-      {
-        badge: 'Financiamiento',
-        title: 'Oportunidades de adaptación',
-        body: 'Ofertas activas e instituciones que apoyan proyectos climáticos.',
-        to: '/funding',
-      },
-      {
-        badge: 'Caso de éxito',
-        title: 'Experiencias que inspiran acción',
-        body: 'Evidencias de implementación en comunidades y territorios.',
-        to: '/cases',
-      },
-    ],
+    highlightBadge: {
+      SOLUTION: 'Solución',
+      FUNDING_OFFER: 'Financiamiento',
+      SUCCESS_CASE: 'Caso de éxito',
+    },
+    highlightsEmpty: 'Aún no hay publicaciones destacadas.',
     challengesTitle: 'Desafíos Climáticos',
     challengesSupport:
       'Necesidades reales que buscan soluciones, conocimiento, socios y financiamiento.',
@@ -242,6 +228,14 @@ export const es = {
     caseComplementaryHint:
       'Use este caso como referencia para replicar enfoques y conectar socios similares.',
     publications: 'Publicaciones y PDFs relacionados',
+    gallery: 'Galería',
+    galleryOpen: 'Ampliar imagen {{n}}',
+    galleryClose: 'Cerrar galería',
+    galleryPrev: 'Imagen anterior',
+    galleryNext: 'Imagen siguiente',
+    galleryCounter: '{{n}} de {{total}}',
+    documents: 'Otros documentos',
+    documentsDownload: 'Descargar',
     sheet: {
       title: 'Ficha técnica',
       withPartners: 'Desarrollada en alianza',

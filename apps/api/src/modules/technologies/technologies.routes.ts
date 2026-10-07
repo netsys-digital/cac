@@ -8,6 +8,7 @@ import {
 import { assertCanActForOrganization, assertCanPublishKind } from '../../lib/org-access.js';
 import { prisma } from '../../lib/prisma.js';
 import { slugify } from '../../lib/slug.js';
+import { callCardData } from '../../lib/call-card.js';
 import { requireAuth, requireRole } from '../../middleware/auth.js';
 import { validateBody } from '../../middleware/validate.js';
 import { isUuid, param } from '../../lib/params.js';
@@ -139,6 +140,7 @@ technologiesRouter.post('/', requireAuth, validateBody(createTechnologyBodySchem
         climateAction: req.body.climateAction,
         maturity: req.body.maturity,
         ...technicalSheetData(req.body),
+        ...callCardData(req.body),
         status: ContentStatus.DRAFT,
         tags: req.body.tags?.length
           ? { create: req.body.tags.map((tag: string) => ({ tag })) }
@@ -184,6 +186,7 @@ technologiesRouter.patch(
           climateAction: req.body.climateAction,
           maturity: req.body.maturity,
           ...technicalSheetData(req.body),
+          ...callCardData(req.body),
           slug: req.body.slug,
           tags: req.body.tags
             ? {

@@ -1,6 +1,7 @@
 import type { PropsWithChildren, ReactNode } from 'react';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import { plainText } from '../lib/richText';
 
 export const shell = 'mx-auto w-full max-w-[1220px] px-[22px]';
 
@@ -102,10 +103,10 @@ export function ResultCard({
         <span className="block text-media font-bold leading-snug text-cac-navy">
           {title}
         </span>
-        <span className="mt-1 block text-pequena leading-snug text-cac-muted">{meta}</span>
+        <span className="mt-1 block text-pequena leading-snug text-cac-muted">{plainText(meta)}</span>
         {summary ? (
           <span className="mt-1.5 line-clamp-2 block text-pequena leading-relaxed text-cac-navy/80">
-            {summary}
+            {plainText(summary)}
           </span>
         ) : null}
         {tags?.length ? (

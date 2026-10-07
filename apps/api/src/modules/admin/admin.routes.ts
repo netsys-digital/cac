@@ -21,6 +21,7 @@ import {
   type DeletableKind,
 } from '../../lib/content-deletion.js';
 import { adminUsersRouter } from './admin-users.routes.js';
+import { adminHighlightsRouter } from '../highlights/highlights.routes.js';
 import { enqueueTranslation } from '../../lib/translation/index.js';
 import type { TranslationEntityType } from '../../lib/translation/fields.js';
 
@@ -28,6 +29,7 @@ export const adminRouter = Router();
 
 adminRouter.use(requireAuth, requireRole(UserRole.ADMIN, UserRole.CURADOR));
 adminRouter.use('/users', requireRole(UserRole.ADMIN), adminUsersRouter);
+adminRouter.use('/highlights', adminHighlightsRouter);
 
 const uploadDir = process.env.UPLOAD_DIR || 'uploads';
 fs.mkdirSync(uploadDir, { recursive: true });

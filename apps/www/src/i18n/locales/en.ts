@@ -101,26 +101,12 @@ export const en = {
     ],
     highlightsTitle: 'Platform highlights',
     highlightsAll: 'See all highlights',
-    highlights: [
-      {
-        badge: 'Solution',
-        title: 'Pasture recovery in drought',
-        body: 'Practices and technologies for resilient livestock in extreme climates.',
-        to: '/search?q=pasture%20recovery&contentType=SOLUTION',
-      },
-      {
-        badge: 'Funding',
-        title: 'Adaptation opportunities',
-        body: 'Active offers and institutions supporting climate projects.',
-        to: '/funding',
-      },
-      {
-        badge: 'Success case',
-        title: 'Experiences that inspire action',
-        body: 'Implementation evidence from communities and territories.',
-        to: '/cases',
-      },
-    ],
+    highlightBadge: {
+      SOLUTION: 'Solution',
+      FUNDING_OFFER: 'Funding',
+      SUCCESS_CASE: 'Success case',
+    },
+    highlightsEmpty: 'No featured publications yet.',
     challengesTitle: 'Climate Challenges',
     challengesSupport:
       'Real needs seeking solutions, knowledge, partners and funding.',
@@ -236,6 +222,14 @@ export const en = {
     caseComplementaryHint:
       'Use this case as a reference to replicate approaches and connect similar partners.',
     publications: 'Related publications and PDFs',
+    gallery: 'Gallery',
+    galleryOpen: 'Enlarge image {{n}}',
+    galleryClose: 'Close gallery',
+    galleryPrev: 'Previous image',
+    galleryNext: 'Next image',
+    galleryCounter: '{{n}} of {{total}}',
+    documents: 'Other documents',
+    documentsDownload: 'Download',
     sheet: {
       title: 'Technical sheet',
       withPartners: 'Developed in partnership',

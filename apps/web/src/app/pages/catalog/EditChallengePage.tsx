@@ -1,17 +1,23 @@
 import { type FormEvent, useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Input, TextArea } from '@cac/ui';
+import { Input } from '@cac/ui';
+import { INLINE_TOOLS, RichTextArea } from '../../components/forms/RichTextArea';
 import { useAuth } from '../../auth/AuthContext';
 import { myContentsApi } from '../../api/myContentsApi';
 import { catalogApi } from '../../api/catalogApi';
 import { FieldFull, FormPage, SelectField } from '../../components/forms/FormPage';
-import { BannerImageField, pickBannerFile } from '../../components/forms/BannerImageField';
-import {
-  pickCoverFile,
-  RepresentativeImageField,
-} from '../../components/forms/RepresentativeImageField';
+import { pickBannerFile } from '../../components/forms/BannerImageField';
+import { pickCoverFile } from '../../components/forms/RepresentativeImageField';
+import { MediaBlock } from '../../components/forms/MediaBlock';
+import { saveAttachments, usePublicationAttachments } from '../../components/forms/AttachmentsField';
 import { RegionCountryFields } from '../../components/forms/RegionCountryFields';
+import {
+  CallCardBlock,
+  callCardDefaults,
+  pickCallCard,
+  saveCallCardImage,
+} from '../../components/forms/CallCardBlock';
 
 function parseTags(raw: FormDataEntryValue | null): string[] {
   return String(raw || '')
@@ -30,6 +36,7 @@ export function EditChallengePage() {
   const [message, setMessage] = useState('');
   const [loading, setLoading] = useState(true);
   const [tab, setTab] = useState('content');
+  const { attachments, reload: reloadAttachments } = usePublicationAttachments(accessToken, 'challenges', id);
 
   useEffect(() => {
     if (!accessToken || !id) return;
@@ -74,6 +81,7 @@ export function EditChallengePage() {
         country: String(form.get('country')),
         region: String(form.get('region')),
         tags,
+        ...pickCallCard(form),
       });
       const cover = pickCoverFile(form);
       if (cover) {
@@ -83,6 +91,9 @@ export function EditChallengePage() {
       if (banner) {
         await catalogApi.uploadBanner(accessToken, 'challenges', id, banner);
       }
+      await saveCallCardImage(accessToken, 'challenges', id, form);
+      await saveAttachments(accessToken, 'challenges', id, form, attachments);
+      await reloadAttachments();
       const after = await myContentsApi.get(accessToken, 'CHALLENGE', id);
       if (String(after.item.status) === 'DRAFT') {
         await myContentsApi.submitChallenge(accessToken, id);
@@ -138,10 +149,17 @@ export function EditChallengePage() {
               <Input label={t('catalog.title')} name="title" required defaultValue={String(item.title)} />
             </FieldFull>
             <FieldFull>
-              <TextArea label={t('catalog.summary')} name="summary" required rows={4} defaultValue={String(item.summary)} />
+              <RichTextArea
+                label={t('catalog.summary')}
+                name="summary"
+                required
+                rows={4}
+                tools={INLINE_TOOLS}
+                defaultValue={String(item.summary)}
+              />
             </FieldFull>
             <FieldFull>
-              <TextArea
+              <RichTextArea
                 label={t('catalog.context')}
                 hint={t('catalog.contextChallengeHint')}
                 name="context"
@@ -170,16 +188,16 @@ export function EditChallengePage() {
         ),
         media: (
           <>
-            <FieldFull>
-              <RepresentativeImageField currentUrl={item.coverImageUrl ? String(item.coverImageUrl) : null} />
-            </FieldFull>
-            <FieldFull>
-              <BannerImageField
-                currentUrl={item.bannerImageUrl ? String(item.bannerImageUrl) : null}
-                currentLink={item.bannerLinkUrl ? String(item.bannerLinkUrl) : null}
-                currentPosition={item.bannerPosition ? String(item.bannerPosition) : 'ABOVE_FOOTER'}
-              />
-            </FieldFull>
+            <MediaBlock
+              coverUrl={item.coverImageUrl ? String(item.coverImageUrl) : null}
+              banner={{
+                currentUrl: item.bannerImageUrl ? String(item.bannerImageUrl) : null,
+                currentLink: item.bannerLinkUrl ? String(item.bannerLinkUrl) : null,
+                currentPosition: item.bannerPosition ? String(item.bannerPosition) : 'ABOVE_FOOTER',
+              }}
+              attachments={attachments}
+            />
+            <CallCardBlock defaults={callCardDefaults(item)} />
           </>
         ),
       }}

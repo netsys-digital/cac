@@ -2,6 +2,7 @@ import { useId, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Input, TextArea } from '@cac/ui';
 import { FieldFull } from './FormPage';
+import { RichTextArea } from './RichTextArea';
 import { type MultiSelectOption, MultiSelectField } from './MultiSelectField';
 import { RegionCountryFields } from './RegionCountryFields';
 
@@ -161,7 +162,7 @@ export function TechnicalSheetBlock({ defaults = {} }: Props) {
           ) : null}
 
           <FieldFull>
-            <TextArea
+            <RichTextArea
               label={t('catalog.sheetMethodology')}
               hint={t('catalog.sheetMethodologyHint')}
               name="methodology"
@@ -219,7 +220,7 @@ export function TechnicalSheetBlock({ defaults = {} }: Props) {
           </datalist>
 
           <FieldFull>
-            <TextArea
+            <RichTextArea
               label={t('catalog.sheetAccessInfo')}
               hint={t('catalog.sheetAccessInfoHint')}
               name="accessInfo"

@@ -20,6 +20,8 @@ import { connectionsRouter } from './modules/connections/connections.routes.js';
 import { followsRouter, savedItemsRouter } from './modules/saved/saved.routes.js';
 import { fundingOffersRouter, fundersRouter } from './modules/funding/funding.routes.js';
 import { successCasesRouter } from './modules/cases/cases.routes.js';
+import { highlightsRouter } from './modules/highlights/highlights.routes.js';
+import { attachmentsRouter } from './modules/attachments/attachments.routes.js';
 
 export function createApp() {
   const app = express();
@@ -79,7 +81,9 @@ export function createApp() {
   app.use('/api/funding-offers', fundingOffersRouter);
   app.use('/api/funders', fundersRouter);
   app.use('/api/success-cases', successCasesRouter);
+  app.use('/api/highlights', highlightsRouter);
   app.use('/api', mediaRouter);
+  app.use('/api', attachmentsRouter);
 
   app.use((err: unknown, _req: Request, res: Response, _next: NextFunction) => {
     if (err && typeof err === 'object' && 'status' in err) {

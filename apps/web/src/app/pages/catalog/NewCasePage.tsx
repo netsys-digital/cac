@@ -1,6 +1,7 @@
 import { type FormEvent, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Input, TextArea } from '@cac/ui';
+import { INLINE_TOOLS, RichTextArea } from '../../components/forms/RichTextArea';
 import { useAuth } from '../../auth/AuthContext';
 import { catalogApi } from '../../api/catalogApi';
 import { fundingWizardApi } from '../../api/fundingWizardApi';
@@ -17,6 +18,8 @@ import {
   pickBannerPosition,
 } from '../../components/forms/BannerImageField';
 import { MediaBlock } from '../../components/forms/MediaBlock';
+import { saveAttachments } from '../../components/forms/AttachmentsField';
+import { CallCardBlock, pickCallCard, saveCallCardImage } from '../../components/forms/CallCardBlock';
 import { pickCoverFile } from '../../components/forms/RepresentativeImageField';
 import { RegionCountryFields } from '../../components/forms/RegionCountryFields';
 import { useMyOrganizations } from '../../hooks/useMyOrganizations';
@@ -54,15 +57,6 @@ export function NewCasePage() {
     const cover = pickCoverFile(form);
     const banner = pickBannerFile(form);
     const formEl = e.currentTarget;
-    const needs = String(form.get('needs') || '')
-      .split(',')
-      .map((s) => s.trim())
-      .filter(Boolean)
-      .map((needType) => ({ needType, detail: '' }));
-    if (!needs.length) {
-      setError(t('catalog.needsRequired'));
-      return;
-    }
     try {
       const evidenceNotes = String(form.get('evidence') || '')
         .split('|')
@@ -76,10 +70,10 @@ export function NewCasePage() {
         organizationId: orgId,
         country: String(form.get('country')),
         region: String(form.get('region')),
-        needs,
         evidenceNotes,
         bannerLinkUrl: pickBannerLink(form),
         bannerPosition: pickBannerPosition(form),
+        ...pickCallCard(form),
       });
       if (cover) {
         await catalogApi.uploadCover(accessToken, 'success-cases', created.successCase.id, cover);
@@ -87,6 +81,8 @@ export function NewCasePage() {
       if (banner) {
         await catalogApi.uploadBanner(accessToken, 'success-cases', created.successCase.id, banner);
       }
+      await saveCallCardImage(accessToken, 'success-cases', created.successCase.id, form);
+      await saveAttachments(accessToken, 'success-cases', created.successCase.id, form);
       await fundingWizardApi.submitCase(accessToken, created.successCase.id);
       setMessage(t('catalog.caseSubmitted', { slug: created.successCase.slug }));
       formEl.reset();
@@ -131,22 +127,22 @@ export function NewCasePage() {
         <Input label={t('catalog.title')} hint={t('catalog.titleHint')} name="title" required />
       </FieldFull>
       <FieldFull>
-        <TextArea label={t('catalog.summary')} hint={t('catalog.summaryHint')} name="summary" required rows={3} />
+        <RichTextArea
+          label={t('catalog.summary')}
+          hint={t('catalog.summaryHint')}
+          name="summary"
+          required
+          rows={3}
+          tools={INLINE_TOOLS}
+        />
       </FieldFull>
       <FieldFull>
-        <TextArea label={t('catalog.context')} hint={t('catalog.contextHint')} name="context" required rows={4} />
+        <RichTextArea label={t('catalog.context')} hint={t('catalog.contextHint')} name="context" required rows={4} />
       </FieldFull>
       <FieldFull>
-        <TextArea label={t('catalog.outcomes')} hint={t('catalog.outcomesHint')} name="outcomes" required rows={3} />
+        <RichTextArea label={t('catalog.outcomes')} hint={t('catalog.outcomesHint')} name="outcomes" required rows={3} />
       </FieldFull>
       <RegionCountryFields defaultRegion="africa" defaultCountry="MZ" />
-      <Input
-        label={t('catalog.needs')}
-        hint={t('catalog.needsHint')}
-        name="needs"
-        placeholder="FUNDING,PARTNERSHIP"
-        required
-      />
       <FieldFull>
         <TextArea
           label={t('catalog.evidence')}
@@ -157,6 +153,7 @@ export function NewCasePage() {
         />
       </FieldFull>
       <MediaBlock />
+      <CallCardBlock />
     </FormPage>
   );
 }

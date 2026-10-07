@@ -286,6 +286,11 @@ model Technology {
   bannerImageUrl   String?
   bannerLinkUrl    String?
   bannerPosition   BannerPosition    @default(ABOVE_FOOTER)
+  cardImageUrl     String?
+  cardTitle        String?
+  cardSummary      String?
+  /// Posição no bloco "Destaques da plataforma" da home (null = fora dos destaques).
+  highlightOrder   Int?
   status           ContentStatus     @default(DRAFT)
   curationNote     String?
   reviewedAt       DateTime?
@@ -352,6 +357,9 @@ model Challenge {
   bannerImageUrl String?
   bannerLinkUrl  String?
   bannerPosition BannerPosition @default(ABOVE_FOOTER)
+  cardImageUrl   String?
+  cardTitle      String?
+  cardSummary    String?
   status         ContentStatus  @default(DRAFT)
   curationNote   String?
   reviewedAt     DateTime?
@@ -470,6 +478,10 @@ model FundingOffer {
   bannerImageUrl String?
   bannerLinkUrl  String?
   bannerPosition BannerPosition @default(ABOVE_FOOTER)
+  cardImageUrl   String?
+  cardTitle      String?
+  cardSummary    String?
+  highlightOrder Int?
   organizationId String        @db.Uuid
   status         ContentStatus @default(DRAFT)
   curationNote   String?
@@ -496,6 +508,10 @@ model SuccessCase {
   bannerImageUrl String?
   bannerLinkUrl  String?
   bannerPosition BannerPosition    @default(ABOVE_FOOTER)
+  cardImageUrl   String?
+  cardTitle      String?
+  cardSummary    String?
+  highlightOrder Int?
   organizationId String            @db.Uuid
   status         ContentStatus     @default(DRAFT)
   curationNote   String?
@@ -510,6 +526,31 @@ model SuccessCase {
   @@index([organizationId])
   @@index([country])
   @@index([region])
+}
+
+enum AttachmentKind {
+  GALLERY
+  DOCUMENT
+}
+
+/// Galeria de imagens e outros documentos de qualquer publicação (vínculo polimórfico).
+model PublicationAttachment {
+  id         String         @id @default(uuid()) @db.Uuid
+  /// TECHNOLOGY | CHALLENGE | FUNDING_OFFER | SUCCESS_CASE
+  entityType String
+  entityId   String         @db.Uuid
+  kind       AttachmentKind
+  url        String
+  filename   String
+  mimeType   String
+  size        Int
+  /// Título e descrição opcionais (traduzidos como `attachment.<id>.title|description` da publicação).
+  title       String?
+  description String?
+  sortOrder   Int            @default(0)
+  createdAt   DateTime       @default(now())
+
+  @@index([entityType, entityId, kind])
 }
 
 model SuccessCaseMedia {

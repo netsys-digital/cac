@@ -2,16 +2,22 @@ import { type FormEvent, useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Input, TextArea } from '@cac/ui';
+import { INLINE_TOOLS, RichTextArea } from '../../components/forms/RichTextArea';
 import { useAuth } from '../../auth/AuthContext';
 import { myContentsApi } from '../../api/myContentsApi';
 import { catalogApi } from '../../api/catalogApi';
 import { FieldFull, FormPage } from '../../components/forms/FormPage';
-import { BannerImageField, pickBannerFile } from '../../components/forms/BannerImageField';
-import {
-  pickCoverFile,
-  RepresentativeImageField,
-} from '../../components/forms/RepresentativeImageField';
+import { pickBannerFile } from '../../components/forms/BannerImageField';
+import { pickCoverFile } from '../../components/forms/RepresentativeImageField';
+import { MediaBlock } from '../../components/forms/MediaBlock';
+import { saveAttachments, usePublicationAttachments } from '../../components/forms/AttachmentsField';
 import { RegionCountryFields } from '../../components/forms/RegionCountryFields';
+import {
+  CallCardBlock,
+  callCardDefaults,
+  pickCallCard,
+  saveCallCardImage,
+} from '../../components/forms/CallCardBlock';
 
 export function EditCasePage() {
   const { id = '' } = useParams();
@@ -23,6 +29,7 @@ export function EditCasePage() {
   const [message, setMessage] = useState('');
   const [loading, setLoading] = useState(true);
   const [tab, setTab] = useState('content');
+  const { attachments, reload: reloadAttachments } = usePublicationAttachments(accessToken, 'success-cases', id);
 
   useEffect(() => {
     if (!accessToken || !id) return;
@@ -48,15 +55,6 @@ export function EditCasePage() {
     setError('');
     setMessage('');
     const form = new FormData(e.currentTarget);
-    const needs = String(form.get('needs') || '')
-      .split(',')
-      .map((s) => s.trim())
-      .filter(Boolean)
-      .map((needType) => ({ needType, detail: '' }));
-    if (!needs.length) {
-      setError(t('catalog.needsRequired'));
-      return;
-    }
     try {
       if (String(item?.status) === 'PUBLISHED') {
         await myContentsApi.withdraw(accessToken, 'SUCCESS_CASE', id);
@@ -74,8 +72,8 @@ export function EditCasePage() {
         bannerPosition: String(form.get('bannerPosition') || 'ABOVE_FOOTER'),
         country: String(form.get('country')),
         region: String(form.get('region')),
-        needs,
         evidenceNotes,
+        ...pickCallCard(form),
       });
       const cover = pickCoverFile(form);
       if (cover) {
@@ -85,6 +83,9 @@ export function EditCasePage() {
       if (banner) {
         await catalogApi.uploadBanner(accessToken, 'success-cases', id, banner);
       }
+      await saveCallCardImage(accessToken, 'success-cases', id, form);
+      await saveAttachments(accessToken, 'success-cases', id, form, attachments);
+      await reloadAttachments();
       const after = await myContentsApi.get(accessToken, 'SUCCESS_CASE', id);
       if (String(after.item.status) === 'DRAFT') {
         await myContentsApi.submitCase(accessToken, id);
@@ -106,10 +107,6 @@ export function EditCasePage() {
       </p>
     );
   }
-
-  const needsDefault = Array.isArray(item.needs)
-    ? (item.needs as Array<{ needType?: string }>).map((n) => n.needType).filter(Boolean).join(', ')
-    : String(item.needs || '');
 
   return (
     <FormPage
@@ -142,19 +139,25 @@ export function EditCasePage() {
               <Input label={t('catalog.title')} name="title" required defaultValue={String(item.title)} />
             </FieldFull>
             <FieldFull>
-              <TextArea label={t('catalog.summary')} name="summary" required rows={3} defaultValue={String(item.summary)} />
+              <RichTextArea
+                label={t('catalog.summary')}
+                name="summary"
+                required
+                rows={3}
+                tools={INLINE_TOOLS}
+                defaultValue={String(item.summary)}
+              />
             </FieldFull>
             <FieldFull>
-              <TextArea label={t('catalog.context')} name="context" required rows={4} defaultValue={String(item.context || '')} />
+              <RichTextArea label={t('catalog.context')} name="context" required rows={4} defaultValue={String(item.context || '')} />
             </FieldFull>
             <FieldFull>
-              <TextArea label={t('catalog.outcomes')} name="outcomes" required rows={3} defaultValue={String(item.outcomes || '')} />
+              <RichTextArea label={t('catalog.outcomes')} name="outcomes" required rows={3} defaultValue={String(item.outcomes || '')} />
             </FieldFull>
             <RegionCountryFields
               defaultRegion={String(item.region || 'africa')}
               defaultCountry={String(item.country || 'MZ')}
             />
-            <Input label={t('catalog.needs')} name="needs" required defaultValue={needsDefault} />
             <FieldFull>
               <TextArea label={t('catalog.evidence')} name="evidence" rows={3} defaultValue={String(item.evidence || '')} />
             </FieldFull>
@@ -162,16 +165,16 @@ export function EditCasePage() {
         ),
         media: (
           <>
-            <FieldFull>
-              <RepresentativeImageField currentUrl={item.coverImageUrl ? String(item.coverImageUrl) : null} />
-            </FieldFull>
-            <FieldFull>
-              <BannerImageField
-                currentUrl={item.bannerImageUrl ? String(item.bannerImageUrl) : null}
-                currentLink={item.bannerLinkUrl ? String(item.bannerLinkUrl) : null}
-                currentPosition={item.bannerPosition ? String(item.bannerPosition) : 'ABOVE_FOOTER'}
-              />
-            </FieldFull>
+            <MediaBlock
+              coverUrl={item.coverImageUrl ? String(item.coverImageUrl) : null}
+              banner={{
+                currentUrl: item.bannerImageUrl ? String(item.bannerImageUrl) : null,
+                currentLink: item.bannerLinkUrl ? String(item.bannerLinkUrl) : null,
+                currentPosition: item.bannerPosition ? String(item.bannerPosition) : 'ABOVE_FOOTER',
+              }}
+              attachments={attachments}
+            />
+            <CallCardBlock defaults={callCardDefaults(item)} />
           </>
         ),
       }}

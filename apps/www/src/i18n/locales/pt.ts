@@ -106,26 +106,12 @@ export const pt = {
     ],
     highlightsTitle: 'Destaques da plataforma',
     highlightsAll: 'Ver todos os destaques',
-    highlights: [
-      {
-        badge: 'Solução',
-        title: 'Recuperação de pastagens em seca',
-        body: 'Práticas e tecnologias para pecuária resiliente em climas extremos.',
-        to: '/search?q=recupera%C3%A7%C3%A3o%20de%20pastagens&contentType=SOLUTION',
-      },
-      {
-        badge: 'Financiamento',
-        title: 'Oportunidades de adaptação',
-        body: 'Ofertas ativas e instituições que apoiam projetos climáticos.',
-        to: '/funding',
-      },
-      {
-        badge: 'Caso de sucesso',
-        title: 'Experiências que inspiram ação',
-        body: 'Evidências de implementação em comunidades e territórios.',
-        to: '/cases',
-      },
-    ],
+    highlightBadge: {
+      SOLUTION: 'Solução',
+      FUNDING_OFFER: 'Financiamento',
+      SUCCESS_CASE: 'Caso de sucesso',
+    },
+    highlightsEmpty: 'Ainda não há publicações em destaque.',
     challengesTitle: 'Desafios Climáticos',
     challengesSupport: 'Necessidades reais que buscam soluções, conhecimento, parceiros e financiamento.',
     challengesAll: 'Ver todos os desafios',
@@ -241,6 +227,14 @@ export const pt = {
     caseComplementaryHint:
       'Use este caso como referência para replicar abordagens e conectar parceiros semelhantes.',
     publications: 'Publicações e PDFs relacionados',
+    gallery: 'Galeria',
+    galleryOpen: 'Ampliar imagem {{n}}',
+    galleryClose: 'Fechar galeria',
+    galleryPrev: 'Imagem anterior',
+    galleryNext: 'Próxima imagem',
+    galleryCounter: '{{n}} de {{total}}',
+    documents: 'Outros documentos',
+    documentsDownload: 'Baixar',
     sheet: {
       title: 'Ficha técnica',
       withPartners: 'Desenvolvida em parceria',

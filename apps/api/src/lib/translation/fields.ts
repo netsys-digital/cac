@@ -11,16 +11,36 @@ export const TRANSLATION_ENTITY_TYPES = [
 export type TranslationEntityType = (typeof TRANSLATION_ENTITY_TYPES)[number];
 
 export const SCALAR_FIELDS: Record<TranslationEntityType, string[]> = {
-  technology: ['title', 'summary', 'problemStatement', 'howItWorks', 'methodology', 'accessInfo'],
-  challenge: ['title', 'summary', 'context'],
+  technology: [
+    'title',
+    'summary',
+    'problemStatement',
+    'howItWorks',
+    'methodology',
+    'accessInfo',
+    'cardTitle',
+    'cardSummary',
+  ],
+  challenge: ['title', 'summary', 'context', 'cardTitle', 'cardSummary'],
   project: ['title', 'summary'],
   organization: ['summary'],
-  funding_offer: ['title', 'summary', 'whatFunds', 'criteria', 'amountRange'],
+  funding_offer: ['title', 'summary', 'whatFunds', 'criteria', 'amountRange', 'cardTitle', 'cardSummary'],
   funder: ['summary'],
-  success_case: ['title', 'summary', 'context', 'outcomes'],
+  success_case: ['title', 'summary', 'context', 'outcomes', 'cardTitle', 'cardSummary'],
 };
 
 export type SourceField = { field: string; value: string };
+
+/** Galeria/documentos (`PublicationAttachment`) carregados em `entity.attachments`. */
+const ATTACHMENT_TEXT_FIELDS = ['title', 'description'] as const;
+
+/** Tipo de tradução da publicação dona de um anexo (`PublicationAttachment.entityType`). */
+export const ATTACHMENT_OWNER_TRANSLATION: Record<string, TranslationEntityType> = {
+  TECHNOLOGY: 'technology',
+  CHALLENGE: 'challenge',
+  FUNDING_OFFER: 'funding_offer',
+  SUCCESS_CASE: 'success_case',
+};
 
 function asString(value: unknown): string {
   return typeof value === 'string' ? value.trim() : '';
@@ -34,6 +54,18 @@ export function collectSourceFields(
   for (const field of SCALAR_FIELDS[entityType]) {
     const value = asString(entity[field]);
     if (value) fields.push({ field, value });
+  }
+
+  const attachments = Array.isArray(entity.attachments) ? entity.attachments : [];
+  for (const item of attachments) {
+    if (!item || typeof item !== 'object') continue;
+    const row = item as { id?: unknown; title?: unknown; description?: unknown };
+    const id = asString(row.id);
+    if (!id) continue;
+    for (const key of ATTACHMENT_TEXT_FIELDS) {
+      const value = asString(row[key]);
+      if (value) fields.push({ field: `attachment.${id}.${key}`, value });
+    }
   }
 
   if (entityType === 'success_case') {
@@ -73,6 +105,23 @@ export function applyFieldMap<T extends Record<string, unknown>>(item: T, map: M
       const key = `media.${asString(row.id)}.caption`;
       if (!map.has(key)) return entry;
       return { ...row, caption: map.get(key) };
+    });
+  }
+
+  if (Array.isArray(item.attachments)) {
+    next.attachments = item.attachments.map((entry) => {
+      if (!entry || typeof entry !== 'object') return entry;
+      const row = entry as { id?: unknown };
+      const id = asString(row.id);
+      let changed: Record<string, unknown> | null = null;
+      for (const key of ATTACHMENT_TEXT_FIELDS) {
+        const mapKey = `attachment.${id}.${key}`;
+        if (map.has(mapKey)) {
+          changed = changed ?? { ...row };
+          changed[key] = map.get(mapKey);
+        }
+      }
+      return changed ?? entry;
     });
   }
 

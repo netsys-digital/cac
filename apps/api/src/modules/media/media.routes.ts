@@ -267,3 +267,63 @@ registerBannerRoute('technologies');
 registerBannerRoute('challenges');
 registerBannerRoute('funding-offers');
 registerBannerRoute('success-cases');
+
+type CardKind = Exclude<CoverKind, 'projects'>;
+
+async function saveCardImageUrl(kind: CardKind, id: string, cardImageUrl: string | null) {
+  switch (kind) {
+    case 'technologies':
+      return prisma.technology.update({ where: { id }, data: { cardImageUrl } });
+    case 'challenges':
+      return prisma.challenge.update({ where: { id }, data: { cardImageUrl } });
+    case 'funding-offers':
+      return prisma.fundingOffer.update({ where: { id }, data: { cardImageUrl } });
+    case 'success-cases':
+      return prisma.successCase.update({ where: { id }, data: { cardImageUrl } });
+  }
+}
+
+function registerCardImageRoute(kind: CardKind) {
+  mediaRouter.post(`/${kind}/:id/card-image`, requireAuth, withUpload(uploadCover), async (req, res, next) => {
+    try {
+      const id = param(req.params.id);
+      const item = await loadCoverTarget(kind, id);
+      if (!item) {
+        res.status(404).json({ error: 'not_found' });
+        return;
+      }
+      await assertCanActForOrganization(req.auth!.sub, item.organizationId, req.auth!.role);
+      if (!req.file) {
+        res.status(400).json({ error: 'file_required' });
+        return;
+      }
+
+      const cardImageUrl = `/uploads/${req.file.filename}`;
+      const updated = await saveCardImageUrl(kind, id, cardImageUrl);
+      res.status(201).json({ cardImageUrl, item: updated });
+    } catch (error) {
+      next(error);
+    }
+  });
+
+  mediaRouter.delete(`/${kind}/:id/card-image`, requireAuth, async (req, res, next) => {
+    try {
+      const id = param(req.params.id);
+      const item = await loadCoverTarget(kind, id);
+      if (!item) {
+        res.status(404).json({ error: 'not_found' });
+        return;
+      }
+      await assertCanActForOrganization(req.auth!.sub, item.organizationId, req.auth!.role);
+      await saveCardImageUrl(kind, id, null);
+      res.status(204).end();
+    } catch (error) {
+      next(error);
+    }
+  });
+}
+
+registerCardImageRoute('technologies');
+registerCardImageRoute('challenges');
+registerCardImageRoute('funding-offers');
+registerCardImageRoute('success-cases');

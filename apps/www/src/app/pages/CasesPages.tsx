@@ -3,12 +3,16 @@ import { Link, useParams } from 'react-router-dom';
 import { Trans, useTranslation } from 'react-i18next';
 import { shell } from '../components/PageChrome';
 import {
+  DocumentsSection,
+  GallerySection,
+  usePublicationAttachments,
+} from '../components/PublicationAttachments';
+import {
   CatalogDetailBody,
   CatalogDetailBanner,
   CatalogDetailHero,
   DetailActionStack,
   DetailHeroChip,
-  DetailMetaChip,
   DetailOrgCard,
   DetailSecondaryButton,
   DetailFavoriteButton,
@@ -20,9 +24,9 @@ import { BackLink } from '../components/BackLink';
 import { CasesBrowseSection } from '../components/CasesBrowseSection';
 import { urls } from '../../config';
 import { casesApi, type SuccessCase } from '../api/casesApi';
-import { needTypeLabel } from '../lib/needTypeLabel';
 import { resolveMediaUrl } from '../lib/mediaUrl';
 import { resolveDetailBanner } from '../lib/detailBanner';
+import { RichText } from '../lib/richText';
 
 const CASES_HERO_IMG = '/images/fundo_casos.png';
 const CASE_PUBLISH_URL = `${urls.web}/cases/new`;
@@ -216,6 +220,7 @@ export function CaseDetailPage() {
   const { t, i18n } = useTranslation();
   const [item, setItem] = useState<SuccessCase | null>(null);
   const [error, setError] = useState('');
+  const attachments = usePublicationAttachments('success-cases', item?.id);
 
   useEffect(() => {
     let cancelled = false;
@@ -277,9 +282,6 @@ export function CaseDetailPage() {
           <>
             {item.region ? <DetailHeroChip>{item.region}</DetailHeroChip> : null}
             <DetailHeroChip>{item.country}</DetailHeroChip>
-            {item.needs.slice(0, 3).map((n) => (
-              <DetailHeroChip key={n.id}>{needTypeLabel(n.needType, t)}</DetailHeroChip>
-            ))}
           </>
         }
       />
@@ -289,25 +291,12 @@ export function CaseDetailPage() {
         <div className="grid gap-6 lg:grid-cols-[minmax(0,1.45fr)_minmax(260px,0.7fr)] lg:gap-8">
           <article className="cac-fade-up rounded-[18px] border border-cac-line bg-white px-5 py-2 shadow-[0_16px_40px_rgba(10,36,64,.07)] md:px-8">
             <DetailSection title={t('cases.context')} index={nextIndex()}>
-              <p className={item.context ? undefined : 'text-cac-muted'}>{item.context || item.summary}</p>
+              <RichText text={item.context || item.summary} className={item.context ? undefined : 'text-cac-muted'} />
             </DetailSection>
 
             {item.outcomes ? (
               <DetailSection title={t('cases.outcomes')} index={nextIndex()}>
-                <p>{item.outcomes}</p>
-              </DetailSection>
-            ) : null}
-
-            {item.needs.length ? (
-              <DetailSection title={t('cases.needs')} index={nextIndex()}>
-                <div className="flex flex-wrap gap-1.5">
-                  {item.needs.map((n) => (
-                    <DetailMetaChip key={n.id}>
-                      {needTypeLabel(n.needType, t)}
-                      {n.detail ? `: ${n.detail}` : ''}
-                    </DetailMetaChip>
-                  ))}
-                </div>
+                <RichText text={item.outcomes} />
               </DetailSection>
             ) : null}
 
@@ -346,6 +335,13 @@ export function CaseDetailPage() {
                   </ul>
                 ) : null}
               </DetailSection>
+            ) : null}
+
+            {attachments.gallery.length ? (
+              <GallerySection items={attachments.gallery} index={nextIndex()} />
+            ) : null}
+            {attachments.documents.length ? (
+              <DocumentsSection items={attachments.documents} index={nextIndex()} />
             ) : null}
 
             <DetailSection title={t('detail.nextSteps')} index={nextIndex()}>

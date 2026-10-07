@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { BannerPosition, ClimateAction, ContentStatus, Maturity } from '../enums.js';
+import { callCardFields } from './callCard.js';
 
 const bannerPositionSchema = z
   .enum([BannerPosition.ABOVE_HERO, BannerPosition.BELOW_HERO, BannerPosition.ABOVE_FOOTER])
@@ -63,6 +64,7 @@ export const createTechnologyBodySchema = z.object({
   accessInfo: optionalText(2000),
   keywords: z.array(z.string().min(1).max(64)).max(30).optional(),
   officialUrl: optionalHttpUrl,
+  ...callCardFields,
 });
 
 export const updateTechnologyBodySchema = createTechnologyBodySchema

@@ -297,4 +297,93 @@ export const catalogApi = {
   },
   deleteTechnologyMedia: (token: string, id: string, mediaId: string) =>
     api<void>(`/api/technologies/${id}/media/${mediaId}`, { method: 'DELETE', accessToken: token }),
+  uploadCardImage: (token: string, kind: CallCardKind, id: string, file: File) => {
+    const body = new FormData();
+    body.append('file', file);
+    return api<{ cardImageUrl: string }>(`/api/${kind}/${id}/card-image`, {
+      method: 'POST',
+      accessToken: token,
+      body,
+    });
+  },
+  deleteCardImage: (token: string, kind: CallCardKind, id: string) =>
+    api<void>(`/api/${kind}/${id}/card-image`, { method: 'DELETE', accessToken: token }),
+  listAttachments: (token: string, kind: CallCardKind, id: string) =>
+    api<{ gallery: Attachment[]; documents: Attachment[] }>(`/api/${kind}/${id}/attachments`, {
+      accessToken: token,
+    }),
+  uploadAttachment: (
+    token: string,
+    kind: CallCardKind,
+    id: string,
+    attachmentKind: AttachmentKind,
+    file: File,
+    meta?: AttachmentMeta,
+  ) => {
+    const body = new FormData();
+    body.append('title', meta?.title ?? '');
+    body.append('description', meta?.description ?? '');
+    body.append('file', file);
+    return api<{ attachment: Attachment }>(`/api/${kind}/${id}/attachments?kind=${attachmentKind}`, {
+      method: 'POST',
+      accessToken: token,
+      body,
+    });
+  },
+  updateAttachment: (token: string, kind: CallCardKind, id: string, attachmentId: string, meta: AttachmentMeta) =>
+    api<{ attachment: Attachment }>(`/api/${kind}/${id}/attachments/${attachmentId}`, {
+      method: 'PATCH',
+      accessToken: token,
+      body: JSON.stringify(meta),
+    }),
+  deleteAttachment: (token: string, kind: CallCardKind, id: string, attachmentId: string) =>
+    api<void>(`/api/${kind}/${id}/attachments/${attachmentId}`, { method: 'DELETE', accessToken: token }),
+  getHighlights: (token: string) =>
+    api<HighlightsAdminPayload>('/api/admin/highlights', { accessToken: token }),
+  saveHighlights: (token: string, items: Array<{ type: HighlightType; id: string }>) =>
+    api<HighlightsAdminPayload>('/api/admin/highlights', {
+      method: 'PUT',
+      accessToken: token,
+      body: JSON.stringify({ items }),
+    }),
+};
+
+export type CallCardKind = 'technologies' | 'challenges' | 'funding-offers' | 'success-cases';
+
+export type AttachmentKind = 'GALLERY' | 'DOCUMENT';
+
+export type Attachment = {
+  id: string;
+  kind: AttachmentKind;
+  url: string;
+  filename: string;
+  mimeType: string;
+  size: number;
+  title?: string | null;
+  description?: string | null;
+};
+
+export type AttachmentMeta = { title: string; description: string };
+
+export type HighlightType = 'SOLUTION' | 'FUNDING_OFFER' | 'SUCCESS_CASE';
+
+export type HighlightItem = {
+  type: HighlightType;
+  id: string;
+  slug: string;
+  title: string;
+  summary: string;
+  coverImageUrl: string | null;
+  cardImageUrl: string | null;
+  cardTitle: string | null;
+  cardSummary: string | null;
+  highlightOrder: number | null;
+  updatedAt: string;
+  organizationName: string | null;
+};
+
+export type HighlightsAdminPayload = {
+  max: number;
+  selected: HighlightItem[];
+  available: HighlightItem[];
 };

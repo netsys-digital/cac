@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { BannerPosition, ContentStatus, NeedType } from '../enums.js';
+import { callCardFields } from './callCard.js';
 
 const bannerPositionSchema = z
   .enum([BannerPosition.ABOVE_HERO, BannerPosition.BELOW_HERO, BannerPosition.ABOVE_FOOTER])
@@ -37,6 +38,7 @@ export const createFundingOfferBodySchema = z.object({
   status: z
     .enum([ContentStatus.DRAFT, ContentStatus.IN_REVIEW, ContentStatus.PUBLISHED])
     .optional(),
+  ...callCardFields,
 });
 
 export const updateFundingOfferBodySchema = createFundingOfferBodySchema.partial().omit({
@@ -95,8 +97,9 @@ export const createSuccessCaseBodySchema = z.object({
         detail: z.string().max(500).optional(),
       }),
     )
-    .min(1),
+    .optional(),
   evidenceNotes: z.array(z.string().max(500)).optional(),
+  ...callCardFields,
 });
 
 export const updateSuccessCaseBodySchema = createSuccessCaseBodySchema.partial().omit({

@@ -1,17 +1,23 @@
 import { type FormEvent, useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Input, TextArea } from '@cac/ui';
+import { Input } from '@cac/ui';
+import { INLINE_TOOLS, RichTextArea } from '../../components/forms/RichTextArea';
 import { useAuth } from '../../auth/AuthContext';
 import { myContentsApi } from '../../api/myContentsApi';
 import { catalogApi } from '../../api/catalogApi';
 import { FieldFull, FormPage } from '../../components/forms/FormPage';
-import { BannerImageField, pickBannerFile } from '../../components/forms/BannerImageField';
-import {
-  pickCoverFile,
-  RepresentativeImageField,
-} from '../../components/forms/RepresentativeImageField';
+import { pickBannerFile } from '../../components/forms/BannerImageField';
+import { pickCoverFile } from '../../components/forms/RepresentativeImageField';
+import { MediaBlock } from '../../components/forms/MediaBlock';
+import { saveAttachments, usePublicationAttachments } from '../../components/forms/AttachmentsField';
 import { RegionCountryFields } from '../../components/forms/RegionCountryFields';
+import {
+  CallCardBlock,
+  callCardDefaults,
+  pickCallCard,
+  saveCallCardImage,
+} from '../../components/forms/CallCardBlock';
 
 export function EditFundingOfferPage() {
   const { id = '' } = useParams();
@@ -23,6 +29,7 @@ export function EditFundingOfferPage() {
   const [message, setMessage] = useState('');
   const [loading, setLoading] = useState(true);
   const [tab, setTab] = useState('content');
+  const { attachments, reload: reloadAttachments } = usePublicationAttachments(accessToken, 'funding-offers', id);
 
   useEffect(() => {
     if (!accessToken || !id) return;
@@ -64,6 +71,7 @@ export function EditFundingOfferPage() {
         deadline: String(form.get('deadline') || '') || undefined,
         country: String(form.get('country')),
         region: String(form.get('region')),
+        ...pickCallCard(form),
       });
       const cover = pickCoverFile(form);
       if (cover) {
@@ -73,6 +81,9 @@ export function EditFundingOfferPage() {
       if (banner) {
         await catalogApi.uploadBanner(accessToken, 'funding-offers', id, banner);
       }
+      await saveCallCardImage(accessToken, 'funding-offers', id, form);
+      await saveAttachments(accessToken, 'funding-offers', id, form, attachments);
+      await reloadAttachments();
       const after = await myContentsApi.get(accessToken, 'FUNDING_OFFER', id);
       if (String(after.item.status) === 'DRAFT') {
         await myContentsApi.submitOffer(accessToken, id);
@@ -129,13 +140,20 @@ export function EditFundingOfferPage() {
               <Input label={t('catalog.title')} name="title" required defaultValue={String(item.title)} />
             </FieldFull>
             <FieldFull>
-              <TextArea label={t('catalog.summary')} name="summary" required rows={3} defaultValue={String(item.summary)} />
+              <RichTextArea
+                label={t('catalog.summary')}
+                name="summary"
+                required
+                rows={3}
+                tools={INLINE_TOOLS}
+                defaultValue={String(item.summary)}
+              />
             </FieldFull>
             <FieldFull>
-              <TextArea label={t('catalog.whatFunds')} name="whatFunds" required rows={3} defaultValue={String(item.whatFunds || '')} />
+              <RichTextArea label={t('catalog.whatFunds')} name="whatFunds" required rows={3} defaultValue={String(item.whatFunds || '')} />
             </FieldFull>
             <FieldFull>
-              <TextArea label={t('catalog.criteria')} name="criteria" required rows={3} defaultValue={String(item.criteria || '')} />
+              <RichTextArea label={t('catalog.criteria')} name="criteria" required rows={3} defaultValue={String(item.criteria || '')} />
             </FieldFull>
             <Input label={t('catalog.amountRange')} name="amountRange" defaultValue={String(item.amountRange || '')} />
             <Input label={t('catalog.deadline')} name="deadline" type="date" defaultValue={deadline} />
@@ -150,16 +168,16 @@ export function EditFundingOfferPage() {
         ),
         media: (
           <>
-            <FieldFull>
-              <RepresentativeImageField currentUrl={item.coverImageUrl ? String(item.coverImageUrl) : null} />
-            </FieldFull>
-            <FieldFull>
-              <BannerImageField
-                currentUrl={item.bannerImageUrl ? String(item.bannerImageUrl) : null}
-                currentLink={item.bannerLinkUrl ? String(item.bannerLinkUrl) : null}
-                currentPosition={item.bannerPosition ? String(item.bannerPosition) : 'ABOVE_FOOTER'}
-              />
-            </FieldFull>
+            <MediaBlock
+              coverUrl={item.coverImageUrl ? String(item.coverImageUrl) : null}
+              banner={{
+                currentUrl: item.bannerImageUrl ? String(item.bannerImageUrl) : null,
+                currentLink: item.bannerLinkUrl ? String(item.bannerLinkUrl) : null,
+                currentPosition: item.bannerPosition ? String(item.bannerPosition) : 'ABOVE_FOOTER',
+              }}
+              attachments={attachments}
+            />
+            <CallCardBlock defaults={callCardDefaults(item)} />
           </>
         ),
       }}

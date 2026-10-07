@@ -10,6 +10,25 @@ async function api<T>(path: string): Promise<T> {
   return (await res.json()) as T;
 }
 
+/** Card de chamada configurado na publicação (vazio = usa título/resumo/capa). */
+export type CallCardFields = {
+  cardImageUrl?: string | null;
+  cardTitle?: string | null;
+  cardSummary?: string | null;
+};
+
+export type HighlightType = 'SOLUTION' | 'FUNDING_OFFER' | 'SUCCESS_CASE';
+
+export type HighlightItem = CallCardFields & {
+  type: HighlightType;
+  id: string;
+  slug: string;
+  title: string;
+  summary: string;
+  coverImageUrl?: string | null;
+  organizationName?: string | null;
+};
+
 export type OrgSummary = {
   id: string;
   name: string;
@@ -42,7 +61,7 @@ export type TechnologyMedia = {
   mimeType: string;
 };
 
-export type Technology = {
+export type Technology = CallCardFields & {
   id: string;
   title: string;
   slug: string;
@@ -74,7 +93,7 @@ export type Technology = {
   organization?: OrgSummary;
 };
 
-export type Challenge = {
+export type Challenge = CallCardFields & {
   id: string;
   title: string;
   slug: string;
@@ -115,4 +134,20 @@ export const catalogApi = {
   getChallenge: (slug: string) => api<{ challenge: Challenge }>(`/api/challenges/${slug}`),
   listProjects: () => api<{ items: Project[] }>('/api/projects'),
   getProject: (slug: string) => api<{ project: Project }>(`/api/projects/${slug}`),
+  listHighlights: () =>
+    api<{ mode: 'curated' | 'auto'; items: HighlightItem[] }>('/api/highlights'),
+  listAttachments: (kind: AttachmentTarget, id: string) =>
+    api<{ gallery: Attachment[]; documents: Attachment[] }>(`/api/${kind}/${id}/attachments`),
+};
+
+export type AttachmentTarget = 'technologies' | 'challenges' | 'funding-offers' | 'success-cases';
+
+export type Attachment = {
+  id: string;
+  url: string;
+  filename: string;
+  mimeType: string;
+  size: number;
+  title?: string | null;
+  description?: string | null;
 };

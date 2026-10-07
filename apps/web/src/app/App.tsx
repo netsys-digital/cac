@@ -18,6 +18,7 @@ import { AdminRepresentationPage } from './pages/admin/AdminRepresentationPage';
 import { AdminDomainsPage } from './pages/admin/AdminDomainsPage';
 import { AdminOrganizationsPage } from './pages/admin/AdminOrganizationsPage';
 import { AdminCuratePage } from './pages/admin/AdminCuratePage';
+import { AdminHighlightsPage } from './pages/admin/AdminHighlightsPage';
 import { AdminUsersPage } from './pages/admin/AdminUsersPage';
 import { NewTechnologyPage } from './pages/catalog/NewTechnologyPage';
 import { NewChallengePage } from './pages/catalog/NewChallengePage';
@@ -143,6 +144,14 @@ export default function App() {
           element={
             <RequireRole roles={[UserRole.ADMIN, UserRole.CURADOR]}>
               <AdminOrganizationsPage />
+            </RequireRole>
+          }
+        />
+        <Route
+          path="admin/highlights"
+          element={
+            <RequireRole roles={[UserRole.ADMIN, UserRole.CURADOR]}>
+              <AdminHighlightsPage />
             </RequireRole>
           }
         />

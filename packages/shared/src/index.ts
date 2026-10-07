@@ -11,3 +11,4 @@ export * from './schemas/search.js';
 export * from './schemas/connection.js';
 export * from './schemas/funding.js';
 export * from './schemas/adminUser.js';
+export * from './schemas/callCard.js';

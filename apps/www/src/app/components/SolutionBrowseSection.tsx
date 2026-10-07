@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { catalogApi, type Technology } from '../api/catalogApi';
 import { shell } from './PageChrome';
 import { resolveMediaUrl } from '../lib/mediaUrl';
+import { plainText } from '../lib/richText';
 import { useSavedFavoriteKeys } from '../hooks/useSavedFavoriteKeys';
 import {
   useResetOnChange,
@@ -376,7 +377,7 @@ export function SolutionBrowseSection() {
                   {item.title}
                 </h3>
                 <p className="mt-2 line-clamp-3 text-pequena leading-relaxed text-cac-muted">
-                  {item.summary}
+                  {plainText(item.summary)}
                 </p>
                 <div className="mt-3 flex flex-wrap gap-x-4 gap-y-1.5 text-mini text-cac-muted">
                   {item.country ? (

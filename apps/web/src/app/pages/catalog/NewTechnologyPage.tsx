@@ -1,6 +1,7 @@
 import { type FormEvent, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Input, TextArea } from '@cac/ui';
+import { Input } from '@cac/ui';
+import { INLINE_TOOLS, RichTextArea } from '../../components/forms/RichTextArea';
 import { useAuth } from '../../auth/AuthContext';
 import { catalogApi } from '../../api/catalogApi';
 import { FieldFull, FormPage, SelectField } from '../../components/forms/FormPage';
@@ -16,6 +17,8 @@ import {
   pickBannerPosition,
 } from '../../components/forms/BannerImageField';
 import { MediaBlock } from '../../components/forms/MediaBlock';
+import { saveAttachments } from '../../components/forms/AttachmentsField';
+import { CallCardBlock, pickCallCard, saveCallCardImage } from '../../components/forms/CallCardBlock';
 import { pickPublicationFiles, PublicationsField } from '../../components/forms/PublicationsField';
 import { pickCoverFile } from '../../components/forms/RepresentativeImageField';
 import { pickTechnicalSheet, TechnicalSheetBlock } from '../../components/forms/TechnicalSheetBlock';
@@ -82,6 +85,7 @@ export function NewTechnologyPage() {
         maturity: String(form.get('maturity')),
         tags,
         ...pickTechnicalSheet(form),
+        ...pickCallCard(form),
       });
       if (cover) {
         await catalogApi.uploadCover(accessToken, 'technologies', created.technology.id, cover);
@@ -89,6 +93,8 @@ export function NewTechnologyPage() {
       if (banner) {
         await catalogApi.uploadBanner(accessToken, 'technologies', created.technology.id, banner);
       }
+      await saveCallCardImage(accessToken, 'technologies', created.technology.id, form);
+      await saveAttachments(accessToken, 'technologies', created.technology.id, form);
       for (const file of publications) {
         await catalogApi.uploadTechnologyMedia(accessToken, created.technology.id, file);
       }
@@ -136,10 +142,17 @@ export function NewTechnologyPage() {
         <Input label={t('catalog.title')} hint={t('catalog.titleHint')} name="title" required />
       </FieldFull>
       <FieldFull>
-        <TextArea label={t('catalog.summary')} hint={t('catalog.summaryHint')} name="summary" required rows={3} />
+        <RichTextArea
+          label={t('catalog.summary')}
+          hint={t('catalog.summaryHint')}
+          name="summary"
+          required
+          rows={3}
+          tools={INLINE_TOOLS}
+        />
       </FieldFull>
       <FieldFull>
-        <TextArea
+        <RichTextArea
           label={t('catalog.problem')}
           hint={t('catalog.problemHint')}
           name="problemStatement"
@@ -148,7 +161,7 @@ export function NewTechnologyPage() {
         />
       </FieldFull>
       <FieldFull>
-        <TextArea label={t('catalog.how')} hint={t('catalog.howHint')} name="howItWorks" required rows={4} />
+        <RichTextArea label={t('catalog.how')} hint={t('catalog.howHint')} name="howItWorks" required rows={4} />
       </FieldFull>
       <FieldFull>
         <PublicationsField />
@@ -185,6 +198,7 @@ export function NewTechnologyPage() {
           placeholder="https://www.youtube.com/watch?v=…"
         />
       </MediaBlock>
+      <CallCardBlock />
     </FormPage>
   );
 }

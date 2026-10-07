@@ -3,8 +3,8 @@ import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { casesApi, type SuccessCase } from '../api/casesApi';
 import { shell } from './PageChrome';
-import { needTypeLabel } from '../lib/needTypeLabel';
 import { resolveMediaUrl } from '../lib/mediaUrl';
+import { plainText } from '../lib/richText';
 import { useSavedFavoriteKeys } from '../hooks/useSavedFavoriteKeys';
 import {
   useResetOnChange,
@@ -14,16 +14,6 @@ import {
 } from '../search/urlState';
 
 const PAGE_SIZE = 9;
-
-const NEED_TYPES = [
-  'TECHNOLOGY',
-  'KNOWLEDGE',
-  'PARTNERSHIP',
-  'FUNDING',
-  'TRAINING',
-  'RESEARCH',
-  'EQUIPMENT',
-] as const;
 
 const COUNTRY_LABELS: Record<string, string> = {
   BR: 'Brasil',
@@ -90,9 +80,8 @@ export function CasesBrowseSection() {
 
   const [query, setQuery] = useUrlInitialState('q', '');
   const [country, setCountry] = useUrlInitialState('country', '');
-  const [needType, setNeedType] = useUrlInitialState('need', '');
   const [region, setRegion] = useUrlInitialState('region', '');
-  const [moreOpen, setMoreOpen] = useState(Boolean(needType));
+  const [moreOpen, setMoreOpen] = useState(Boolean(region));
   const [sort, setSort] = useUrlInitialState<SortKey>('sort', 'recent', SORT_KEYS);
   const [view, setView] = useUrlInitialState<ViewMode>('view', 'grid', ['grid', 'list']);
   const [page, setPage] = useUrlPageState();
@@ -101,7 +90,6 @@ export function CasesBrowseSection() {
     q: query.trim(),
     country,
     region,
-    need: needType,
     sort: sort === 'recent' ? null : sort,
     view: view === 'grid' ? null : view,
     page: page > 1 ? page : null,
@@ -151,30 +139,22 @@ export function CasesBrowseSection() {
       const q = query.trim();
       next = next.filter((item) =>
         matchesText(
-          [
-            item.title,
-            item.summary,
-            item.context ?? '',
-            item.outcomes ?? '',
-            ...item.needs.map((n) => `${n.needType} ${n.detail ?? ''}`),
-          ].join(' '),
+          [item.title, item.summary, item.context ?? '', item.outcomes ?? ''].join(' '),
           q,
         ),
       );
     }
     if (country) next = next.filter((item) => item.country === country);
     if (region) next = next.filter((item) => item.region === region);
-    if (needType) next = next.filter((item) => item.needs.some((n) => n.needType === needType));
-
     next.sort((a, b) => {
       if (sort === 'title_asc') return a.title.localeCompare(b.title, undefined, { sensitivity: 'base' });
       if (sort === 'title_desc') return b.title.localeCompare(a.title, undefined, { sensitivity: 'base' });
       return 0;
     });
     return next;
-  }, [items, query, country, region, needType, sort]);
+  }, [items, query, country, region, sort]);
 
-  useResetOnChange(JSON.stringify([query, country, region, needType, sort]), () => setPage(1));
+  useResetOnChange(JSON.stringify([query, country, region, sort]), () => setPage(1));
 
   const total = filtered.length;
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
@@ -219,13 +199,6 @@ export function CasesBrowseSection() {
               {countries.map((code) => (
                 <option key={code} value={code}>
                   {countryLabel(code)}
-                </option>
-              ))}
-            </FilterSelect>
-            <FilterSelect label={t('cases.filterNeedType')} value={needType} onChange={setNeedType}>
-              {NEED_TYPES.map((value) => (
-                <option key={value} value={value}>
-                  {needTypeLabel(value, t)}
                 </option>
               ))}
             </FilterSelect>
@@ -354,7 +327,7 @@ export function CasesBrowseSection() {
                   {item.title}
                 </h3>
                 <p className="mt-2 line-clamp-3 text-pequena leading-relaxed text-cac-muted">
-                  {item.summary}
+                  {plainText(item.summary)}
                 </p>
                 <div className="mt-3 flex flex-wrap gap-x-4 gap-y-1.5 text-mini text-cac-muted">
                   {item.country ? (
@@ -370,18 +343,6 @@ export function CasesBrowseSection() {
                     </span>
                   ) : null}
                 </div>
-                {item.needs.length ? (
-                  <div className="mt-3 flex flex-wrap gap-1.5">
-                    {item.needs.slice(0, 4).map((n) => (
-                      <span
-                        key={n.id}
-                        className="rounded-lg bg-cac-green3 px-2 py-1 text-mini font-extrabold text-cac-green"
-                      >
-                        {needTypeLabel(n.needType, t)}
-                      </span>
-                    ))}
-                  </div>
-                ) : null}
               </div>
             </Link>
           );

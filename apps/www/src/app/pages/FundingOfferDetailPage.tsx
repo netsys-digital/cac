@@ -19,14 +19,21 @@ import { DetailConnectionActions } from '../components/DetailConnectionActions';
 import { DetailGuestAuthHint } from '../components/DetailGuestAuthHint';
 import { BackLink } from '../components/BackLink';
 import { shell } from '../components/PageChrome';
+import {
+  DocumentsSection,
+  GallerySection,
+  usePublicationAttachments,
+} from '../components/PublicationAttachments';
 import { urls } from '../../config';
 import { resolveDetailBanner } from '../lib/detailBanner';
+import { RichText } from '../lib/richText';
 
 export function FundingOfferDetailPage() {
   const { slug = '' } = useParams();
   const { t, i18n } = useTranslation();
   const [item, setItem] = useState<FundingOffer | null>(null);
   const [error, setError] = useState('');
+  const attachments = usePublicationAttachments('funding-offers', item?.id);
 
   useEffect(() => {
     let cancelled = false;
@@ -81,6 +88,8 @@ export function FundingOfferDetailPage() {
   ].filter((c): c is { label: string; value: string; icon: string } => Boolean(c));
 
   const banner = resolveDetailBanner(item, item.organization, 'FUNDING_OFFER');
+  let sectionIndex = 1;
+  const nextIndex = () => String(++sectionIndex).padStart(2, '0');
   const bannerEl = (
     <CatalogDetailBanner
       bannerUrl={banner.url}
@@ -113,21 +122,28 @@ export function FundingOfferDetailPage() {
           <article className="cac-fade-up rounded-[18px] border border-cac-line bg-white px-5 py-2 shadow-[0_16px_40px_rgba(10,36,64,.07)] md:px-8">
             {item.whatFunds ? (
               <DetailSection title={t('detail.whatFunds')} index="01">
-                <p>{item.whatFunds}</p>
+                <RichText text={item.whatFunds} />
               </DetailSection>
             ) : (
               <DetailSection title={t('detail.whatFunds')} index="01">
-                <p className="text-cac-muted">{item.summary}</p>
+                <RichText text={item.summary} className="text-cac-muted" />
               </DetailSection>
             )}
 
             {item.criteria ? (
-              <DetailSection title={t('detail.criteria')} index="02">
-                <p>{item.criteria}</p>
+              <DetailSection title={t('detail.criteria')} index={nextIndex()}>
+                <RichText text={item.criteria} />
               </DetailSection>
             ) : null}
 
-            <DetailSection title={t('detail.nextSteps')} index="03">
+            {attachments.gallery.length ? (
+              <GallerySection items={attachments.gallery} index={nextIndex()} />
+            ) : null}
+            {attachments.documents.length ? (
+              <DocumentsSection items={attachments.documents} index={nextIndex()} />
+            ) : null}
+
+            <DetailSection title={t('detail.nextSteps')} index={nextIndex()}>
               <p className="text-cac-muted">{t('detail.fundingNextStepsBody')}</p>
               <ul className="mt-4 space-y-2.5 text-pequena text-cac-navy">
                 <li className="flex gap-2">
@@ -146,7 +162,7 @@ export function FundingOfferDetailPage() {
             </DetailSection>
 
             {item.officialUrl ? (
-              <DetailSection title={t('detail.officialLink')} index="04">
+              <DetailSection title={t('detail.officialLink')} index={nextIndex()}>
                 <p className="text-cac-muted">{t('detail.officialLinkBody')}</p>
                 <a
                   href={item.officialUrl}

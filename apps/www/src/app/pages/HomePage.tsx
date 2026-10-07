@@ -2,10 +2,10 @@ import { type FormEvent, useEffect, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Trans, useTranslation } from 'react-i18next';
 import { urls } from '../../config';
-import { catalogApi, type Challenge } from '../api/catalogApi';
+import { catalogApi, type Challenge, type HighlightItem, type HighlightType } from '../api/catalogApi';
+import { callCard } from '../lib/callCard';
 import { IconSearch } from '../components/PathIcons';
 import { needTypeLabel } from '../lib/needTypeLabel';
-import { resolveMediaUrl } from '../lib/mediaUrl';
 import { searchParamsFromState } from '../search/searchReturn';
 import { pushRecentSearch } from '../search/recentSearches';
 
@@ -15,11 +15,17 @@ const HERO_IMG =
   'https://upload.wikimedia.org/wikipedia/commons/a/ab/Agroforestry_contour_planting.jpg';
 const VIDEO_BG =
   'https://images.unsplash.com/photo-1433086966358-54859d0ed716?auto=format&fit=crop&w=1920&q=80';
-const HIGHLIGHT_IMGS = [
-  'https://upload.wikimedia.org/wikipedia/commons/3/32/The_Center_for_Regenerative_Agriculture_at_the_University_of_Missouri_recently_hosted_U.S._Department_of_Agriculture_%28USDA%29_Robert_Bonnie_in_Missouri_on_26_June_2024_-_14.jpg',
-  'https://upload.wikimedia.org/wikipedia/commons/2/22/Partnerships_for_Climate-Smart_Commodities_Success_Stories_%2820241206-USDA-NRCS-6%29.jpg',
-  'https://upload.wikimedia.org/wikipedia/commons/5/59/The_Center_for_Regenerative_Agriculture_at_the_University_of_Missouri_recently_hosted_U.S._Department_of_Agriculture_%28USDA%29_Robert_Bonnie_in_Missouri_on_26_June_2024_-_29.jpg',
-];
+const HIGHLIGHT_PATHS: Record<HighlightType, string> = {
+  SOLUTION: '/solutions',
+  FUNDING_OFFER: '/funding',
+  SUCCESS_CASE: '/cases',
+};
+
+const HIGHLIGHT_BADGE_COLORS: Record<HighlightType, string> = {
+  SOLUTION: 'bg-cac-green2',
+  FUNDING_OFFER: 'bg-[#c98a12]',
+  SUCCESS_CASE: 'bg-[#2d6e9f]',
+};
 
 const CHALLENGE_BADGE_COLORS = ['bg-[#2f6fed]', 'bg-[#a65a3a]', 'bg-[#1f6b4a]'] as const;
 
@@ -113,6 +119,27 @@ export function HomePage() {
   const [region, setRegion] = useState('');
   const [homeChallenges, setHomeChallenges] = useState<Challenge[]>([]);
   const [challengesLoading, setChallengesLoading] = useState(true);
+  const [highlights, setHighlights] = useState<HighlightItem[]>([]);
+  const [highlightsLoading, setHighlightsLoading] = useState(true);
+
+  useEffect(() => {
+    let cancelled = false;
+    setHighlightsLoading(true);
+    catalogApi
+      .listHighlights()
+      .then((res) => {
+        if (!cancelled) setHighlights(res.items ?? []);
+      })
+      .catch(() => {
+        if (!cancelled) setHighlights([]);
+      })
+      .finally(() => {
+        if (!cancelled) setHighlightsLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   useEffect(() => {
     if (location.hash !== '#sobre') return;
@@ -155,13 +182,6 @@ export function HomePage() {
     title: string;
     body: string;
   }>;
-  const highlights = t('home.highlights', { returnObjects: true }) as Array<{
-    badge: string;
-    title: string;
-    body: string;
-    to: string;
-  }>;
-
   const paths = [
     {
       to: '/search?contentType=SOLUTION',
@@ -454,35 +474,55 @@ export function HomePage() {
               {t('home.highlightsAll')} →
             </Link>
           </div>
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-            {Array.isArray(highlights)
-              ? highlights.map((item, index) => (
+          {highlightsLoading ? (
+            <p className="text-pequena text-cac-muted">{t('detail.loading')}</p>
+          ) : highlights.length ? (
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+              {highlights.map((item) => {
+                const card = callCard(item);
+                return (
                   <Link
-                    key={item.title}
-                    to={item.to}
-                    className="group overflow-hidden rounded-[16px] border border-cac-line bg-white shadow-[0_10px_28px_rgba(10,36,64,.08)] transition hover:-translate-y-0.5"
+                    key={`${item.type}:${item.id}`}
+                    to={`${HIGHLIGHT_PATHS[item.type]}/${item.slug}`}
+                    className="group flex flex-col overflow-hidden rounded-[16px] border border-cac-line bg-white shadow-[0_10px_28px_rgba(10,36,64,.08)] transition hover:-translate-y-0.5"
                   >
-                    <div className="relative h-40 overflow-hidden">
-                      <img
-                        src={HIGHLIGHT_IMGS[index] ?? HIGHLIGHT_IMGS[0]}
-                        alt=""
-                        className="h-full w-full object-cover transition duration-300 group-hover:scale-[1.03]"
-                      />
-                      <span className="absolute top-3 left-3 rounded-md bg-cac-green2 px-2 py-1 text-mini font-extrabold tracking-wide text-white uppercase">
-                        {item.badge}
+                    <div className="relative h-40 overflow-hidden bg-gradient-to-br from-[#b8d7bf] to-[#dce9d3]">
+                      {card.image ? (
+                        <img
+                          src={card.image}
+                          alt=""
+                          className="h-full w-full object-cover transition duration-300 group-hover:scale-[1.03]"
+                        />
+                      ) : null}
+                      <span
+                        className={`absolute top-3 left-3 rounded-md px-2 py-1 text-mini font-extrabold tracking-wide text-white uppercase ${HIGHLIGHT_BADGE_COLORS[item.type]}`}
+                      >
+                        {t(`home.highlightBadge.${item.type}`)}
                       </span>
                     </div>
-                    <div className="flex items-start justify-between gap-3 p-4">
-                      <div>
-                        <p className="text-media font-bold text-cac-navy">{item.title}</p>
-                        <p className="mt-1.5 text-pequena leading-[1.35] text-cac-muted">{item.body}</p>
+                    <div className="flex flex-1 items-start justify-between gap-3 p-4">
+                      <div className="min-w-0">
+                        <p className="line-clamp-2 text-media font-bold text-cac-navy">{card.title}</p>
+                        <p className="mt-1.5 line-clamp-3 text-pequena leading-[1.35] text-cac-muted">
+                          {card.summary}
+                        </p>
+                        {item.organizationName ? (
+                          <p className="mt-3 truncate text-mini font-semibold text-cac-green">
+                            {item.organizationName}
+                          </p>
+                        ) : null}
                       </div>
                       <ArrowCircle className="shrink-0" />
                     </div>
                   </Link>
-                ))
-              : null}
-          </div>
+                );
+              })}
+            </div>
+          ) : (
+            <p className="rounded-[12px] border border-dashed border-cac-line bg-white px-4 py-6 text-pequena text-cac-muted">
+              {t('home.highlightsEmpty')}
+            </p>
+          )}
         </div>
       </section>
 
@@ -511,7 +551,8 @@ export function HomePage() {
           ) : homeChallenges.length ? (
             <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
               {homeChallenges.map((item, index) => {
-                const cover = resolveMediaUrl(item.coverImageUrl);
+                const card = callCard(item);
+                const cover = card.image;
                 const themeTag = item.tags?.[0];
                 const sectorTag = item.tags?.[1];
                 const badge = themeTag || needTypeLabel(item.needType, t);
@@ -544,9 +585,9 @@ export function HomePage() {
                     <div className="flex flex-1 flex-col p-4">
                       <div className="flex items-start justify-between gap-3">
                         <div className="min-w-0">
-                          <p className="text-media font-bold text-cac-navy">{item.title}</p>
+                          <p className="text-media font-bold text-cac-navy">{card.title}</p>
                           <p className="mt-1.5 line-clamp-3 text-pequena leading-[1.35] text-cac-muted">
-                            {item.summary}
+                            {card.summary}
                           </p>
                         </div>
                         <ArrowCircle className="shrink-0" />

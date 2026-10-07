@@ -5,6 +5,7 @@ import { catalogApi, type Challenge } from '../api/catalogApi';
 import { shell } from './PageChrome';
 import { needTypeLabel } from '../lib/needTypeLabel';
 import { resolveMediaUrl } from '../lib/mediaUrl';
+import { plainText } from '../lib/richText';
 import { useSavedFavoriteKeys } from '../hooks/useSavedFavoriteKeys';
 import {
   useResetOnChange,
@@ -393,7 +394,7 @@ export function ChallengeBrowseSection() {
                   {item.title}
                 </h3>
                 <p className="mt-2 line-clamp-3 text-pequena leading-relaxed text-cac-muted">
-                  {item.summary}
+                  {plainText(item.summary)}
                 </p>
                 <div className="mt-3 flex flex-wrap gap-x-4 gap-y-1.5 text-mini text-cac-muted">
                   {item.country ? (

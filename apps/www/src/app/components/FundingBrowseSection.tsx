@@ -5,6 +5,7 @@ import { formatDate } from '@cac/shared';
 import { fundingApi, type FundingOffer, type FunderProfile } from '../api/fundingApi';
 import { shell } from './PageChrome';
 import { resolveMediaUrl } from '../lib/mediaUrl';
+import { plainText } from '../lib/richText';
 import { useSavedFavoriteKeys } from '../hooks/useSavedFavoriteKeys';
 import {
   useResetOnChange,
@@ -413,7 +414,7 @@ export function FundingBrowseSection() {
                       {offer.title}
                     </h3>
                     <p className="mt-2 line-clamp-3 text-pequena leading-relaxed text-cac-muted">
-                      {offer.summary}
+                      {plainText(offer.summary)}
                     </p>
                     <div className="mt-3 flex flex-wrap gap-x-4 gap-y-1.5 text-mini text-cac-muted">
                       {offer.country ? (

@@ -44,6 +44,7 @@ function useBreadcrumbs() {
       { match: /^\/admin\/representation/, label: t('nav.adminRep') },
       { match: /^\/admin\/organizations/, label: t('nav.adminOrgs') },
       { match: /^\/admin\/domains/, label: t('nav.adminDomains') },
+      { match: /^\/admin\/highlights/, label: t('nav.adminHighlights') },
     ];
 
     if (pathname === '/' || pathname === '') return [home];
@@ -156,6 +157,7 @@ export function AppShell() {
           badge: repCount > 0 ? t('nav.tasksBadge', { count: repCount }) : undefined,
           count: repCount,
         },
+        { to: '/admin/highlights', label: t('nav.adminHighlights'), icon: sideIcons.highlights },
         { to: '/admin/organizations', label: t('nav.adminOrgs'), icon: sideIcons.orgs },
         { to: '/admin/domains', label: t('nav.adminDomains'), icon: sideIcons.domains },
       ]

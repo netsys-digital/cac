@@ -18,16 +18,23 @@ import { DetailConnectionActions } from '../components/DetailConnectionActions';
 import { DetailGuestAuthHint } from '../components/DetailGuestAuthHint';
 import { BackLink } from '../components/BackLink';
 import { shell } from '../components/PageChrome';
+import {
+  DocumentsSection,
+  GallerySection,
+  usePublicationAttachments,
+} from '../components/PublicationAttachments';
 import { urls } from '../../config';
 import { needTypeLabel } from '../lib/needTypeLabel';
 import { resolveMediaUrl } from '../lib/mediaUrl';
 import { resolveDetailBanner } from '../lib/detailBanner';
+import { RichText } from '../lib/richText';
 
 export function ChallengeDetailPage() {
   const { slug = '' } = useParams();
   const { t, i18n } = useTranslation();
   const [item, setItem] = useState<Challenge | null>(null);
   const [error, setError] = useState('');
+  const attachments = usePublicationAttachments('challenges', item?.id);
 
   useEffect(() => {
     let cancelled = false;
@@ -64,6 +71,8 @@ export function ChallengeDetailPage() {
   const needLabel = needTypeLabel(item.needType, t);
   const connectUrl = `${urls.web}/login?returnUrl=${encodeURIComponent(`/connections/new?targetType=CHALLENGE&targetId=${item.id}`)}`;
   const banner = resolveDetailBanner(item, item.organization, 'CHALLENGE');
+  let sectionIndex = 2;
+  const nextIndex = () => String(++sectionIndex).padStart(2, '0');
   const bannerEl = (
     <CatalogDetailBanner
       bannerUrl={banner.url}
@@ -95,11 +104,11 @@ export function ChallengeDetailPage() {
           <article className="cac-fade-up rounded-[18px] border border-cac-line bg-white px-5 py-2 shadow-[0_16px_40px_rgba(10,36,64,.07)] md:px-8">
             {item.context ? (
               <DetailSection title={t('detail.context')} index="01">
-                <p>{item.context}</p>
+                <RichText text={item.context} />
               </DetailSection>
             ) : (
               <DetailSection title={t('detail.context')} index="01">
-                <p className="text-cac-muted">{item.summary}</p>
+                <RichText text={item.summary} className="text-cac-muted" />
               </DetailSection>
             )}
 
@@ -108,8 +117,15 @@ export function ChallengeDetailPage() {
               <p className="mt-2 text-cac-muted">{t('detail.needTypeHint')}</p>
             </DetailSection>
 
+            {attachments.gallery.length ? (
+              <GallerySection items={attachments.gallery} index={nextIndex()} />
+            ) : null}
+            {attachments.documents.length ? (
+              <DocumentsSection items={attachments.documents} index={nextIndex()} />
+            ) : null}
+
             {item.tags.length ? (
-              <DetailSection title={t('detail.topics')} index="03">
+              <DetailSection title={t('detail.topics')} index={nextIndex()}>
                 <div className="flex flex-wrap gap-1.5">
                   {item.tags.map((tag) => (
                     <DetailMetaChip key={tag}>{tag}</DetailMetaChip>
@@ -118,7 +134,7 @@ export function ChallengeDetailPage() {
               </DetailSection>
             ) : null}
 
-            <DetailSection title={t('detail.nextSteps')} index="04">
+            <DetailSection title={t('detail.nextSteps')} index={nextIndex()}>
               <p className="text-cac-muted">{t('detail.challengeNextStepsBody')}</p>
               <ul className="mt-4 space-y-2.5 text-pequena text-cac-navy">
                 <li className="flex gap-2">

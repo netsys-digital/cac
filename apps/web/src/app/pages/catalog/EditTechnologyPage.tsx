@@ -1,16 +1,16 @@
 import { type FormEvent, useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Input, TextArea } from '@cac/ui';
+import { Input } from '@cac/ui';
+import { INLINE_TOOLS, RichTextArea } from '../../components/forms/RichTextArea';
 import { useAuth } from '../../auth/AuthContext';
 import { myContentsApi } from '../../api/myContentsApi';
 import { FieldFull, FormPage, SelectField } from '../../components/forms/FormPage';
 import { catalogApi } from '../../api/catalogApi';
-import { BannerImageField, pickBannerFile } from '../../components/forms/BannerImageField';
-import {
-  pickCoverFile,
-  RepresentativeImageField,
-} from '../../components/forms/RepresentativeImageField';
+import { pickBannerFile } from '../../components/forms/BannerImageField';
+import { pickCoverFile } from '../../components/forms/RepresentativeImageField';
+import { MediaBlock } from '../../components/forms/MediaBlock';
+import { saveAttachments, usePublicationAttachments } from '../../components/forms/AttachmentsField';
 import {
   type ExistingPublication,
   pickPublicationFiles,
@@ -18,6 +18,12 @@ import {
   PublicationsField,
 } from '../../components/forms/PublicationsField';
 import { pickTechnicalSheet, TechnicalSheetBlock } from '../../components/forms/TechnicalSheetBlock';
+import {
+  CallCardBlock,
+  callCardDefaults,
+  pickCallCard,
+  saveCallCardImage,
+} from '../../components/forms/CallCardBlock';
 
 function parseTags(raw: FormDataEntryValue | null): string[] {
   return String(raw || '')
@@ -36,6 +42,7 @@ export function EditTechnologyPage() {
   const [message, setMessage] = useState('');
   const [loading, setLoading] = useState(true);
   const [tab, setTab] = useState('content');
+  const { attachments, reload: reloadAttachments } = usePublicationAttachments(accessToken, 'technologies', id);
 
   useEffect(() => {
     if (!accessToken || !id) return;
@@ -84,6 +91,7 @@ export function EditTechnologyPage() {
         maturity: String(form.get('maturity')),
         tags,
         ...pickTechnicalSheet(form),
+        ...pickCallCard(form),
       });
       for (const mediaId of pickRemovedPublications(form)) {
         await catalogApi.deleteTechnologyMedia(accessToken, id, mediaId);
@@ -99,6 +107,9 @@ export function EditTechnologyPage() {
       if (banner) {
         await catalogApi.uploadBanner(accessToken, 'technologies', id, banner);
       }
+      await saveCallCardImage(accessToken, 'technologies', id, form);
+      await saveAttachments(accessToken, 'technologies', id, form, attachments);
+      await reloadAttachments();
       const after = await myContentsApi.get(accessToken, 'TECHNOLOGY', id);
       setItem(after.item);
       if (String(after.item.status) === 'DRAFT') {
@@ -159,13 +170,21 @@ export function EditTechnologyPage() {
               <Input label={t('catalog.title')} hint={t('catalog.titleHint')} name="title" required defaultValue={String(item.title)} />
             </FieldFull>
             <FieldFull>
-              <TextArea label={t('catalog.summary')} hint={t('catalog.summaryHint')} name="summary" required rows={3} defaultValue={String(item.summary)} />
+              <RichTextArea
+                label={t('catalog.summary')}
+                hint={t('catalog.summaryHint')}
+                name="summary"
+                required
+                rows={3}
+                tools={INLINE_TOOLS}
+                defaultValue={String(item.summary)}
+              />
             </FieldFull>
             <FieldFull>
-              <TextArea label={t('catalog.problem')} hint={t('catalog.problemHint')} name="problemStatement" required rows={4} defaultValue={String(item.problemStatement)} />
+              <RichTextArea label={t('catalog.problem')} hint={t('catalog.problemHint')} name="problemStatement" required rows={4} defaultValue={String(item.problemStatement)} />
             </FieldFull>
             <FieldFull>
-              <TextArea label={t('catalog.how')} hint={t('catalog.howHint')} name="howItWorks" required rows={4} defaultValue={String(item.howItWorks)} />
+              <RichTextArea label={t('catalog.how')} hint={t('catalog.howHint')} name="howItWorks" required rows={4} defaultValue={String(item.howItWorks)} />
             </FieldFull>
             <FieldFull>
               <PublicationsField key={publications.map((p) => p.id).join(',')} existing={publications} />
@@ -217,16 +236,16 @@ export function EditTechnologyPage() {
         ),
         media: (
           <>
-            <FieldFull>
-              <RepresentativeImageField currentUrl={item.coverImageUrl ? String(item.coverImageUrl) : null} />
-            </FieldFull>
-            <FieldFull>
-              <BannerImageField
-                currentUrl={item.bannerImageUrl ? String(item.bannerImageUrl) : null}
-                currentLink={item.bannerLinkUrl ? String(item.bannerLinkUrl) : null}
-                currentPosition={item.bannerPosition ? String(item.bannerPosition) : 'ABOVE_FOOTER'}
-              />
-            </FieldFull>
+            <MediaBlock
+              coverUrl={str('coverImageUrl')}
+              banner={{
+                currentUrl: str('bannerImageUrl'),
+                currentLink: str('bannerLinkUrl'),
+                currentPosition: str('bannerPosition') ?? 'ABOVE_FOOTER',
+              }}
+              attachments={attachments}
+            />
+            <CallCardBlock defaults={callCardDefaults(item)} />
           </>
         ),
       }}

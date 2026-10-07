@@ -1,6 +1,7 @@
 import { type FormEvent, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Input, TextArea } from '@cac/ui';
+import { Input } from '@cac/ui';
+import { INLINE_TOOLS, RichTextArea } from '../../components/forms/RichTextArea';
 import { useAuth } from '../../auth/AuthContext';
 import { catalogApi } from '../../api/catalogApi';
 import { fundingWizardApi } from '../../api/fundingWizardApi';
@@ -17,6 +18,8 @@ import {
   pickBannerPosition,
 } from '../../components/forms/BannerImageField';
 import { MediaBlock } from '../../components/forms/MediaBlock';
+import { saveAttachments } from '../../components/forms/AttachmentsField';
+import { CallCardBlock, pickCallCard, saveCallCardImage } from '../../components/forms/CallCardBlock';
 import { pickCoverFile } from '../../components/forms/RepresentativeImageField';
 import { RegionCountryFields } from '../../components/forms/RegionCountryFields';
 import { useMyOrganizations } from '../../hooks/useMyOrganizations';
@@ -68,6 +71,7 @@ export function NewFundingOfferPage() {
         region: String(form.get('region')),
         bannerLinkUrl: pickBannerLink(form),
         bannerPosition: pickBannerPosition(form),
+        ...pickCallCard(form),
       });
       if (cover) {
         await catalogApi.uploadCover(accessToken, 'funding-offers', created.offer.id, cover);
@@ -75,6 +79,8 @@ export function NewFundingOfferPage() {
       if (banner) {
         await catalogApi.uploadBanner(accessToken, 'funding-offers', created.offer.id, banner);
       }
+      await saveCallCardImage(accessToken, 'funding-offers', created.offer.id, form);
+      await saveAttachments(accessToken, 'funding-offers', created.offer.id, form);
       await fundingWizardApi.submitOffer(accessToken, created.offer.id);
       setMessage(t('catalog.offerSubmitted', { slug: created.offer.slug }));
       formEl.reset();
@@ -119,10 +125,17 @@ export function NewFundingOfferPage() {
         <Input label={t('catalog.title')} hint={t('catalog.titleHint')} name="title" required />
       </FieldFull>
       <FieldFull>
-        <TextArea label={t('catalog.summary')} hint={t('catalog.summaryHint')} name="summary" required rows={3} />
+        <RichTextArea
+          label={t('catalog.summary')}
+          hint={t('catalog.summaryHint')}
+          name="summary"
+          required
+          rows={3}
+          tools={INLINE_TOOLS}
+        />
       </FieldFull>
       <FieldFull>
-        <TextArea
+        <RichTextArea
           label={t('catalog.whatFunds')}
           hint={t('catalog.whatFundsHint')}
           name="whatFunds"
@@ -131,7 +144,7 @@ export function NewFundingOfferPage() {
         />
       </FieldFull>
       <FieldFull>
-        <TextArea
+        <RichTextArea
           label={t('catalog.criteria')}
           hint={t('catalog.criteriaHint')}
           name="criteria"
@@ -151,6 +164,7 @@ export function NewFundingOfferPage() {
       </FieldFull>
       <RegionCountryFields defaultRegion="south_america" defaultCountry="BR" />
       <MediaBlock />
+      <CallCardBlock />
     </FormPage>
   );
 }

@@ -1,6 +1,7 @@
 import { type FormEvent, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Input, TextArea } from '@cac/ui';
+import { Input } from '@cac/ui';
+import { INLINE_TOOLS, RichTextArea } from '../../components/forms/RichTextArea';
 import { useAuth } from '../../auth/AuthContext';
 import { catalogApi } from '../../api/catalogApi';
 import { FieldFull, FormPage, SelectField } from '../../components/forms/FormPage';
@@ -16,6 +17,8 @@ import {
   pickBannerPosition,
 } from '../../components/forms/BannerImageField';
 import { MediaBlock } from '../../components/forms/MediaBlock';
+import { saveAttachments } from '../../components/forms/AttachmentsField';
+import { CallCardBlock, pickCallCard, saveCallCardImage } from '../../components/forms/CallCardBlock';
 import { pickCoverFile } from '../../components/forms/RepresentativeImageField';
 import { RegionCountryFields } from '../../components/forms/RegionCountryFields';
 import { useMyOrganizations } from '../../hooks/useMyOrganizations';
@@ -78,6 +81,7 @@ export function NewChallengePage() {
         bannerLinkUrl: pickBannerLink(form),
         bannerPosition: pickBannerPosition(form),
         status: 'DRAFT',
+        ...pickCallCard(form),
       });
       if (cover) {
         await catalogApi.uploadCover(accessToken, 'challenges', created.challenge.id, cover);
@@ -85,6 +89,8 @@ export function NewChallengePage() {
       if (banner) {
         await catalogApi.uploadBanner(accessToken, 'challenges', created.challenge.id, banner);
       }
+      await saveCallCardImage(accessToken, 'challenges', created.challenge.id, form);
+      await saveAttachments(accessToken, 'challenges', created.challenge.id, form);
       await catalogApi.submitChallenge(accessToken, created.challenge.id);
       setMessage(t('catalog.challengeSubmitted'));
       formEl.reset();
@@ -129,10 +135,17 @@ export function NewChallengePage() {
         <Input label={t('catalog.title')} hint={t('catalog.titleHint')} name="title" required />
       </FieldFull>
       <FieldFull>
-        <TextArea label={t('catalog.summary')} hint={t('catalog.summaryHint')} name="summary" required rows={4} />
+        <RichTextArea
+          label={t('catalog.summary')}
+          hint={t('catalog.summaryHint')}
+          name="summary"
+          required
+          rows={4}
+          tools={INLINE_TOOLS}
+        />
       </FieldFull>
       <FieldFull>
-        <TextArea
+        <RichTextArea
           label={t('catalog.context')}
           hint={t('catalog.contextChallengeHint')}
           name="context"
@@ -166,6 +179,7 @@ export function NewChallengePage() {
         />
       </FieldFull>
       <MediaBlock />
+      <CallCardBlock />
     </FormPage>
   );
 }

@@ -3,6 +3,7 @@ import { ContentStatus, createChallengeBodySchema, updateChallengeBodySchema } f
 import { assertCanActForOrganization, assertCanPublishKind } from '../../lib/org-access.js';
 import { prisma } from '../../lib/prisma.js';
 import { slugify } from '../../lib/slug.js';
+import { callCardData } from '../../lib/call-card.js';
 import { requireAuth } from '../../middleware/auth.js';
 import { validateBody } from '../../middleware/validate.js';
 import { isUuid, param } from '../../lib/params.js';
@@ -79,6 +80,7 @@ challengesRouter.post('/', requireAuth, validateBody(createChallengeBodySchema),
         region: req.body.region,
         bannerLinkUrl: req.body.bannerLinkUrl ? String(req.body.bannerLinkUrl).trim() || null : null,
         bannerPosition: req.body.bannerPosition,
+        ...callCardData(req.body),
         status,
         tags: req.body.tags?.length
           ? { create: req.body.tags.map((tag: string) => ({ tag })) }
@@ -125,6 +127,7 @@ challengesRouter.patch(
                 ? null
                 : String(req.body.bannerLinkUrl).trim(),
           bannerPosition: req.body.bannerPosition,
+          ...callCardData(req.body),
           status: req.body.status,
           tags: req.body.tags
             ? {

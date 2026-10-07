@@ -4,7 +4,7 @@ import { prisma } from '../prisma.js';
 import type { TranslationJob } from '../queue/translation-queue.js';
 import { enqueueTranslation } from '../queue/translation-queue.js';
 import { hashSourceText } from './cache.js';
-import { collectSourceFields, type TranslationEntityType } from './fields.js';
+import { ATTACHMENT_OWNER_TRANSLATION, collectSourceFields, type TranslationEntityType } from './fields.js';
 import { isTranslationConfigured } from './libretranslate.js';
 import { targetLangs } from './languages.js';
 import { translateText } from './translate-text.js';
@@ -38,7 +38,15 @@ async function loadEntity(job: TranslationJob): Promise<LoadedEntity | null> {
     });
   }
   if (!row || typeof row !== 'object' || !('id' in row)) return null;
-  return row as LoadedEntity;
+  const entity = row as LoadedEntity;
+  const ownerType = Object.entries(ATTACHMENT_OWNER_TRANSLATION).find(([, type]) => type === job.entityType)?.[0];
+  if (ownerType) {
+    entity.attachments = await prisma.publicationAttachment.findMany({
+      where: { entityType: ownerType, entityId: entity.id },
+      select: { id: true, title: true, description: true },
+    });
+  }
+  return entity;
 }
 
 function isPublished(entityType: TranslationEntityType, entity: LoadedEntity): boolean {

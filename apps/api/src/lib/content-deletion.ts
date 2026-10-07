@@ -45,6 +45,7 @@ export async function deleteContentTx(
 ) {
   const targetType = kind as ConnectionTargetType;
   await tx.savedItem.deleteMany({ where: { targetType, targetId: id } });
+  await tx.publicationAttachment.deleteMany({ where: { entityType: kind, entityId: id } });
   await tx.contentDeletionRequest.updateMany({
     where: { targetType, targetId: id, status: 'REQUESTED' },
     data: { status: 'APPROVED', reviewerUserId, reviewNote, reviewedAt: new Date() },

@@ -19,9 +19,15 @@ import { DetailGuestAuthHint } from '../components/DetailGuestAuthHint';
 import { BackLink } from '../components/BackLink';
 import { shell } from '../components/PageChrome';
 import { TechnicalSheetCard } from '../components/TechnicalSheetCard';
+import {
+  DocumentsSection,
+  GallerySection,
+  usePublicationAttachments,
+} from '../components/PublicationAttachments';
 import { urls } from '../../config';
 import { resolveMediaUrl } from '../lib/mediaUrl';
 import { resolveDetailBanner } from '../lib/detailBanner';
+import { RichText } from '../lib/richText';
 
 function labelOrRaw(value: string | null | undefined, map: Record<string, string>) {
   if (!value) return null;
@@ -33,6 +39,7 @@ export function TechnologyDetailPage() {
   const { t, i18n } = useTranslation();
   const [item, setItem] = useState<Technology | null>(null);
   const [error, setError] = useState('');
+  const attachments = usePublicationAttachments('technologies', item?.id);
 
   useEffect(() => {
     let cancelled = false;
@@ -122,11 +129,11 @@ export function TechnologyDetailPage() {
         <div className="grid gap-6 lg:grid-cols-[minmax(0,1.45fr)_minmax(260px,0.7fr)] lg:gap-8">
           <article className="cac-fade-up rounded-[18px] border border-cac-line bg-white px-5 py-2 shadow-[0_16px_40px_rgba(10,36,64,.07)] md:px-8">
             <DetailSection title={t('detail.problem')} index="01">
-              <p>{item.problemStatement}</p>
+              <RichText text={item.problemStatement} />
             </DetailSection>
 
             <DetailSection title={t('detail.how')} index="02">
-              <p>{item.howItWorks}</p>
+              <RichText text={item.howItWorks} />
             </DetailSection>
 
             {publications.length ? (
@@ -148,6 +155,13 @@ export function TechnologyDetailPage() {
                   ))}
                 </ul>
               </DetailSection>
+            ) : null}
+
+            {attachments.gallery.length ? (
+              <GallerySection items={attachments.gallery} index={nextIndex()} />
+            ) : null}
+            {attachments.documents.length ? (
+              <DocumentsSection items={attachments.documents} index={nextIndex()} />
             ) : null}
 
             {item.tags.length ? (
