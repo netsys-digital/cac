@@ -155,7 +155,9 @@ export function MultiSelectField({ label, hint, name, options, defaultValue = []
                       className="size-4 shrink-0 accent-cac-green"
                     />
                     <span className="min-w-0 flex-1 truncate">{option.label}</span>
-                    <span className="text-mini font-bold text-cac-muted">{option.value}</span>
+                    {option.value !== option.label ? (
+                      <span className="text-mini font-bold text-cac-muted">{option.value}</span>
+                    ) : null}
                   </label>
                 </li>
               );

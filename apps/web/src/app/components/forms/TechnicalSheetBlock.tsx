@@ -6,7 +6,15 @@ import { RichTextArea } from './RichTextArea';
 import { type MultiSelectOption, MultiSelectField } from './MultiSelectField';
 import { RegionCountryFields } from './RegionCountryFields';
 
-const BIOMES = ['Amazônia', 'Caatinga', 'Cerrado', 'Mata Atlântica', 'Pampa', 'Pantanal'];
+const BIOMES: MultiSelectOption[] = ['Amazônia', 'Caatinga', 'Cerrado', 'Mata Atlântica', 'Pampa', 'Pantanal'].map(
+  (biome) => ({ value: biome, label: biome }),
+);
+
+function canonicalBiomes(raw: string | null | undefined): string[] {
+  return splitList(raw ?? '')
+    .map((name) => BIOMES.find((b) => b.value.toLowerCase() === name.toLowerCase())?.value)
+    .filter((v): v is string => Boolean(v));
+}
 
 const BR_STATES: MultiSelectOption[] = [
   { value: 'AC', label: 'Acre' },
@@ -91,7 +99,6 @@ type Props = {
 /** Ficha técnica da solução — alimenta o painel lateral da página pública de detalhe. */
 export function TechnicalSheetBlock({ defaults = {} }: Props) {
   const { t } = useTranslation();
-  const biomeListId = useId();
   const partnersGroupId = useId();
   const [partners, setPartners] = useState<PartnersChoice>(
     defaults.developedWithPartners === true ? 'yes' : defaults.developedWithPartners === false ? 'no' : '',
@@ -205,19 +212,14 @@ export function TechnicalSheetBlock({ defaults = {} }: Props) {
             />
           ) : null}
           <div className={isBrazil ? '' : 'sm:col-span-2'}>
-            <Input
+            <MultiSelectField
               label={t('catalog.sheetBiome')}
               hint={t('catalog.sheetBiomeHint')}
               name="biome"
-              list={biomeListId}
-              defaultValue={defaults.biome ?? ''}
+              options={BIOMES}
+              defaultValue={canonicalBiomes(defaults.biome)}
             />
           </div>
-          <datalist id={biomeListId}>
-            {BIOMES.map((biome) => (
-              <option key={biome} value={biome} />
-            ))}
-          </datalist>
 
           <FieldFull>
             <RichTextArea

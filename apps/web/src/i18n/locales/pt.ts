@@ -816,7 +816,7 @@ export const pt = {
     multiSelectDone: 'Concluir',
     multiSelectEmpty: 'Nenhuma opção encontrada.',
     sheetBiome: 'Bioma',
-    sheetBiomeHint: 'Um ou mais biomas, separados por vírgula.',
+    sheetBiomeHint: 'Selecione um ou mais biomas de aplicação.',
     sheetAccessInfo: 'Onde encontrar / Como acessar',
     sheetAccessInfoHint: 'Canal de acesso, cadastro, contato ou local de distribuição.',
     sheetKeywords: 'Palavras-chave',

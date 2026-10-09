@@ -813,7 +813,7 @@ export const en = {
     multiSelectDone: 'Done',
     multiSelectEmpty: 'No options found.',
     sheetBiome: 'Biome',
-    sheetBiomeHint: 'One or more biomes, comma separated.',
+    sheetBiomeHint: 'Select one or more biomes where it applies.',
     sheetAccessInfo: 'Where to find / How to access',
     sheetAccessInfoHint: 'Access channel, sign-up, contact or distribution point.',
     sheetKeywords: 'Keywords',

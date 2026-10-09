@@ -814,7 +814,7 @@ export const es = {
     multiSelectDone: 'Listo',
     multiSelectEmpty: 'No se encontraron opciones.',
     sheetBiome: 'Bioma',
-    sheetBiomeHint: 'Uno o más biomas, separados por comas.',
+    sheetBiomeHint: 'Seleccione uno o más biomas de aplicación.',
     sheetAccessInfo: 'Dónde encontrar / Cómo acceder',
     sheetAccessInfoHint: 'Canal de acceso, registro, contacto o punto de distribución.',
     sheetKeywords: 'Palabras clave',
