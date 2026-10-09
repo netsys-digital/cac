@@ -18,6 +18,7 @@ import {
 import { DetailConnectionActions } from '../components/DetailConnectionActions';
 import { DetailGuestAuthHint } from '../components/DetailGuestAuthHint';
 import { BackLink } from '../components/BackLink';
+import { useTrackView } from '../hooks/useTrackView';
 import { shell } from '../components/PageChrome';
 import {
   DocumentsSection,
@@ -34,6 +35,7 @@ export function FundingOfferDetailPage() {
   const [item, setItem] = useState<FundingOffer | null>(null);
   const [error, setError] = useState('');
   const attachments = usePublicationAttachments('funding-offers', item?.id);
+  useTrackView('FUNDING_OFFER', item?.id);
 
   useEffect(() => {
     let cancelled = false;

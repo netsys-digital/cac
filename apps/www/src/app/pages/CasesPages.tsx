@@ -21,6 +21,7 @@ import {
 import { DetailConnectionActions } from '../components/DetailConnectionActions';
 import { DetailGuestAuthHint } from '../components/DetailGuestAuthHint';
 import { BackLink } from '../components/BackLink';
+import { useTrackView } from '../hooks/useTrackView';
 import { CasesBrowseSection } from '../components/CasesBrowseSection';
 import { urls } from '../../config';
 import { casesApi, type SuccessCase } from '../api/casesApi';
@@ -221,6 +222,7 @@ export function CaseDetailPage() {
   const [item, setItem] = useState<SuccessCase | null>(null);
   const [error, setError] = useState('');
   const attachments = usePublicationAttachments('success-cases', item?.id);
+  useTrackView('SUCCESS_CASE', item?.id);
 
   useEffect(() => {
     let cancelled = false;

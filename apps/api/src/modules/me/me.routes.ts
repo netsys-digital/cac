@@ -152,10 +152,13 @@ meRouter.get('/dashboard', requireAuth, async (req, res, next) => {
       ...offerIds.map((r) => r.id),
       ...caseIds.map((r) => r.id),
     ];
-    const likesReceived =
+    const [likesReceived, views] =
       ownIds.length === 0
-        ? 0
-        : await prisma.savedItem.count({ where: { targetId: { in: ownIds } } });
+        ? [0, 0]
+        : await Promise.all([
+            prisma.savedItem.count({ where: { targetId: { in: ownIds } } }),
+            prisma.contentView.count({ where: { targetId: { in: ownIds } } }),
+          ]);
 
     const published = publishedTech + publishedChallenge + publishedOffer + publishedCase;
 
@@ -170,8 +173,8 @@ meRouter.get('/dashboard', requireAuth, async (req, res, next) => {
         favorites,
         follows,
         interactions: connectionsTotal,
-        views: 0,
-        viewsTracked: false,
+        views,
+        viewsTracked: true,
         likesReceived,
       },
       breakdown: {
@@ -300,7 +303,7 @@ meRouter.get('/contents', requireAuth, async (req, res, next) => {
         organizationName: t.organization.name,
         updatedAt: t.updatedAt,
         editPath: `/catalog/technologies/${t.id}/edit`,
-        metrics: { likes: 0, connections: 0, connectionsPending: 0, contacts: 0, views: 0, viewsTracked: false },
+        metrics: { likes: 0, connections: 0, connectionsPending: 0, contacts: 0, views: 0, viewsTracked: true },
       })),
       ...challenges.map((c) => ({
         kind: 'CHALLENGE' as const,
@@ -315,7 +318,7 @@ meRouter.get('/contents', requireAuth, async (req, res, next) => {
         organizationName: c.organization.name,
         updatedAt: c.updatedAt,
         editPath: `/catalog/challenges/${c.id}/edit`,
-        metrics: { likes: 0, connections: 0, connectionsPending: 0, contacts: 0, views: 0, viewsTracked: false },
+        metrics: { likes: 0, connections: 0, connectionsPending: 0, contacts: 0, views: 0, viewsTracked: true },
       })),
       ...offers.map((o) => ({
         kind: 'FUNDING_OFFER' as const,
@@ -330,7 +333,7 @@ meRouter.get('/contents', requireAuth, async (req, res, next) => {
         organizationName: o.organization.name,
         updatedAt: o.updatedAt,
         editPath: `/funding-offers/${o.id}/edit`,
-        metrics: { likes: 0, connections: 0, connectionsPending: 0, contacts: 0, views: 0, viewsTracked: false },
+        metrics: { likes: 0, connections: 0, connectionsPending: 0, contacts: 0, views: 0, viewsTracked: true },
       })),
       ...cases.map((s) => ({
         kind: 'SUCCESS_CASE' as const,
@@ -345,7 +348,7 @@ meRouter.get('/contents', requireAuth, async (req, res, next) => {
         organizationName: s.organization.name,
         updatedAt: s.updatedAt,
         editPath: `/cases/${s.id}/edit`,
-        metrics: { likes: 0, connections: 0, connectionsPending: 0, contacts: 0, views: 0, viewsTracked: false },
+        metrics: { likes: 0, connections: 0, connectionsPending: 0, contacts: 0, views: 0, viewsTracked: true },
       })),
     ];
 
@@ -363,7 +366,7 @@ meRouter.get('/contents', requireAuth, async (req, res, next) => {
 
     const ids = items.map((item) => item.id);
     if (ids.length > 0) {
-      const [likesGrouped, connections] = await Promise.all([
+      const [likesGrouped, connections, viewsGrouped] = await Promise.all([
         prisma.savedItem.groupBy({
           by: ['targetId'],
           where: { targetId: { in: ids } },
@@ -373,9 +376,15 @@ meRouter.get('/contents', requireAuth, async (req, res, next) => {
           where: { targetId: { in: ids } },
           select: { targetId: true, status: true },
         }),
+        prisma.contentView.groupBy({
+          by: ['targetId'],
+          where: { targetId: { in: ids } },
+          _count: { _all: true },
+        }),
       ]);
 
       const likesMap = new Map(likesGrouped.map((row) => [row.targetId, row._count._all]));
+      const viewsMap = new Map(viewsGrouped.map((row) => [row.targetId, row._count._all]));
       const connMap = new Map<string, { total: number; pending: number; contacts: number }>();
       for (const conn of connections) {
         const cur = connMap.get(conn.targetId) ?? { total: 0, pending: 0, contacts: 0 };
@@ -392,8 +401,8 @@ meRouter.get('/contents', requireAuth, async (req, res, next) => {
           connections: conn?.total ?? 0,
           connectionsPending: conn?.pending ?? 0,
           contacts: conn?.contacts ?? 0,
-          views: 0,
-          viewsTracked: false,
+          views: viewsMap.get(item.id) ?? 0,
+          viewsTracked: true,
         };
       }
     }

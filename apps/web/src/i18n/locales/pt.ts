@@ -954,7 +954,7 @@ export const pt = {
     interactions: 'Interações',
     interactionsHint: 'Solicitações de conexão envolvendo suas organizações',
     views: 'Visualizações',
-    viewsHint: 'Contagem no portal em breve',
+    viewsHint: 'Visitantes únicos por dia nas suas publicações do portal',
     likes: 'Favoritações recebidas',
     likesHint: 'Vezes em que seus registros foram salvos por outros',
     pipeline: '{{drafts}} rascunhos · {{review}} em revisão',
@@ -1054,7 +1054,7 @@ export const pt = {
       contacts: 'Contatos',
       contactsHint: 'Conexões aceitas ou com contato compartilhado',
       views: 'Views',
-      viewsHint: 'Contagem de visualizações ainda não rastreada',
+      viewsHint: 'Visitantes únicos por dia na página pública',
     },
   },
   lang: {

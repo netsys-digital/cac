@@ -620,6 +620,19 @@ model SavedItem {
   @@index([userId])
 }
 
+/// Visualização de publicação no portal: no máximo uma por visitante anônimo por dia.
+model ContentView {
+  id          String               @id @default(uuid()) @db.Uuid
+  targetType  ConnectionTargetType
+  targetId    String               @db.Uuid
+  visitorHash String
+  day         DateTime             @db.Date
+  createdAt   DateTime             @default(now())
+
+  @@unique([targetType, targetId, visitorHash, day])
+  @@index([targetId])
+}
+
 model Follow {
   id             String       @id @default(uuid()) @db.Uuid
   userId         String       @db.Uuid

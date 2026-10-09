@@ -951,7 +951,7 @@ export const en = {
     interactions: 'Interactions',
     interactionsHint: 'Connection requests involving your organizations',
     views: 'Views',
-    viewsHint: 'Portal view counts coming soon',
+    viewsHint: 'Unique daily visitors to your portal publications',
     likes: 'Favorites received',
     likesHint: 'Times others saved your records',
     pipeline: '{{drafts}} drafts · {{review}} in review',
@@ -1051,7 +1051,7 @@ export const en = {
       contacts: 'Contacts',
       contactsHint: 'Accepted or contact-shared connections',
       views: 'Views',
-      viewsHint: 'View tracking is not enabled yet',
+      viewsHint: 'Unique daily visitors to the public page',
     },
   },
   lang: {

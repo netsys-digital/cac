@@ -22,6 +22,7 @@ import { fundingOffersRouter, fundersRouter } from './modules/funding/funding.ro
 import { successCasesRouter } from './modules/cases/cases.routes.js';
 import { highlightsRouter } from './modules/highlights/highlights.routes.js';
 import { attachmentsRouter } from './modules/attachments/attachments.routes.js';
+import { viewsRouter } from './modules/views/views.routes.js';
 
 export function createApp() {
   const app = express();
@@ -82,6 +83,7 @@ export function createApp() {
   app.use('/api/funders', fundersRouter);
   app.use('/api/success-cases', successCasesRouter);
   app.use('/api/highlights', highlightsRouter);
+  app.use('/api/views', viewsRouter);
   app.use('/api', mediaRouter);
   app.use('/api', attachmentsRouter);
 

@@ -952,7 +952,7 @@ export const es = {
     interactions: 'Interacciones',
     interactionsHint: 'Solicitudes de conexión que involucran a tus organizaciones',
     views: 'Visualizaciones',
-    viewsHint: 'Conteo en el portal próximamente',
+    viewsHint: 'Visitantes únicos por día en sus publicaciones del portal',
     likes: 'Favoritos recibidos',
     likesHint: 'Veces en que tus registros fueron guardados por otros',
     pipeline: '{{drafts}} borradores · {{review}} en revisión',
@@ -1052,7 +1052,7 @@ export const es = {
       contacts: 'Contactos',
       contactsHint: 'Conexiones aceptadas o con contacto compartido',
       views: 'Views',
-      viewsHint: 'Conteo de visualizaciones aún no rastreado',
+      viewsHint: 'Visitantes únicos por día en la página pública',
     },
   },
   lang: {

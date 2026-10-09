@@ -17,6 +17,7 @@ import {
 import { DetailConnectionActions } from '../components/DetailConnectionActions';
 import { DetailGuestAuthHint } from '../components/DetailGuestAuthHint';
 import { BackLink } from '../components/BackLink';
+import { useTrackView } from '../hooks/useTrackView';
 import { shell } from '../components/PageChrome';
 import { TechnicalSheetCard } from '../components/TechnicalSheetCard';
 import {
@@ -40,6 +41,7 @@ export function TechnologyDetailPage() {
   const [item, setItem] = useState<Technology | null>(null);
   const [error, setError] = useState('');
   const attachments = usePublicationAttachments('technologies', item?.id);
+  useTrackView('TECHNOLOGY', item?.id);
 
   useEffect(() => {
     let cancelled = false;

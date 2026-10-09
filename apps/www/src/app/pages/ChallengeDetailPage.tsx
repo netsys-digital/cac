@@ -17,6 +17,7 @@ import {
 import { DetailConnectionActions } from '../components/DetailConnectionActions';
 import { DetailGuestAuthHint } from '../components/DetailGuestAuthHint';
 import { BackLink } from '../components/BackLink';
+import { useTrackView } from '../hooks/useTrackView';
 import { shell } from '../components/PageChrome';
 import {
   DocumentsSection,
@@ -35,6 +36,7 @@ export function ChallengeDetailPage() {
   const [item, setItem] = useState<Challenge | null>(null);
   const [error, setError] = useState('');
   const attachments = usePublicationAttachments('challenges', item?.id);
+  useTrackView('CHALLENGE', item?.id);
 
   useEffect(() => {
     let cancelled = false;
