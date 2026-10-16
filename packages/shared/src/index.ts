@@ -12,4 +12,5 @@ export * from './schemas/connection.js';
 export * from './schemas/funding.js';
 export * from './schemas/adminUser.js';
 export * from './schemas/callCard.js';
+export * from './schemas/places.js';
 export * from './schemas/limits.js';

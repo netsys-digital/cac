@@ -11,6 +11,7 @@ import { pickBannerFile } from '../../components/forms/BannerImageField';
 import { pickCoverFile } from '../../components/forms/RepresentativeImageField';
 import { MediaBlock } from '../../components/forms/MediaBlock';
 import { saveAttachments, usePublicationAttachments } from '../../components/forms/AttachmentsField';
+import { ApplicationPlacesField, pickApplicationPlaces, placesFromUnknown } from '../../components/forms/ApplicationPlacesField';
 import { RegionCountryFields } from '../../components/forms/RegionCountryFields';
 import {
   CallCardBlock,
@@ -71,6 +72,7 @@ export function EditFundingOfferPage() {
         deadline: String(form.get('deadline') || '') || undefined,
         country: String(form.get('country')),
         region: String(form.get('region')),
+        applicationPlaces: pickApplicationPlaces(form),
         ...pickCallCard(form),
       });
       const cover = pickCoverFile(form);
@@ -163,7 +165,10 @@ export function EditFundingOfferPage() {
             <RegionCountryFields
               defaultRegion={String(item.region || 'south_america')}
               defaultCountry={String(item.country || 'BR')}
+              regionLabel={t('catalog.originRegion')}
+              countryLabel={t('catalog.originCountry')}
             />
+            <ApplicationPlacesField defaultPlaces={placesFromUnknown(item.applicationPlaces)} />
           </>
         ),
         media: (

@@ -21,6 +21,7 @@ import { MediaBlock } from '../../components/forms/MediaBlock';
 import { saveAttachments } from '../../components/forms/AttachmentsField';
 import { CallCardBlock, pickCallCard, saveCallCardImage } from '../../components/forms/CallCardBlock';
 import { pickCoverFile } from '../../components/forms/RepresentativeImageField';
+import { ApplicationPlacesField, pickApplicationPlaces } from '../../components/forms/ApplicationPlacesField';
 import { RegionCountryFields } from '../../components/forms/RegionCountryFields';
 import { useMyOrganizations } from '../../hooks/useMyOrganizations';
 
@@ -69,6 +70,7 @@ export function NewFundingOfferPage() {
         organizationId: orgId,
         country: String(form.get('country')),
         region: String(form.get('region')),
+        applicationPlaces: pickApplicationPlaces(form),
         bannerLinkUrl: pickBannerLink(form),
         bannerPosition: pickBannerPosition(form),
         ...pickCallCard(form),
@@ -162,7 +164,13 @@ export function NewFundingOfferPage() {
       <FieldFull>
         <Input label={t('catalog.officialUrl')} hint={t('catalog.officialUrlHint')} name="officialUrl" />
       </FieldFull>
-      <RegionCountryFields defaultRegion="south_america" defaultCountry="BR" />
+      <RegionCountryFields
+        defaultRegion="south_america"
+        defaultCountry="BR"
+        regionLabel={t('catalog.originRegion')}
+        countryLabel={t('catalog.originCountry')}
+      />
+      <ApplicationPlacesField />
       <MediaBlock />
       <CallCardBlock />
     </FormPage>

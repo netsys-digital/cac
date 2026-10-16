@@ -17,6 +17,7 @@ import {
   pickRemovedPublications,
   PublicationsField,
 } from '../../components/forms/PublicationsField';
+import { pickApplicationPlaces, placesFromUnknown } from '../../components/forms/ApplicationPlacesField';
 import { pickTechnicalSheet, TechnicalSheetBlock } from '../../components/forms/TechnicalSheetBlock';
 import {
   CallCardBlock,
@@ -88,6 +89,7 @@ export function EditTechnologyPage() {
         bannerPosition: String(form.get('bannerPosition') || 'ABOVE_FOOTER'),
         country: String(form.get('country')),
         region: String(form.get('region')),
+        applicationPlaces: pickApplicationPlaces(form),
         maturity: String(form.get('maturity')),
         tags,
         ...pickTechnicalSheet(form),
@@ -224,6 +226,7 @@ export function EditTechnologyPage() {
                 launchYear: typeof item.launchYear === 'number' ? item.launchYear : null,
                 region: str('region'),
                 country: str('country'),
+                applicationPlaces: placesFromUnknown(item.applicationPlaces),
                 state: str('state'),
                 biome: str('biome'),
                 responsibleUnit: str('responsibleUnit'),

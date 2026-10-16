@@ -1,46 +1,29 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { MapContainer, Marker, TileLayer, useMap } from 'react-leaflet';
 import MarkerClusterGroup from 'react-leaflet-cluster';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import 'leaflet.markercluster';
+import { fetchMapSnapshot, type MapCountry, type MapKind, type MapSnapshot } from '../api/mapApi';
 
 const shell = 'mx-auto w-full max-w-[1220px] px-[22px]';
 
-type Kind = 'solution' | 'challenge' | 'funding' | 'case';
-type Filter = 'all' | Kind;
-type RegionId = 'north_america' | 'south_america' | 'europe' | 'africa' | 'asia' | 'oceania';
+type Filter = 'all' | MapKind;
 
-const KIND_COLOR: Record<Kind, string> = {
+const KIND_COLOR: Record<MapKind, string> = {
   solution: '#1f9d63',
   challenge: '#3b82f6',
   funding: '#ef8b22',
   case: '#e6b31a',
 };
 
-const KIND_SEARCH: Record<Kind, string> = {
+const KIND_SEARCH: Record<MapKind, string> = {
   solution: 'SOLUTION',
   challenge: 'CHALLENGE',
   funding: 'FUNDER',
   case: 'CASE',
-};
-
-const REGION_COLOR: Record<RegionId, string> = {
-  north_america: '#1b9a58',
-  south_america: '#1b9a58',
-  europe: '#2f78d8',
-  africa: '#2f78d8',
-  asia: '#2f78d8',
-  oceania: '#2f78d8',
-};
-
-const TOTALS: Record<Kind, number> = {
-  solution: 183,
-  challenge: 56,
-  funding: 74,
-  case: 41,
 };
 
 const FILTERS: Array<{ id: Filter; labelKey: string }> = [
@@ -51,161 +34,15 @@ const FILTERS: Array<{ id: Filter; labelKey: string }> = [
   { id: 'case', labelKey: 'home.globalMap.filterCase' },
 ];
 
-const LEGEND: Array<{ id: Kind; labelKey: string }> = [
-  { id: 'solution', labelKey: 'home.globalMap.legendSolution' },
-  { id: 'challenge', labelKey: 'home.globalMap.legendChallenge' },
-  { id: 'funding', labelKey: 'home.globalMap.legendFunding' },
-  { id: 'case', labelKey: 'home.globalMap.legendCase' },
+const LEGEND: Array<{ id: MapKind; totalKey: keyof MapSnapshot['totals']; labelKey: string }> = [
+  { id: 'solution', totalKey: 'solutions', labelKey: 'home.globalMap.legendSolution' },
+  { id: 'challenge', totalKey: 'challenges', labelKey: 'home.globalMap.legendChallenge' },
+  { id: 'funding', totalKey: 'funding', labelKey: 'home.globalMap.legendFunding' },
+  { id: 'case', totalKey: 'cases', labelKey: 'home.globalMap.legendCase' },
 ];
 
-const REGION_MARKERS: Record<RegionId, Record<Kind, number>> = {
-  north_america: { solution: 6, challenge: 2, funding: 3, case: 1 },
-  south_america: { solution: 14, challenge: 5, funding: 6, case: 3 },
-  europe: { solution: 7, challenge: 3, funding: 3, case: 2 },
-  africa: { solution: 8, challenge: 3, funding: 4, case: 3 },
-  asia: { solution: 5, challenge: 2, funding: 3, case: 1 },
-  oceania: { solution: 3, challenge: 1, funding: 1, case: 1 },
-};
-
-/** Um ponto por estado ou região administrativa, em latitude/longitude reais. */
-const PLACES: Record<RegionId, Array<{ id: string; lat: number; lng: number }>> = {
-  north_america: [
-    { id: 'us-ca', lat: 36.7, lng: -119.4 },
-    { id: 'us-tx', lat: 31.0, lng: -99.0 },
-    { id: 'us-fl', lat: 28.5, lng: -82.5 },
-    { id: 'us-ny', lat: 42.9, lng: -75.5 },
-    { id: 'us-il', lat: 40.0, lng: -89.2 },
-    { id: 'us-wa', lat: 47.4, lng: -120.5 },
-    { id: 'ca-on', lat: 48.5, lng: -84.5 },
-    { id: 'ca-qc', lat: 52.0, lng: -71.5 },
-    { id: 'ca-bc', lat: 53.8, lng: -125.0 },
-    { id: 'mx-cmx', lat: 19.4, lng: -99.1 },
-    { id: 'mx-jal', lat: 20.7, lng: -103.3 },
-    { id: 'mx-yuc', lat: 20.7, lng: -89.0 },
-  ],
-  south_america: [
-    { id: 'br-sp', lat: -22.2, lng: -48.8 },
-    { id: 'br-mg', lat: -18.5, lng: -44.5 },
-    { id: 'br-rj', lat: -22.3, lng: -42.7 },
-    { id: 'br-ba', lat: -12.5, lng: -41.7 },
-    { id: 'br-pr', lat: -24.6, lng: -51.6 },
-    { id: 'br-rs', lat: -29.7, lng: -53.2 },
-    { id: 'br-pe', lat: -8.4, lng: -37.9 },
-    { id: 'br-ce', lat: -5.1, lng: -39.6 },
-    { id: 'br-pa', lat: -3.8, lng: -52.5 },
-    { id: 'br-go', lat: -16.0, lng: -49.8 },
-    { id: 'br-mt', lat: -12.8, lng: -55.9 },
-    { id: 'br-am', lat: -4.0, lng: -64.5 },
-    { id: 'br-ms', lat: -20.5, lng: -54.6 },
-    { id: 'br-sc', lat: -27.2, lng: -50.5 },
-    { id: 'co-dc', lat: 4.7, lng: -74.1 },
-    { id: 'co-ant', lat: 6.8, lng: -75.6 },
-    { id: 'co-vac', lat: 3.8, lng: -76.5 },
-    { id: 'co-atl', lat: 10.7, lng: -74.9 },
-    { id: 'co-san', lat: 6.8, lng: -73.2 },
-    { id: 'ar-ba', lat: -36.5, lng: -60.0 },
-    { id: 'ar-cb', lat: -31.4, lng: -64.2 },
-    { id: 'ar-mz', lat: -34.6, lng: -68.3 },
-    { id: 'ar-sf', lat: -31.6, lng: -60.7 },
-    { id: 'ar-ch', lat: -43.8, lng: -68.5 },
-    { id: 'pe-lim', lat: -12.0, lng: -77.0 },
-    { id: 'pe-cus', lat: -13.5, lng: -72.0 },
-    { id: 'pe-are', lat: -16.4, lng: -71.5 },
-    { id: 'pe-lor', lat: -4.0, lng: -74.0 },
-  ],
-  europe: [
-    { id: 'fr-idf', lat: 48.7, lng: 2.5 },
-    { id: 'fr-naq', lat: 45.0, lng: 0.2 },
-    { id: 'fr-occ', lat: 43.7, lng: 2.2 },
-    { id: 'fr-ara', lat: 45.5, lng: 4.5 },
-    { id: 'de-by', lat: 48.8, lng: 11.5 },
-    { id: 'de-nw', lat: 51.5, lng: 7.5 },
-    { id: 'de-be', lat: 52.5, lng: 13.4 },
-    { id: 'es-md', lat: 40.4, lng: -3.7 },
-    { id: 'es-ct', lat: 41.8, lng: 1.6 },
-    { id: 'es-an', lat: 37.5, lng: -4.5 },
-    { id: 'gb-eng', lat: 52.3, lng: -1.5 },
-    { id: 'gb-sct', lat: 56.8, lng: -4.2 },
-    { id: 'it-lom', lat: 45.6, lng: 9.8 },
-    { id: 'it-laz', lat: 41.9, lng: 12.7 },
-    { id: 'it-cam', lat: 40.8, lng: 14.5 },
-  ],
-  africa: [
-    { id: 'ng-la', lat: 6.5, lng: 3.4 },
-    { id: 'ng-fc', lat: 9.1, lng: 7.4 },
-    { id: 'ng-kn', lat: 12.0, lng: 8.5 },
-    { id: 'ng-ri', lat: 4.8, lng: 7.0 },
-    { id: 'ng-oy', lat: 7.8, lng: 3.9 },
-    { id: 'ke-nb', lat: -1.3, lng: 36.8 },
-    { id: 'ke-mb', lat: -4.0, lng: 39.7 },
-    { id: 'ke-ks', lat: -0.1, lng: 34.8 },
-    { id: 'ke-nk', lat: -0.3, lng: 36.1 },
-    { id: 'za-gt', lat: -26.2, lng: 28.0 },
-    { id: 'za-wc', lat: -33.6, lng: 19.5 },
-    { id: 'za-kz', lat: -29.0, lng: 30.5 },
-    { id: 'za-ec', lat: -32.3, lng: 26.4 },
-    { id: 'et-aa', lat: 9.0, lng: 38.7 },
-    { id: 'et-or', lat: 7.5, lng: 39.5 },
-    { id: 'et-am', lat: 11.5, lng: 38.0 },
-    { id: 'gh-aa', lat: 5.6, lng: -0.2 },
-    { id: 'gh-ah', lat: 6.7, lng: -1.6 },
-  ],
-  asia: [
-    { id: 'cn-bj', lat: 40.2, lng: 116.4 },
-    { id: 'cn-sh', lat: 31.2, lng: 121.5 },
-    { id: 'cn-gd', lat: 23.4, lng: 113.3 },
-    { id: 'cn-sc', lat: 30.6, lng: 103.0 },
-    { id: 'in-mh', lat: 19.2, lng: 76.0 },
-    { id: 'in-dl', lat: 28.6, lng: 77.2 },
-    { id: 'in-ka', lat: 14.7, lng: 75.7 },
-    { id: 'in-tn', lat: 11.1, lng: 78.4 },
-    { id: 'jp-tk', lat: 35.7, lng: 139.7 },
-    { id: 'jp-os', lat: 34.7, lng: 135.5 },
-    { id: 'id-jk', lat: -6.2, lng: 106.8 },
-  ],
-  oceania: [
-    { id: 'au-nsw', lat: -32.5, lng: 146.5 },
-    { id: 'au-vic', lat: -36.8, lng: 144.5 },
-    { id: 'au-qld', lat: -22.0, lng: 144.0 },
-    { id: 'au-wa', lat: -25.5, lng: 122.0 },
-    { id: 'nz-auk', lat: -36.9, lng: 174.8 },
-    { id: 'nz-can', lat: -43.5, lng: 172.0 },
-  ],
-};
-
-type Point = { id: string; kind: Kind; region: RegionId; lat: number; lng: number };
-
-function buildPoints(): Point[] {
-  const out: Point[] = [];
-  for (const region of Object.keys(PLACES) as RegionId[]) {
-    const counts = REGION_MARKERS[region];
-    const kinds = (Object.keys(counts) as Kind[]).flatMap((kind) => Array.from({ length: counts[kind] }, () => kind));
-    PLACES[region].forEach((place, index) => {
-      const kind = kinds[index];
-      if (!kind) return;
-      out.push({ id: place.id, kind, region, lat: place.lat, lng: place.lng });
-    });
-  }
-  return out;
-}
-
-const POINTS = buildPoints();
-
-const COUNTRIES: Array<{
-  code: string;
-  region: RegionId;
-  counts: Record<Kind, number>;
-}> = [
-  { code: 'BR', region: 'south_america', counts: { solution: 42, challenge: 18, funding: 20, case: 12 } },
-  { code: 'US', region: 'north_america', counts: { solution: 18, challenge: 9, funding: 14, case: 7 } },
-  { code: 'FR', region: 'europe', counts: { solution: 12, challenge: 6, funding: 10, case: 5 } },
-  { code: 'KE', region: 'africa', counts: { solution: 9, challenge: 5, funding: 6, case: 4 } },
-  { code: 'CO', region: 'south_america', counts: { solution: 8, challenge: 4, funding: 6, case: 3 } },
-];
-
-function searchHref(filter: Filter, extra?: { country?: string; region?: string }) {
+function searchHref(filter: Filter, extra?: { country?: string }) {
   const params = new URLSearchParams();
-  if (extra?.region) params.set('region', extra.region);
   if (extra?.country) params.set('country', extra.country);
   if (filter !== 'all') params.set('contentType', KIND_SEARCH[filter]);
   const query = params.toString();
@@ -219,33 +56,47 @@ function bubbleSize(count: number) {
   return 26;
 }
 
-const POINT_ICONS: Record<Kind, L.DivIcon> = {
-  solution: pointIcon('solution'),
-  challenge: pointIcon('challenge'),
-  funding: pointIcon('funding'),
-  case: pointIcon('case'),
-};
+function regionColor(region: string | null) {
+  if (region === 'north_america' || region === 'south_america' || region === 'latam') return '#1b9a58';
+  return '#2f78d8';
+}
 
-function pointIcon(kind: Kind) {
+function visibleCount(country: MapCountry, filter: Filter) {
+  if (filter === 'all') return country.total;
+  return country.counts[filter];
+}
+
+function markerColor(country: MapCountry, filter: Filter) {
+  if (filter !== 'all') return KIND_COLOR[filter];
+  const top = (Object.entries(country.counts) as Array<[MapKind, number]>).sort((a, b) => b[1] - a[1])[0];
+  if (top && top[1] === country.total) return KIND_COLOR[top[0]];
+  return regionColor(country.region);
+}
+
+function countIcon(count: number, color: string) {
+  const size = bubbleSize(count);
+  const font = count >= 10 ? 14 : 12;
   return L.divIcon({
     className: 'cac-cluster-icon',
-    html: `<span style="display:grid;width:16px;height:16px;place-items:center;border-radius:999px;background:${KIND_COLOR[kind]};color:#fff;font:700 9px/1 sans-serif;box-shadow:0 0 0 1.5px #fff;">1</span>`,
-    iconSize: [16, 16],
-    iconAnchor: [8, 8],
+    html: `<span style="display:grid;width:${size}px;height:${size}px;place-items:center;border-radius:999px;background:${color};color:#fff;font:700 ${font}px/1 sans-serif;box-shadow:0 6px 14px rgba(10,36,64,.22),0 0 0 2px #fff;cursor:pointer;">${count}</span>`,
+    iconSize: [size, size],
+    iconAnchor: [size / 2, size / 2],
   });
 }
 
 function clusterIcon(cluster: L.MarkerCluster) {
   const markers = cluster.getAllChildMarkers();
-  const count = markers.length;
-  const kinds = new Set<Kind>();
-  const regions = new Map<RegionId, number>();
+  let count = 0;
+  const regions = new Map<string, number>();
+  const colors = new Set<string>();
   for (const marker of markers) {
-    const [kind, region] = String(marker.options.alt ?? '').split(':') as [Kind, RegionId];
-    if (kind) kinds.add(kind);
-    if (region) regions.set(region, (regions.get(region) ?? 0) + 1);
+    const [rawCount, region, color] = String(marker.options.alt ?? '').split(':');
+    const n = Number(rawCount);
+    count += Number.isFinite(n) ? n : 1;
+    if (region) regions.set(region, (regions.get(region) ?? 0) + (Number.isFinite(n) ? n : 1));
+    if (color) colors.add(color);
   }
-  let region: RegionId = 'europe';
+  let region = '';
   let best = 0;
   for (const [id, total] of regions) {
     if (total > best) {
@@ -253,7 +104,7 @@ function clusterIcon(cluster: L.MarkerCluster) {
       region = id;
     }
   }
-  const color = kinds.size === 1 ? KIND_COLOR[[...kinds][0]] : REGION_COLOR[region];
+  const color = colors.size === 1 ? [...colors][0] : regionColor(region);
   const size = bubbleSize(count);
   const font = count >= 10 ? 14 : 12;
   return L.divIcon({
@@ -262,6 +113,14 @@ function clusterIcon(cluster: L.MarkerCluster) {
     iconSize: [size, size],
     iconAnchor: [size / 2, size / 2],
   });
+}
+
+function countryName(code: string, lang: string) {
+  try {
+    return new Intl.DisplayNames([lang], { type: 'region' }).of(code) ?? code;
+  } catch {
+    return code;
+  }
 }
 
 function MapChrome() {
@@ -277,7 +136,6 @@ function MapChrome() {
       const userZoom = map.getZoom();
       const userMin = map.getMinZoom();
       const keepZoom = fittedOnce.current && userZoom > userMin + 0.05;
-      // A largura do mundo ocupa a área inteira; o corte fica nos polos.
       const zoom = Math.log(size.x / 256) / Math.LN2;
       map.setMinZoom(zoom);
       if (!keepZoom) map.setView([18, 0], zoom, { animate: false });
@@ -317,67 +175,48 @@ function MapChrome() {
 }
 
 function Flag({ code }: { code: string }) {
-  const frame = 'h-[15px] w-[22px] shrink-0 overflow-hidden rounded-[2px] shadow-[0_0_0_1px_rgba(10,36,64,.14)]';
-  if (code === 'BR') {
-    return (
-      <svg viewBox="0 0 22 15" className={frame} aria-hidden>
-        <rect width="22" height="15" fill="#009c3b" />
-        <polygon points="11,1.3 20.4,7.5 11,13.7 1.6,7.5" fill="#ffdf00" />
-        <circle cx="11" cy="7.5" r="2.7" fill="#002776" />
-      </svg>
-    );
-  }
-  if (code === 'US') {
-    return (
-      <svg viewBox="0 0 22 15" className={frame} aria-hidden>
-        <rect width="22" height="15" fill="#bf0a30" />
-        <rect y="1.15" width="22" height="1.15" fill="#fff" />
-        <rect y="3.45" width="22" height="1.15" fill="#fff" />
-        <rect y="5.75" width="22" height="1.15" fill="#fff" />
-        <rect y="8.05" width="22" height="1.15" fill="#fff" />
-        <rect y="10.35" width="22" height="1.15" fill="#fff" />
-        <rect y="12.65" width="22" height="1.15" fill="#fff" />
-        <rect width="9.2" height="8.1" fill="#002868" />
-      </svg>
-    );
-  }
-  if (code === 'FR') {
-    return (
-      <svg viewBox="0 0 22 15" className={frame} aria-hidden>
-        <rect width="7.34" height="15" fill="#0055a4" />
-        <rect x="7.34" width="7.32" height="15" fill="#fff" />
-        <rect x="14.66" width="7.34" height="15" fill="#ef4135" />
-      </svg>
-    );
-  }
-  if (code === 'KE') {
-    return (
-      <svg viewBox="0 0 22 15" className={frame} aria-hidden>
-        <rect width="22" height="15" fill="#fff" />
-        <rect width="22" height="4.2" fill="#000" />
-        <rect y="5.2" width="22" height="4.6" fill="#bb0000" />
-        <rect y="10.8" width="22" height="4.2" fill="#006600" />
-        <ellipse cx="11" cy="7.5" rx="2.3" ry="3.1" fill="#fff" />
-        <ellipse cx="11" cy="7.5" rx="1.35" ry="2.2" fill="#000" />
-      </svg>
-    );
-  }
+  const emoji = /^[A-Z]{2}$/.test(code)
+    ? code.replace(/./g, (char) => String.fromCodePoint(127397 + char.charCodeAt(0)))
+    : '🏳️';
   return (
-    <svg viewBox="0 0 22 15" className={frame} aria-hidden>
-      <rect width="22" height="7.5" fill="#fcd116" />
-      <rect y="7.5" width="22" height="3.75" fill="#003893" />
-      <rect y="11.25" width="22" height="3.75" fill="#ce1126" />
-    </svg>
+    <span
+      className="grid h-[15px] w-[22px] shrink-0 place-items-center overflow-hidden rounded-[2px] text-[13px] leading-none shadow-[0_0_0_1px_rgba(10,36,64,.14)]"
+      aria-hidden
+    >
+      {emoji}
+    </span>
   );
 }
 
 export function GlobalClimateMap() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const navigate = useNavigate();
   const [filter, setFilter] = useState<Filter>('all');
-  const points = useMemo(
-    () => (filter === 'all' ? POINTS : POINTS.filter((point) => point.kind === filter)),
-    [filter],
-  );
+  const [snapshot, setSnapshot] = useState<MapSnapshot | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    void fetchMapSnapshot()
+      .then((data) => {
+        if (!cancelled) setSnapshot(data);
+      })
+      .catch(() => {
+        if (!cancelled) setSnapshot(null);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const countries = useMemo(() => {
+    const rows = snapshot?.countries ?? [];
+    return rows
+      .map((country) => ({ ...country, shown: visibleCount(country, filter) }))
+      .filter((country) => country.shown > 0)
+      .sort((a, b) => b.shown - a.shown || a.country.localeCompare(b.country));
+  }, [snapshot, filter]);
+
+  const featured = countries.slice(0, 5);
 
   return (
     <section className="bg-cac-bg py-8" aria-labelledby="global-map-title">
@@ -418,7 +257,7 @@ export function GlobalClimateMap() {
           </div>
 
           <div className="mt-5 grid items-stretch gap-5 lg:grid-cols-[minmax(0,1.45fr)_minmax(300px,340px)] lg:gap-8">
-            <div className="relative min-h-[340px] overflow-hidden rounded-[14px] bg-[#d5d5d5] lg:h-full">
+            <div className="relative min-h-[340px] overflow-hidden rounded-[14px] bg-[#c5d8e4] lg:h-full">
               <MapContainer
                 center={[18, 0]}
                 zoom={2}
@@ -431,28 +270,34 @@ export function GlobalClimateMap() {
                 className="cac-leaflet-map absolute inset-0"
               >
                 <TileLayer
-                  attribution='&copy; Esri &mdash; Esri, DeLorme, NAVTEQ'
-                  url="https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}"
+                  attribution="Tiles &copy; Esri &mdash; National Geographic, Esri, DeLorme, NAVTEQ"
+                  url="https://server.arcgisonline.com/ArcGIS/rest/services/NatGeo_World_Map/MapServer/tile/{z}/{y}/{x}"
                 />
-                <TileLayer url="https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Reference/MapServer/tile/{z}/{y}/{x}" />
                 <MarkerClusterGroup
                   key={filter}
                   chunkedLoading
                   showCoverageOnHover={false}
                   zoomToBoundsOnClick
-                  spiderfyOnMaxZoom
-                  maxClusterRadius={(zoom) => (zoom <= 2 ? 100 : 40)}
-                  disableClusteringAtZoom={6}
+                  spiderfyOnMaxZoom={false}
+                  maxClusterRadius={(zoom) => (zoom <= 2 ? 80 : 36)}
+                  disableClusteringAtZoom={5}
                   iconCreateFunction={clusterIcon}
                 >
-                  {points.map((point) => (
-                    <Marker
-                      key={point.id}
-                      position={[point.lat, point.lng]}
-                      icon={POINT_ICONS[point.kind]}
-                      alt={`${point.kind}:${point.region}`}
-                    />
-                  ))}
+                  {countries.map((country) => {
+                    const color = markerColor(country, filter);
+                    return (
+                      <Marker
+                        key={country.country}
+                        position={[country.lat, country.lng]}
+                        icon={countIcon(country.shown, color)}
+                        alt={`${country.shown}:${country.region ?? ''}:${color}`}
+                        eventHandlers={{
+                          click: () =>
+                            navigate(searchHref(filter, { country: country.country })),
+                        }}
+                      />
+                    );
+                  })}
                 </MarkerClusterGroup>
                 <MapChrome />
               </MapContainer>
@@ -462,6 +307,7 @@ export function GlobalClimateMap() {
               <ul className="space-y-2" aria-label={t('home.globalMap.legendLabel')}>
                 {LEGEND.map((item) => {
                   const active = filter === 'all' || filter === item.id;
+                  const total = snapshot ? snapshot.totals[item.totalKey] : null;
                   return (
                     <li key={item.id}>
                       <button
@@ -478,47 +324,52 @@ export function GlobalClimateMap() {
                         />
                         <span className="min-w-0 flex-1 text-pequena text-cac-ink">{t(item.labelKey)}</span>
                         <span className="w-8 text-right text-pequena font-bold text-cac-navy tabular-nums">
-                          {TOTALS[item.id]}
+                          {total ?? '—'}
                         </span>
                       </button>
                     </li>
                   );
                 })}
               </ul>
+              <p className="mt-2 text-mini leading-snug text-cac-muted">{t('home.globalMap.countingNote')}</p>
 
               <h3 className="mt-4 mb-1 border-t border-cac-line pt-4 text-pequena font-bold text-cac-navy">
                 {t('home.globalMap.featuredTitle')}
               </h3>
-              <ul className="flex-1">
-                {COUNTRIES.map((country) => (
-                  <li key={country.code}>
-                    <Link
-                      to={searchHref(filter, { country: country.code, region: country.region })}
-                      className="group grid grid-cols-[auto_minmax(0,1fr)_auto_auto] items-center gap-x-2.5 rounded-lg px-0.5 py-2 transition hover:bg-cac-bg"
-                    >
-                      <Flag code={country.code} />
-                      <span className="truncate text-pequena font-semibold text-cac-navy">
-                        {t(`home.globalMap.countries.${country.code}`)}
-                      </span>
-                      <span className="grid grid-cols-4 gap-x-1 text-center text-[13px] leading-none font-bold tabular-nums">
-                        {LEGEND.map((item) => (
-                          <span
-                            key={item.id}
-                            style={{ color: KIND_COLOR[item.id] }}
-                            className={`w-6 ${filter !== 'all' && filter !== item.id ? 'opacity-30' : ''}`}
-                          >
-                            {country.counts[item.id]}
-                          </span>
-                        ))}
-                      </span>
-                      <i
-                        className="fa-solid fa-chevron-right justify-self-end text-[10px] text-[#b7c4c8] transition group-hover:text-cac-green"
-                        aria-hidden
-                      />
-                    </Link>
-                  </li>
-                ))}
-              </ul>
+              {featured.length ? (
+                <ul className="flex-1">
+                  {featured.map((country) => (
+                    <li key={country.country}>
+                      <Link
+                        to={searchHref(filter, { country: country.country })}
+                        className="group grid grid-cols-[auto_minmax(0,1fr)_auto_auto] items-center gap-x-2.5 rounded-lg px-0.5 py-2 transition hover:bg-cac-bg"
+                      >
+                        <Flag code={country.country} />
+                        <span className="truncate text-pequena font-semibold text-cac-navy">
+                          {countryName(country.country, i18n.language)}
+                        </span>
+                        <span className="grid grid-cols-4 gap-x-1 text-center text-[13px] leading-none font-bold tabular-nums">
+                          {LEGEND.map((item) => (
+                            <span
+                              key={item.id}
+                              style={{ color: KIND_COLOR[item.id] }}
+                              className={`w-6 ${filter !== 'all' && filter !== item.id ? 'opacity-30' : ''}`}
+                            >
+                              {country.counts[item.id]}
+                            </span>
+                          ))}
+                        </span>
+                        <i
+                          className="fa-solid fa-chevron-right justify-self-end text-[10px] text-[#b7c4c8] transition group-hover:text-cac-green"
+                          aria-hidden
+                        />
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <p className="flex-1 py-3 text-mini text-cac-muted">{t('home.globalMap.emptyCountries')}</p>
+              )}
 
               <Link
                 to={searchHref(filter)}

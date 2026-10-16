@@ -76,6 +76,7 @@ export type Technology = CallCardFields & {
   status: string;
   country: string;
   region?: string | null;
+  applicationPlaces?: Array<{ country: string; region?: string | null; note?: string | null }>;
   climateAction?: string | null;
   maturity?: string | null;
   developedWithPartners?: boolean | null;

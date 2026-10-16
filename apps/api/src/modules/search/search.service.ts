@@ -5,6 +5,7 @@ import {
 } from '@cac/shared';
 import { env } from '../../config/env.js';
 import { getEmbeddingProvider } from '../../lib/embeddings/provider.js';
+import { geoWhere } from '../../lib/content-places.js';
 import { prisma } from '../../lib/prisma.js';
 import { interpretQuery } from './interpret.js';
 import { localizeEntities } from '../../lib/translation/localize.js';
@@ -207,6 +208,12 @@ export async function runSearch(body: SearchBody): Promise<SearchResponse> {
   }
 
   const contentFilter = filters.contentType && filters.contentType !== 'ALL' ? filters.contentType : null;
+  const [techGeo, offerGeo, challengeGeo, caseGeo] = await Promise.all([
+    geoWhere('TECHNOLOGY', filters),
+    geoWhere('FUNDING_OFFER', filters),
+    geoWhere('CHALLENGE', filters),
+    geoWhere('SUCCESS_CASE', filters),
+  ]);
 
   const [technologies, projects, organizations, funders, offers, challenges, cases] = await Promise.all([
     contentFilter && contentFilter !== 'SOLUTION'
@@ -214,8 +221,7 @@ export async function runSearch(body: SearchBody): Promise<SearchResponse> {
       : prisma.technology.findMany({
           where: {
             status: ContentStatus.PUBLISHED,
-            ...(filters.country ? { country: filters.country } : {}),
-            ...(filters.region ? { region: filters.region } : {}),
+            ...techGeo,
             ...(filters.theme
               ? { climateAction: filters.theme as 'ADAPTATION' | 'MITIGATION' | 'BOTH' }
               : {}),
@@ -263,9 +269,7 @@ export async function runSearch(body: SearchBody): Promise<SearchResponse> {
       : prisma.fundingOffer.findMany({
           where: {
             status: ContentStatus.PUBLISHED,
-            ...(filters.country ? { country: filters.country } : {}),
-            ...(filters.region ? { region: filters.region } : {}),
-            OR: [{ deadline: null }, { deadline: { gte: new Date() } }],
+            AND: [{ OR: [{ deadline: null }, { deadline: { gte: new Date() } }] }, offerGeo],
           },
           orderBy: { updatedAt: 'desc' },
           take: 50,
@@ -275,8 +279,7 @@ export async function runSearch(body: SearchBody): Promise<SearchResponse> {
       : prisma.challenge.findMany({
           where: {
             status: ContentStatus.PUBLISHED,
-            ...(filters.country ? { country: filters.country } : {}),
-            ...(filters.region ? { region: filters.region } : {}),
+            ...challengeGeo,
           },
           include: { tags: true, organization: true, embedding: true },
           orderBy: { updatedAt: 'desc' },
@@ -287,8 +290,7 @@ export async function runSearch(body: SearchBody): Promise<SearchResponse> {
       : prisma.successCase.findMany({
           where: {
             status: ContentStatus.PUBLISHED,
-            ...(filters.country ? { country: filters.country } : {}),
-            ...(filters.region ? { region: filters.region } : {}),
+            ...caseGeo,
           },
           include: { organization: true, needs: true },
           orderBy: { updatedAt: 'desc' },

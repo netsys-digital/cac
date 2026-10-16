@@ -14,6 +14,7 @@ import { requireAuth, requireRole } from '../../middleware/auth.js';
 import { validateBody } from '../../middleware/validate.js';
 import { isUuid, param } from '../../lib/params.js';
 import { enqueueTranslation, enqueueTranslationIfPublished, localizeEntities, localizeOne, requestLang } from '../../lib/translation/index.js';
+import { applicationPlacesFor, syncContentPlaces } from '../../lib/content-places.js';
 
 export const fundingOffersRouter = Router();
 export const fundersRouter = Router();
@@ -57,8 +58,12 @@ fundingOffersRouter.get('/:slugOrId', async (req, res, next) => {
       res.status(404).json({ error: 'not_found' });
       return;
     }
+    const offer = await localizeOne('funding_offer', item, requestLang(req.query), { nestedOrganization: true });
     res.json({
-      offer: await localizeOne('funding_offer', item, requestLang(req.query), { nestedOrganization: true }),
+      offer: {
+        ...offer,
+        applicationPlaces: await applicationPlacesFor('FUNDING_OFFER', item.id),
+      },
     });
   } catch (error) {
     next(error);
@@ -89,6 +94,11 @@ fundingOffersRouter.post('/', requireAuth, validateBody(createFundingOfferBodySc
         status: ContentStatus.DRAFT,
       },
     });
+    await syncContentPlaces('FUNDING_OFFER', offer.id, {
+      country: offer.country,
+      region: offer.region,
+      applicationPlaces: req.body.applicationPlaces,
+    });
     res.status(201).json({ offer });
   } catch (error) {
     next(error);
@@ -107,21 +117,27 @@ fundingOffersRouter.patch(
         return;
       }
       await assertCanActForOrganization(req.auth!.sub, current.organizationId, req.auth!.role);
+      const { applicationPlaces, ...body } = req.body;
       const offer = await prisma.fundingOffer.update({
         where: { id: current.id },
         data: {
-          ...req.body,
-          deadline: req.body.deadline === undefined ? undefined : req.body.deadline ? new Date(req.body.deadline) : null,
-          officialUrl: req.body.officialUrl === '' ? null : req.body.officialUrl,
+          ...body,
+          deadline: body.deadline === undefined ? undefined : body.deadline ? new Date(body.deadline) : null,
+          officialUrl: body.officialUrl === '' ? null : body.officialUrl,
           bannerLinkUrl:
-            req.body.bannerLinkUrl === undefined
+            body.bannerLinkUrl === undefined
               ? undefined
-              : req.body.bannerLinkUrl === '' || req.body.bannerLinkUrl === null
+              : body.bannerLinkUrl === '' || body.bannerLinkUrl === null
                 ? null
-                : req.body.bannerLinkUrl,
-          bannerPosition: req.body.bannerPosition,
-          ...callCardData(req.body),
+                : body.bannerLinkUrl,
+          bannerPosition: body.bannerPosition,
+          ...callCardData(body),
         },
+      });
+      await syncContentPlaces('FUNDING_OFFER', offer.id, {
+        country: body.country ?? offer.country,
+        region: body.region ?? offer.region,
+        applicationPlaces,
       });
       void enqueueTranslationIfPublished(offer.status, { entityType: 'funding_offer', entityId: offer.id });
       res.json({ offer });

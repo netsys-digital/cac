@@ -116,6 +116,9 @@ export const en = {
       legendCase: 'Success cases',
       featuredTitle: 'Featured countries',
       seeAll: 'See all countries',
+      countingNote:
+        'Totals count each publication once. On the map, the same publication appears in every linked country.',
+      emptyCountries: 'There are no publications with a country yet.',
       zoomIn: 'Zoom in',
       zoomOut: 'Zoom out',
       regionCount: '{{count}} publications in {{region}}',
@@ -217,6 +220,7 @@ export const en = {
     organization: 'Organization',
     verified: 'Verified',
     problem: 'Problem it solves',
+    appliedIn: 'Application: {{country}}',
     how: 'How it works',
     context: 'Context',
     needType: 'Need type',

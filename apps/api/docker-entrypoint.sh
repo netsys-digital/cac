@@ -3,6 +3,10 @@
 # Se migrate falhar, imprime diagnóstico e sai (restart policy tenta de novo
 # depois que prod-db-prepare.sh no deploy corrigir ownership).
 #
+# Não roda `prisma db seed`. O seed recria catálogo demo, usuários admin/curador
+# e filhos (tags, needs, media) a cada start — e o publish.sh recria a API
+# sempre. Conteúdo de produção fica só com migrate de schema.
+#
 # Com args (ex.: compose run --rm api npx prisma …) executa só o comando
 # sem subir o servidor — usado por prod-db-prepare / recover.
 set -euo pipefail
@@ -20,9 +24,6 @@ if ! npx prisma migrate deploy; then
   echo "[cac-api] Isso aplica DDL como netsys, transfere OWNER para cac e resolve P3009."
   exit 1
 fi
-
-echo "[cac-api] seed (non-blocking)…"
-npx prisma db seed || echo "[cac-api] seed failed — continuing"
 
 echo "[cac-api] starting…"
 exec node dist/index.js

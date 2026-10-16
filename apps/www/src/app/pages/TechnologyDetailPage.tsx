@@ -120,6 +120,13 @@ export function TechnologyDetailPage() {
           <>
             {item.region ? <DetailHeroChip>{item.region}</DetailHeroChip> : null}
             {item.country ? <DetailHeroChip>{item.country}</DetailHeroChip> : null}
+            {item.applicationPlaces?.map((place) => (
+              <DetailHeroChip key={place.country}>
+                {t('detail.appliedIn', {
+                  country: new Intl.DisplayNames([i18n.language], { type: 'region' }).of(place.country) ?? place.country,
+                })}
+              </DetailHeroChip>
+            ))}
             {climate ? <DetailHeroChip>{climate}</DetailHeroChip> : null}
             {maturity ? <DetailHeroChip>{maturity}</DetailHeroChip> : null}
           </>

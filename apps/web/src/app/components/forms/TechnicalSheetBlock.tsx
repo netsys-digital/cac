@@ -4,6 +4,7 @@ import { Input, TextArea } from '@cac/ui';
 import { FieldFull } from './FormPage';
 import { RichTextArea } from './RichTextArea';
 import { type MultiSelectOption, MultiSelectField } from './MultiSelectField';
+import { ApplicationPlacesField, type ApplicationPlace } from './ApplicationPlacesField';
 import { RegionCountryFields } from './RegionCountryFields';
 
 const BIOMES: MultiSelectOption[] = ['Amazônia', 'Caatinga', 'Cerrado', 'Mata Atlântica', 'Pampa', 'Pantanal'].map(
@@ -55,6 +56,7 @@ export type TechnicalSheetDefaults = {
   launchYear?: number | null;
   region?: string | null;
   country?: string | null;
+  applicationPlaces?: ApplicationPlace[];
   state?: string | null;
   biome?: string | null;
   responsibleUnit?: string | null;
@@ -200,6 +202,12 @@ export function TechnicalSheetBlock({ defaults = {} }: Props) {
             defaultRegion={defaults.region || 'south_america'}
             defaultCountry={defaults.country || 'BR'}
             onCountryChange={setCountry}
+            regionLabel={t('catalog.originRegion')}
+            countryLabel={t('catalog.originCountry')}
+          />
+          <ApplicationPlacesField
+            originCountry={country}
+            defaultPlaces={defaults.applicationPlaces ?? []}
           />
 
           {isBrazil ? (

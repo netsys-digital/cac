@@ -13,6 +13,7 @@ import { requireAuth, requireRole } from '../../middleware/auth.js';
 import { validateBody } from '../../middleware/validate.js';
 import { isUuid, param } from '../../lib/params.js';
 import { enqueueEmbedding } from '../../lib/queue/embedding-queue.js';
+import { applicationPlacesFor, syncContentPlaces } from '../../lib/content-places.js';
 import { enqueueTranslation, enqueueTranslationIfPublished, localizeEntities, localizeOne, requestLang } from '../../lib/translation/index.js';
 
 export const technologiesRouter = Router();
@@ -104,10 +105,14 @@ technologiesRouter.get('/:slugOrId', async (req, res, next) => {
       res.status(404).json({ error: 'not_found' });
       return;
     }
+    const technology = await localizeOne('technology', mapTech(item), requestLang(req.query), {
+      nestedOrganization: true,
+    });
     res.json({
-      technology: await localizeOne('technology', mapTech(item), requestLang(req.query), {
-        nestedOrganization: true,
-      }),
+      technology: {
+        ...technology,
+        applicationPlaces: await applicationPlacesFor('TECHNOLOGY', item.id),
+      },
     });
   } catch (error) {
     next(error);
@@ -147,6 +152,11 @@ technologiesRouter.post('/', requireAuth, validateBody(createTechnologyBodySchem
           : undefined,
       },
       include: { tags: true },
+    });
+    await syncContentPlaces('TECHNOLOGY', technology.id, {
+      country: technology.country,
+      region: technology.region,
+      applicationPlaces: req.body.applicationPlaces,
     });
     res.status(201).json({ technology: mapTech(technology) });
   } catch (error) {
@@ -196,6 +206,11 @@ technologiesRouter.patch(
             : undefined,
         },
         include: { tags: true },
+      });
+      await syncContentPlaces('TECHNOLOGY', technology.id, {
+        country: req.body.country ?? technology.country,
+        region: req.body.region ?? technology.region,
+        applicationPlaces: req.body.applicationPlaces,
       });
       void enqueueTranslationIfPublished(technology.status, {
         entityType: 'technology',

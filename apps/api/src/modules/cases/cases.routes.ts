@@ -13,6 +13,7 @@ import { requireAuth, requireRole } from '../../middleware/auth.js';
 import { validateBody } from '../../middleware/validate.js';
 import { isUuid, param } from '../../lib/params.js';
 import { enqueueTranslation, enqueueTranslationIfPublished, localizeEntities, localizeOne, requestLang } from '../../lib/translation/index.js';
+import { applicationPlacesFor, syncContentPlaces } from '../../lib/content-places.js';
 
 export const successCasesRouter = Router();
 
@@ -61,10 +62,14 @@ successCasesRouter.get('/:slugOrId', async (req, res, next) => {
       res.status(404).json({ error: 'not_found' });
       return;
     }
+    const successCase = await localizeOne('success_case', mapCase(item), requestLang(req.query), {
+      nestedOrganization: true,
+    });
     res.json({
-      successCase: await localizeOne('success_case', mapCase(item), requestLang(req.query), {
-        nestedOrganization: true,
-      }),
+      successCase: {
+        ...successCase,
+        applicationPlaces: await applicationPlacesFor('SUCCESS_CASE', item.id),
+      },
     });
   } catch (error) {
     next(error);
@@ -112,6 +117,11 @@ successCasesRouter.post('/', requireAuth, validateBody(createSuccessCaseBodySche
       },
       include: { needs: true, media: true, organization: true },
     });
+    await syncContentPlaces('SUCCESS_CASE', successCase.id, {
+      country: successCase.country,
+      region: successCase.region,
+      applicationPlaces: req.body.applicationPlaces,
+    });
     res.status(201).json({ successCase: mapCase(successCase) });
   } catch (error) {
     next(error);
@@ -130,7 +140,8 @@ successCasesRouter.patch(
         return;
       }
       await assertCanActForOrganization(req.auth!.sub, current.organizationId, req.auth!.role);
-      const { needs, evidenceNotes, ...rest } = req.body as {
+      const { needs, evidenceNotes, applicationPlaces, ...rest } = req.body as {
+        applicationPlaces?: Array<{ country?: string; region?: string | null; note?: string | null }>;
         needs?: Array<{ needType: string; detail?: string }>;
         evidenceNotes?: string[];
         bannerLinkUrl?: string | null;
@@ -177,6 +188,11 @@ successCasesRouter.patch(
             : {}),
         },
         include: { needs: true, media: true, organization: true },
+      });
+      await syncContentPlaces('SUCCESS_CASE', successCase.id, {
+        country: typeof rest.country === 'string' ? rest.country : successCase.country,
+        region: typeof rest.region === 'string' ? rest.region : successCase.region,
+        applicationPlaces,
       });
       void enqueueTranslationIfPublished(successCase.status, {
         entityType: 'success_case',

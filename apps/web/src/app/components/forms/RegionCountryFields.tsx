@@ -27,6 +27,8 @@ type Props = {
   onRegionChange?: (value: string) => void;
   onCountryChange?: (value: string) => void;
   required?: boolean;
+  regionLabel?: string;
+  countryLabel?: string;
 };
 
 /** Região primeiro; país filtrado pela região. Opções de `/api/domains`. */
@@ -40,6 +42,8 @@ export function RegionCountryFields({
   onRegionChange,
   onCountryChange,
   required = true,
+  regionLabel,
+  countryLabel,
 }: Props) {
   const { t, i18n } = useTranslation();
   const [regions, setRegions] = useState<DomainOption[]>([]);
@@ -88,7 +92,7 @@ export function RegionCountryFields({
   return (
     <>
       <SelectField
-        label={t('catalog.region')}
+        label={regionLabel ?? t('catalog.region')}
         hint={t('catalog.regionHint')}
         name={regionName}
         required={required}
@@ -103,7 +107,7 @@ export function RegionCountryFields({
         ))}
       </SelectField>
       <SelectField
-        label={t('catalog.country')}
+        label={countryLabel ?? t('catalog.country')}
         hint={regionKey ? t('catalog.countryHint') : t('catalog.countryHintNeedRegion')}
         name={countryName}
         required={required}

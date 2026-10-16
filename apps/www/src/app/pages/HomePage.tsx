@@ -3,6 +3,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Trans, useTranslation } from 'react-i18next';
 import { urls } from '../../config';
 import { catalogApi, type Challenge, type HighlightItem, type HighlightType } from '../api/catalogApi';
+import { fetchMapSnapshot, type MapTotals } from '../api/mapApi';
 import { callCard } from '../lib/callCard';
 import { GlobalClimateMap } from '../components/GlobalClimateMap';
 import { IconSearch } from '../components/PathIcons';
@@ -122,6 +123,21 @@ export function HomePage() {
   const [challengesLoading, setChallengesLoading] = useState(true);
   const [highlights, setHighlights] = useState<HighlightItem[]>([]);
   const [highlightsLoading, setHighlightsLoading] = useState(true);
+  const [mapTotals, setMapTotals] = useState<MapTotals | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    void fetchMapSnapshot()
+      .then((data) => {
+        if (!cancelled) setMapTotals(data.totals);
+      })
+      .catch(() => {
+        if (!cancelled) setMapTotals(null);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   useEffect(() => {
     let cancelled = false;
@@ -179,6 +195,9 @@ export function HomePage() {
 
   const tags = t('home.tags', { returnObjects: true }) as string[];
   const stats = t('home.stats', { returnObjects: true }) as Array<{ value: string; label: string }>;
+  const liveStatValues = mapTotals
+    ? [mapTotals.solutions, mapTotals.funding, mapTotals.challenges, mapTotals.organizations, mapTotals.countries]
+    : null;
   const pillars = t('home.pillars', { returnObjects: true }) as Array<{
     title: string;
     body: string;
@@ -402,7 +421,9 @@ export function HomePage() {
                   >
                     <i className={`${iconClass} shrink-0 text-[1.85rem] text-[#8ce4cc]`} aria-hidden />
                     <div className="min-w-0 text-left">
-                      <p className="text-grande font-bold leading-none text-white">{stat.value}</p>
+                      <p className="text-grande font-bold leading-none text-white">
+                        {liveStatValues ? liveStatValues[index] : '—'}
+                      </p>
                       <p className="mt-1.5 text-mini leading-snug text-[#8ce4cc]">{stat.label}</p>
                     </div>
                   </div>

@@ -6,6 +6,7 @@ import {
   organizationIdsForUser,
 } from '../../lib/org-access.js';
 import { findDeletableContent } from '../../lib/content-deletion.js';
+import { applicationPlacesFor, type PlaceKind } from '../../lib/content-places.js';
 import { param } from '../../lib/params.js';
 import { prisma } from '../../lib/prisma.js';
 import { requireAuth } from '../../middleware/auth.js';
@@ -507,6 +508,7 @@ meRouter.get('/contents/:kind/:id', requireAuth, async (req, res, next) => {
     }
 
     await assertCanActForOrganization(req.auth!.sub, organizationId, req.auth!.role);
+    item.applicationPlaces = await applicationPlacesFor(kind as PlaceKind, id);
     res.json({ item });
   } catch (error) {
     next(error);
@@ -616,6 +618,7 @@ meRouter.delete('/contents/:kind/:id', requireAuth, async (req, res, next) => {
     }
 
     await prisma.$transaction(async (tx) => {
+      await tx.contentPlace.deleteMany({ where: { kind, entityId: id } });
       await tx.contentDeletionRequest.updateMany({
         where: { targetType: kind, targetId: id, status: 'REQUESTED' },
         data: { status: 'CANCELLED' },

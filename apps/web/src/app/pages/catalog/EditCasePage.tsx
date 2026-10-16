@@ -11,6 +11,7 @@ import { pickBannerFile } from '../../components/forms/BannerImageField';
 import { pickCoverFile } from '../../components/forms/RepresentativeImageField';
 import { MediaBlock } from '../../components/forms/MediaBlock';
 import { saveAttachments, usePublicationAttachments } from '../../components/forms/AttachmentsField';
+import { ApplicationPlacesField, pickApplicationPlaces, placesFromUnknown } from '../../components/forms/ApplicationPlacesField';
 import { RegionCountryFields } from '../../components/forms/RegionCountryFields';
 import {
   CallCardBlock,
@@ -72,6 +73,7 @@ export function EditCasePage() {
         bannerPosition: String(form.get('bannerPosition') || 'ABOVE_FOOTER'),
         country: String(form.get('country')),
         region: String(form.get('region')),
+        applicationPlaces: pickApplicationPlaces(form),
         evidenceNotes,
         ...pickCallCard(form),
       });
@@ -157,7 +159,10 @@ export function EditCasePage() {
             <RegionCountryFields
               defaultRegion={String(item.region || 'africa')}
               defaultCountry={String(item.country || 'MZ')}
+              regionLabel={t('catalog.originRegion')}
+              countryLabel={t('catalog.originCountry')}
             />
+            <ApplicationPlacesField defaultPlaces={placesFromUnknown(item.applicationPlaces)} />
             <FieldFull>
               <TextArea label={t('catalog.evidence')} name="evidence" rows={3} defaultValue={String(item.evidence || '')} />
             </FieldFull>

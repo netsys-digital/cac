@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import { BannerPosition, ClimateAction, ContentStatus, Maturity } from '../enums.js';
 import { callCardFields } from './callCard.js';
+import { applicationPlacesField } from './places.js';
 import { TEXT_LIMITS } from './limits.js';
 
 const bannerPositionSchema = z
@@ -66,6 +67,7 @@ export const createTechnologyBodySchema = z.object({
   keywords: z.array(z.string().min(1).max(64)).max(30).optional(),
   officialUrl: optionalHttpUrl,
   ...callCardFields,
+  ...applicationPlacesField,
 });
 
 export const updateTechnologyBodySchema = createTechnologyBodySchema

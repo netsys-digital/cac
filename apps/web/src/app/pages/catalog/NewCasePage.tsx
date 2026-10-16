@@ -21,6 +21,7 @@ import { MediaBlock } from '../../components/forms/MediaBlock';
 import { saveAttachments } from '../../components/forms/AttachmentsField';
 import { CallCardBlock, pickCallCard, saveCallCardImage } from '../../components/forms/CallCardBlock';
 import { pickCoverFile } from '../../components/forms/RepresentativeImageField';
+import { ApplicationPlacesField, pickApplicationPlaces } from '../../components/forms/ApplicationPlacesField';
 import { RegionCountryFields } from '../../components/forms/RegionCountryFields';
 import { useMyOrganizations } from '../../hooks/useMyOrganizations';
 
@@ -70,6 +71,7 @@ export function NewCasePage() {
         organizationId: orgId,
         country: String(form.get('country')),
         region: String(form.get('region')),
+        applicationPlaces: pickApplicationPlaces(form),
         evidenceNotes,
         bannerLinkUrl: pickBannerLink(form),
         bannerPosition: pickBannerPosition(form),
@@ -142,7 +144,13 @@ export function NewCasePage() {
       <FieldFull>
         <RichTextArea label={t('catalog.outcomes')} hint={t('catalog.outcomesHint')} name="outcomes" required rows={3} />
       </FieldFull>
-      <RegionCountryFields defaultRegion="africa" defaultCountry="MZ" />
+      <RegionCountryFields
+        defaultRegion="africa"
+        defaultCountry="MZ"
+        regionLabel={t('catalog.originRegion')}
+        countryLabel={t('catalog.originCountry')}
+      />
+      <ApplicationPlacesField />
       <FieldFull>
         <TextArea
           label={t('catalog.evidence')}

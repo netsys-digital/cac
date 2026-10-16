@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import { BannerPosition, ContentStatus, NeedType } from '../enums.js';
 import { callCardFields } from './callCard.js';
+import { applicationPlacesField } from './places.js';
 import { TEXT_LIMITS } from './limits.js';
 
 export const createChallengeBodySchema = z.object({
@@ -41,6 +42,7 @@ export const createChallengeBodySchema = z.object({
     .enum([ContentStatus.DRAFT, ContentStatus.IN_REVIEW, ContentStatus.PUBLISHED])
     .optional(),
   ...callCardFields,
+  ...applicationPlacesField,
 });
 
 export const updateChallengeBodySchema = createChallengeBodySchema

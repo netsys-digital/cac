@@ -20,6 +20,7 @@ import { MediaBlock } from '../../components/forms/MediaBlock';
 import { saveAttachments } from '../../components/forms/AttachmentsField';
 import { CallCardBlock, pickCallCard, saveCallCardImage } from '../../components/forms/CallCardBlock';
 import { pickCoverFile } from '../../components/forms/RepresentativeImageField';
+import { ApplicationPlacesField, pickApplicationPlaces } from '../../components/forms/ApplicationPlacesField';
 import { RegionCountryFields } from '../../components/forms/RegionCountryFields';
 import { useMyOrganizations } from '../../hooks/useMyOrganizations';
 
@@ -77,6 +78,7 @@ export function NewChallengePage() {
         organizationId: orgId,
         country: String(form.get('country')),
         region: String(form.get('region')),
+        applicationPlaces: pickApplicationPlaces(form),
         tags,
         bannerLinkUrl: pickBannerLink(form),
         bannerPosition: pickBannerPosition(form),
@@ -168,7 +170,13 @@ export function NewChallengePage() {
         <option value="RESEARCH">{t('catalog.needResearch')}</option>
         <option value="EQUIPMENT">{t('catalog.needEquipment')}</option>
       </SelectField>
-      <RegionCountryFields defaultRegion="south_america" defaultCountry="BR" />
+      <RegionCountryFields
+        defaultRegion="south_america"
+        defaultCountry="BR"
+        regionLabel={t('catalog.originRegion')}
+        countryLabel={t('catalog.originCountry')}
+      />
+      <ApplicationPlacesField />
       <FieldFull>
         <Input
           label={t('catalog.tags')}

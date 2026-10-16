@@ -21,6 +21,7 @@ import { saveAttachments } from '../../components/forms/AttachmentsField';
 import { CallCardBlock, pickCallCard, saveCallCardImage } from '../../components/forms/CallCardBlock';
 import { pickPublicationFiles, PublicationsField } from '../../components/forms/PublicationsField';
 import { pickCoverFile } from '../../components/forms/RepresentativeImageField';
+import { pickApplicationPlaces } from '../../components/forms/ApplicationPlacesField';
 import { pickTechnicalSheet, TechnicalSheetBlock } from '../../components/forms/TechnicalSheetBlock';
 import { useMyOrganizations } from '../../hooks/useMyOrganizations';
 
@@ -82,6 +83,7 @@ export function NewTechnologyPage() {
         organizationId: orgId,
         country: String(form.get('country')),
         region: String(form.get('region')),
+        applicationPlaces: pickApplicationPlaces(form),
         maturity: String(form.get('maturity')),
         tags,
         ...pickTechnicalSheet(form),

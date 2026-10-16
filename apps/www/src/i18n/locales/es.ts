@@ -121,6 +121,9 @@ export const es = {
       legendCase: 'Casos de éxito',
       featuredTitle: 'Países destacados',
       seeAll: 'Ver todos los países',
+      countingNote:
+        'Los totales cuentan cada publicación una vez. En el mapa, la misma publicación aparece en cada país vinculado.',
+      emptyCountries: 'Todavía no hay publicaciones con país registrado.',
       zoomIn: 'Acercar mapa',
       zoomOut: 'Alejar mapa',
       regionCount: '{{count}} publicaciones en {{region}}',
@@ -222,6 +225,7 @@ export const es = {
     organization: 'Organización',
     verified: 'Verificado',
     problem: 'Problema que resuelve',
+    appliedIn: 'Aplicación: {{country}}',
     how: 'Cómo funciona',
     context: 'Contexto',
     needType: 'Tipo de necesidad',

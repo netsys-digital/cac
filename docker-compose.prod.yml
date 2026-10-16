@@ -19,7 +19,7 @@ services:
     build:
       context: .
       dockerfile: apps/api/Dockerfile
-    # Entrypoint: migrate deploy + seed non-blocking + node.
+    # Entrypoint: prisma migrate deploy + node. Sem seed (catálogo demo).
     # Antes do recreate da api, deploy.sh roda scripts/prod-db-prepare.sh
     # (DDL como netsys + OWNER → cac) para evitar P3009/42501.
     env_file:

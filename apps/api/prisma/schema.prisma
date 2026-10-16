@@ -663,3 +663,20 @@ model ContentTranslation {
   @@index([entityType, entityId, lang])
   @@index([sourceHash, lang])
 }
+
+/// País de origem ou de aplicação de uma publicação.
+/// O mesmo registro pode ter vários países e continua contando uma vez nos totais.
+model ContentPlace {
+  id        String   @id @default(uuid()) @db.Uuid
+  kind      String
+  entityId  String   @db.Uuid
+  role      String
+  country   String
+  region    String?
+  note      String?
+  createdAt DateTime @default(now())
+
+  @@unique([kind, entityId, role, country])
+  @@index([kind, entityId])
+  @@index([country, region])
+}

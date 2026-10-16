@@ -8,6 +8,7 @@ import { requireAuth } from '../../middleware/auth.js';
 import { validateBody } from '../../middleware/validate.js';
 import { isUuid, param } from '../../lib/params.js';
 import { enqueueEmbedding } from '../../lib/queue/embedding-queue.js';
+import { applicationPlacesFor, syncContentPlaces } from '../../lib/content-places.js';
 import { enqueueTranslation, enqueueTranslationIfPublished, localizeEntities, localizeOne, requestLang } from '../../lib/translation/index.js';
 
 export const challengesRouter = Router();
@@ -49,10 +50,14 @@ challengesRouter.get('/:slugOrId', async (req, res, next) => {
       res.status(404).json({ error: 'not_found' });
       return;
     }
+    const challenge = await localizeOne('challenge', mapChallenge(item), requestLang(req.query), {
+      nestedOrganization: true,
+    });
     res.json({
-      challenge: await localizeOne('challenge', mapChallenge(item), requestLang(req.query), {
-        nestedOrganization: true,
-      }),
+      challenge: {
+        ...challenge,
+        applicationPlaces: await applicationPlacesFor('CHALLENGE', item.id),
+      },
     });
   } catch (error) {
     next(error);
@@ -87,6 +92,11 @@ challengesRouter.post('/', requireAuth, validateBody(createChallengeBodySchema),
           : undefined,
       },
       include: { tags: true },
+    });
+    await syncContentPlaces('CHALLENGE', challenge.id, {
+      country: challenge.country,
+      region: challenge.region,
+      applicationPlaces: req.body.applicationPlaces,
     });
     res.status(201).json({ challenge: mapChallenge(challenge) });
   } catch (error) {
@@ -137,6 +147,11 @@ challengesRouter.patch(
             : undefined,
         },
         include: { tags: true },
+      });
+      await syncContentPlaces('CHALLENGE', challenge.id, {
+        country: req.body.country ?? challenge.country,
+        region: req.body.region ?? challenge.region,
+        applicationPlaces: req.body.applicationPlaces,
       });
       void enqueueTranslationIfPublished(challenge.status, {
         entityType: 'challenge',

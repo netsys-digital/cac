@@ -3,6 +3,14 @@ import type { SearchFilters } from '../../api/searchApi';
 
 type Option = { value: string; label: string };
 
+function countryDisplayName(code: string) {
+  try {
+    return new Intl.DisplayNames(undefined, { type: 'region' }).of(code) ?? code;
+  } catch {
+    return code;
+  }
+}
+
 type Props = {
   value: SearchFilters;
   onChange: (next: SearchFilters) => void;
@@ -118,7 +126,11 @@ export function FilterPanel({ value, onChange, labels, options }: Props) {
   }
 
   const regionSelected = Boolean(value.region);
-  const countryOptions = regionSelected ? (options.countriesByRegion[value.region!] ?? []) : [];
+  const listed = regionSelected ? (options.countriesByRegion[value.region!] ?? []) : [];
+  const countryOptions =
+    value.country && !listed.some((item) => item.value === value.country)
+      ? [...listed, { value: value.country, label: countryDisplayName(value.country) }]
+      : listed;
   const allLabel = labels.all;
 
   return (
@@ -144,7 +156,7 @@ export function FilterPanel({ value, onChange, labels, options }: Props) {
           value={value.country}
           options={countryOptions}
           onChange={(v) => set('country', v)}
-          disabled={!regionSelected}
+          disabled={!regionSelected && !value.country}
         />
         <Select
           label={labels.theme}
