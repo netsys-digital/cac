@@ -97,23 +97,9 @@ function updatedMs(value?: Date | string | null): number {
   return Number.isFinite(t) ? t : 0;
 }
 
-function hasActiveSearchFilters(filters: SearchBody['filters']): boolean {
-  if (!filters) return false;
-  if (filters.country?.trim()) return true;
-  if (filters.region?.trim()) return true;
-  if (filters.theme?.trim()) return true;
-  if (filters.actorType?.trim()) return true;
-  if (filters.sector?.trim()) return true;
-  if (filters.maturity?.trim()) return true;
-  if (filters.scale?.trim()) return true;
-  if (filters.financing && filters.financing !== 'ALL') return true;
-  // contentType sozinho ainda é browse por tipo (sem ranqueamento)
-  return false;
-}
-
-/** Sem texto e sem filtros → listar últimas publicações, sem ranqueamento. */
-function isBrowseLatest(query: string, filters: SearchBody['filters']): boolean {
-  return !query.trim() && !hasActiveSearchFilters(filters);
+/** Sem texto de busca, os filtros só restringem a lista. Não há o que ranquear. */
+function isBrowseLatest(query: string): boolean {
+  return !query.trim();
 }
 
 const SEARCH_TYPE_MAP: Record<string, TranslationEntityType> = {
@@ -200,7 +186,7 @@ export async function runSearch(body: SearchBody): Promise<SearchResponse> {
   const query = (body.query ?? '').trim();
   const filters = body.filters ?? {};
   const lang = body.lang ?? 'pt';
-  const browseLatest = isBrowseLatest(query, filters);
+  const browseLatest = isBrowseLatest(query);
   const pageSize = body.limit ?? (browseLatest ? 10 : 20);
   const page = body.page ?? 1;
   const minScore = env.matchMinScore;
