@@ -4,6 +4,7 @@ import { Trans, useTranslation } from 'react-i18next';
 import { urls } from '../../config';
 import { catalogApi, type Challenge, type HighlightItem, type HighlightType } from '../api/catalogApi';
 import { callCard } from '../lib/callCard';
+import { GlobalClimateMap } from '../components/GlobalClimateMap';
 import { IconSearch } from '../components/PathIcons';
 import { needTypeLabel } from '../lib/needTypeLabel';
 import { searchParamsFromState } from '../search/searchReturn';
@@ -410,6 +411,8 @@ export function HomePage() {
             : null}
         </div>
       </section>
+
+      <GlobalClimateMap />
 
       {/* About AgriZONE Connect */}
       <section id="sobre" className="scroll-mt-[74px] bg-white py-16">
