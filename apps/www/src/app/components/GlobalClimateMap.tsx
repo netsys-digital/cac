@@ -175,16 +175,29 @@ function MapChrome() {
 }
 
 function Flag({ code }: { code: string }) {
-  const emoji = /^[A-Z]{2}$/.test(code)
-    ? code.replace(/./g, (char) => String.fromCodePoint(127397 + char.charCodeAt(0)))
-    : '🏳️';
+  const iso = code.trim().toLowerCase();
+  const valid = /^[a-z]{2}$/.test(iso);
+  const [failed, setFailed] = useState(false);
+  if (!valid || failed) {
+    return (
+      <span
+        className="grid h-[15px] w-[22px] shrink-0 place-items-center overflow-hidden rounded-[2px] bg-white text-[8px] font-bold leading-none tracking-tight text-cac-navy shadow-[0_0_0_1px_rgba(10,36,64,.14)]"
+        aria-hidden
+      >
+        {code.slice(0, 2).toUpperCase()}
+      </span>
+    );
+  }
   return (
-    <span
-      className="grid h-[15px] w-[22px] shrink-0 place-items-center overflow-hidden rounded-[2px] text-[13px] leading-none shadow-[0_0_0_1px_rgba(10,36,64,.14)]"
-      aria-hidden
-    >
-      {emoji}
-    </span>
+    <img
+      src={`https://flagcdn.com/w40/${iso}.png`}
+      alt=""
+      width={22}
+      height={15}
+      loading="lazy"
+      className="h-[15px] w-[22px] shrink-0 rounded-[2px] object-cover shadow-[0_0_0_1px_rgba(10,36,64,.14)]"
+      onError={() => setFailed(true)}
+    />
   );
 }
 
