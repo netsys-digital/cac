@@ -1,8 +1,10 @@
-import { type MouseEvent, useState } from 'react';
+import { type MouseEvent, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Input } from '@cac/ui';
+import { catalogApi } from '../../api/catalogApi';
+import { countryCodesForRegion } from '../../lib/regionCountries';
 import { FieldFull } from './FormPage';
-import { RegionCountryFields } from './RegionCountryFields';
+import { RegionCountryFields, type DomainOption } from './RegionCountryFields';
 
 export type ApplicationPlace = {
   country: string;
@@ -10,10 +12,20 @@ export type ApplicationPlace = {
   note: string;
 };
 
+type DraftPlace = {
+  country: string;
+  region: string;
+};
+
 type Props = {
   originCountry?: string;
   defaultPlaces?: ApplicationPlace[];
 };
+
+function labelFor(item: DomainOption, lang: string) {
+  if (lang.startsWith('en') || lang.startsWith('es')) return item.labelEn;
+  return item.labelPt;
+}
 
 export function pickApplicationPlaces(form: FormData): ApplicationPlace[] {
   const raw = String(form.get('applicationPlaces') || '').trim();
@@ -48,32 +60,101 @@ export function placesFromUnknown(value: unknown): ApplicationPlace[] {
 
 /** Países onde a mesma publicação se aplica, além do país de origem. */
 export function ApplicationPlacesField({ originCountry = '', defaultPlaces = [] }: Props) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const selectAllRef = useRef<HTMLInputElement>(null);
+  const sectionRef = useRef<HTMLElement>(null);
   const [places, setPlaces] = useState<ApplicationPlace[]>(defaultPlaces);
   const [region, setRegion] = useState('');
-  const [country, setCountry] = useState('');
+  const [liveOrigin, setLiveOrigin] = useState(originCountry.trim().toUpperCase());
+  const [picked, setPicked] = useState<DraftPlace[]>([]);
   const [note, setNote] = useState('');
-  const [draftKey, setDraftKey] = useState(0);
+  const [countries, setCountries] = useState<DomainOption[]>([]);
 
-  function addPlace(event: MouseEvent<HTMLButtonElement>) {
-    const code = country.trim().toUpperCase();
+  useEffect(() => {
+    void catalogApi.listDomains('country').then((response) => setCountries(response.items));
+  }, []);
+
+  useEffect(() => {
+    setLiveOrigin(originCountry.trim().toUpperCase());
+  }, [originCountry]);
+
+  useEffect(() => {
+    const select = sectionRef.current?.closest('form')?.querySelector<HTMLSelectElement>('select[name="country"]');
+    if (!select) return;
+    const sync = () => setLiveOrigin(select.value.trim().toUpperCase());
+    sync();
+    select.addEventListener('change', sync);
+    return () => select.removeEventListener('change', sync);
+  }, [region]);
+
+  const listed = useMemo(() => {
+    if (!region) return [];
+    const allowed = countryCodesForRegion(region);
+    const rows = allowed ? countries.filter((item) => allowed.has(item.key.toUpperCase())) : countries;
+    return [...rows].sort((a, b) => labelFor(a, i18n.language).localeCompare(labelFor(b, i18n.language), i18n.language));
+  }, [countries, region, i18n.language]);
+
+  const included = useMemo(() => new Set(places.map((place) => place.country)), [places]);
+  const pickedCodes = useMemo(() => new Set(picked.map((place) => place.country)), [picked]);
+
+  const addable = useMemo(
+    () =>
+      listed
+        .map((item) => item.key.toUpperCase())
+        .filter((code) => code !== liveOrigin && !included.has(code)),
+    [listed, liveOrigin, included],
+  );
+  const allChecked = addable.length > 0 && addable.every((code) => pickedCodes.has(code));
+  const someChecked = addable.some((code) => pickedCodes.has(code)) && !allChecked;
+
+  useEffect(() => {
+    if (selectAllRef.current) selectAllRef.current.indeterminate = someChecked;
+  }, [someChecked, region, addable.length]);
+
+  function toggleCountry(code: string) {
+    setPicked((current) => {
+      if (current.some((place) => place.country === code)) {
+        return current.filter((place) => place.country !== code);
+      }
+      return [...current, { country: code, region }];
+    });
+  }
+
+  function toggleAll() {
+    setPicked((current) => {
+      const rest = current.filter((place) => !addable.includes(place.country));
+      if (allChecked) return rest;
+      const already = new Set(rest.map((place) => place.country));
+      return [
+        ...rest,
+        ...addable.filter((code) => !already.has(code)).map((country) => ({ country, region })),
+      ];
+    });
+  }
+
+  function addPlaces(event: MouseEvent<HTMLButtonElement>) {
     const form = event.currentTarget.form;
     const origin = String((form ? new FormData(form).get('country') : '') || originCountry)
       .trim()
       .toUpperCase();
-    if (!region || code.length !== 2) return;
-    if (origin && code === origin) return;
-    if (places.some((place) => place.country === code)) return;
-    setPlaces((current) => [...current, { country: code, region, note: note.trim() }]);
-    setRegion('');
-    setCountry('');
+    const noteText = note.trim();
+    setPlaces((current) => {
+      const seen = new Set(current.map((place) => place.country));
+      const next = [...current];
+      for (const place of picked) {
+        if (!place.country || place.country === origin || seen.has(place.country)) continue;
+        seen.add(place.country);
+        next.push({ country: place.country, region: place.region, note: noteText });
+      }
+      return next;
+    });
+    setPicked([]);
     setNote('');
-    setDraftKey((value) => value + 1);
   }
 
   return (
     <FieldFull>
-      <section className="space-y-3 rounded-[14px] border border-dashed border-cac-line bg-white p-3">
+      <section ref={sectionRef} className="space-y-3 rounded-[14px] border border-dashed border-cac-line bg-white p-3">
         <div>
           <p className="text-mini font-extrabold uppercase tracking-[0.4px] text-cac-muted">
             {t('catalog.applicationTitle')}
@@ -106,18 +187,69 @@ export function ApplicationPlacesField({ originCountry = '', defaultPlaces = [] 
         ) : (
           <p className="text-mini text-cac-muted">{t('catalog.applicationEmpty')}</p>
         )}
-        <div key={draftKey} className="grid gap-x-4 gap-y-3 sm:grid-cols-2">
-          <RegionCountryFields
-            regionName="applicationRegionDraft"
-            countryName="applicationCountryDraft"
-            region={region}
-            country={country}
-            onRegionChange={setRegion}
-            onCountryChange={setCountry}
-            required={false}
-            regionLabel={t('catalog.applicationRegion')}
-            countryLabel={t('catalog.applicationCountry')}
-          />
+        <div className="grid gap-x-4 gap-y-3 sm:grid-cols-2">
+          <FieldFull>
+            <RegionCountryFields
+              regionName="applicationRegionDraft"
+              countryName="applicationCountryDraft"
+              region={region}
+              onRegionChange={setRegion}
+              required={false}
+              hideCountry
+              regionLabel={t('catalog.applicationRegion')}
+            />
+          </FieldFull>
+          <FieldFull>
+            {region ? (
+              <div className="overflow-hidden rounded-[12px] border border-cac-line bg-white">
+                <label className="flex cursor-pointer items-center gap-2.5 border-b border-cac-line bg-[#f6faf8] px-3 py-2 text-pequena font-bold text-cac-navy hover:bg-cac-green3/60">
+                  <input
+                    ref={selectAllRef}
+                    type="checkbox"
+                    checked={listed.length > 0 && (addable.length === 0 || allChecked)}
+                    disabled={listed.length === 0 || addable.length === 0}
+                    onChange={toggleAll}
+                    className="size-4 shrink-0 accent-cac-green"
+                  />
+                  {t('catalog.applicationSelectAll')}
+                  <span className="ml-auto text-mini font-semibold text-cac-muted">
+                    {picked.filter((place) => listed.some((item) => item.key.toUpperCase() === place.country)).length}/
+                    {addable.length}
+                  </span>
+                </label>
+                <ul className="max-h-60 overflow-y-auto py-1" aria-label={t('catalog.applicationCountry')}>
+                  {listed.map((item) => {
+                    const code = item.key.toUpperCase();
+                    const isOrigin = code === liveOrigin;
+                    if (isOrigin) return null;
+                    const saved = included.has(code);
+                    const checked = saved || pickedCodes.has(code);
+                    return (
+                      <li key={item.id}>
+                        <label
+                          className={`flex items-center gap-2.5 px-3 py-1.5 text-pequena ${
+                            saved ? 'cursor-default text-cac-muted' : 'cursor-pointer text-cac-navy hover:bg-[#f3f6f8]'
+                          } ${checked && !saved ? 'bg-cac-green3/50' : ''}`}
+                        >
+                          <input
+                            type="checkbox"
+                            checked={checked}
+                            disabled={saved}
+                            onChange={() => toggleCountry(code)}
+                            className="size-4 shrink-0 accent-cac-green"
+                          />
+                          <span className="min-w-0 flex-1 truncate">{labelFor(item, i18n.language)}</span>
+                          <span className="text-mini font-bold text-cac-muted">{code}</span>
+                        </label>
+                      </li>
+                    );
+                  })}
+                </ul>
+              </div>
+            ) : (
+              <p className="text-mini text-cac-muted">{t('catalog.countryHintNeedRegion')}</p>
+            )}
+          </FieldFull>
           <FieldFull>
             <Input
               label={t('catalog.applicationNote')}
@@ -130,10 +262,12 @@ export function ApplicationPlacesField({ originCountry = '', defaultPlaces = [] 
         </div>
         <button
           type="button"
-          onClick={addPlace}
-          className="rounded-full border border-cac-line bg-white px-3 py-1.5 text-mini font-bold text-cac-navy hover:bg-cac-bg"
+          onClick={addPlaces}
+          disabled={picked.length === 0}
+          className="rounded-full border border-cac-line bg-white px-3 py-1.5 text-mini font-bold text-cac-navy hover:bg-cac-bg disabled:cursor-not-allowed disabled:opacity-40"
         >
           {t('catalog.applicationAdd')}
+          {picked.length ? ` · ${t('catalog.applicationSelected', { count: picked.length })}` : ''}
         </button>
       </section>
     </FieldFull>

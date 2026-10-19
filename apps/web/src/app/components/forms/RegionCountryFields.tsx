@@ -29,6 +29,7 @@ type Props = {
   required?: boolean;
   regionLabel?: string;
   countryLabel?: string;
+  hideCountry?: boolean;
 };
 
 /** Região primeiro; país filtrado pela região. Opções de `/api/domains`. */
@@ -44,6 +45,7 @@ export function RegionCountryFields({
   required = true,
   regionLabel,
   countryLabel,
+  hideCountry = false,
 }: Props) {
   const { t, i18n } = useTranslation();
   const [regions, setRegions] = useState<DomainOption[]>([]);
@@ -106,24 +108,26 @@ export function RegionCountryFields({
           </option>
         ))}
       </SelectField>
-      <SelectField
-        label={countryLabel ?? t('catalog.country')}
-        hint={regionKey ? t('catalog.countryHint') : t('catalog.countryHintNeedRegion')}
-        name={countryName}
-        required={required}
-        disabled={!regionKey}
-        value={countryKey}
-        onChange={handleCountryChange}
-      >
-        <option value="">
-          {regionKey ? t('catalog.selectCountry') : t('catalog.countryHintNeedRegion')}
-        </option>
-        {filteredCountries.map((item) => (
-          <option key={item.id} value={item.key}>
-            {labelFor(item, i18n.language)} ({item.key})
+      {hideCountry ? null : (
+        <SelectField
+          label={countryLabel ?? t('catalog.country')}
+          hint={regionKey ? t('catalog.countryHint') : t('catalog.countryHintNeedRegion')}
+          name={countryName}
+          required={required}
+          disabled={!regionKey}
+          value={countryKey}
+          onChange={handleCountryChange}
+        >
+          <option value="">
+            {regionKey ? t('catalog.selectCountry') : t('catalog.countryHintNeedRegion')}
           </option>
-        ))}
-      </SelectField>
+          {filteredCountries.map((item) => (
+            <option key={item.id} value={item.key}>
+              {labelFor(item, i18n.language)} ({item.key})
+            </option>
+          ))}
+        </SelectField>
+      )}
     </>
   );
 }

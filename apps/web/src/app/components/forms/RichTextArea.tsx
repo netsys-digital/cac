@@ -54,19 +54,32 @@ function prefixLines(el: HTMLTextAreaElement, prefix: (index: number) => string,
   replaceSelection(el, next, lineStart, lineStart + next.length);
 }
 
-function insertLink(el: HTMLTextAreaElement, urlPlaceholder: string, textPlaceholder: string) {
+const EMAIL_RE = /^[^\s@<>]+@[^\s@<>]+\.[^\s@<>]+$/;
+const HREF_RE = /^(?:https?:\/\/|mailto:)\S+$/i;
+
+function insertLink(el: HTMLTextAreaElement, textPlaceholder: string) {
   const { selectionStart: start, selectionEnd: end, value } = el;
   const selected = value.slice(start, end);
-  const isUrl = /^https?:\/\/\S+$/i.test(selected);
-  if (isUrl) {
-    const text = `[${textPlaceholder}](${selected})`;
+  const trimmed = selected.trim();
+
+  if (HREF_RE.test(trimmed)) {
+    const text = `[${textPlaceholder}](${trimmed})`;
     replaceSelection(el, text, start + 1, start + 1 + textPlaceholder.length);
     return;
   }
+
+  if (EMAIL_RE.test(trimmed)) {
+    const href = `mailto:${trimmed}`;
+    const text = `[${trimmed}](${href})`;
+    const urlStart = start + trimmed.length + 3;
+    replaceSelection(el, text, urlStart, urlStart + href.length);
+    return;
+  }
+
   const label = selected || textPlaceholder;
-  const text = `[${label}](${urlPlaceholder})`;
-  const urlStart = start + label.length + 3;
-  replaceSelection(el, text, urlStart, urlStart + urlPlaceholder.length);
+  const text = `[${label}]()`;
+  const caret = start + label.length + 3;
+  replaceSelection(el, text, caret, caret);
 }
 
 function ToolIcon({ tool }: { tool: Tool }) {
@@ -147,7 +160,7 @@ export function RichTextArea({
       case 'quote':
         return prefixLines(el, () => '> ', /^>\s?/);
       case 'link':
-        return insertLink(el, 'https://', t('richText.linkPlaceholder'));
+        return insertLink(el, t('richText.linkPlaceholder'));
     }
   }
 

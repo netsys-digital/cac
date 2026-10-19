@@ -2,11 +2,22 @@ import type { ReactNode } from 'react';
 
 /**
  * Markdown leve produzido pela barra de formatação do painel:
- * **negrito**, _itálico_ / *itálico*, [texto](https://…), ### subtítulo, - lista, 1. lista, > citação.
+ * **negrito**, _itálico_ / *itálico*, [texto](https://…), [texto](mailto:…), ### subtítulo, - lista, 1. lista, > citação.
  * Renderiza só elementos React (sem HTML cru), então é seguro para conteúdo de usuários.
  */
 
-const INLINE_RE = /\*\*(.+?)\*\*|(?<![\w*])_(?!\s)(.+?)(?<!\s)_(?!\w)|(?<![\w*])\*(?!\s)(.+?)(?<!\s)\*(?!\w)|\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g;
+const LINK_TARGET = String.raw`https?:\/\/[^\s)]+|mailto:[^\s)]+|[^\s@)]+@[^\s@)]+\.[^\s@)]+`;
+
+const INLINE_RE = new RegExp(
+  String.raw`\*\*(.+?)\*\*|(?<![\w*])_(?!\s)(.+?)(?<!\s)_(?!\w)|(?<![\w*])\*(?!\s)(.+?)(?<!\s)\*(?!\w)|\[([^\]]+)\]\((${LINK_TARGET})\)`,
+  'g',
+);
+
+function toLinkHref(url: string): { href: string; external: boolean } {
+  if (/^mailto:/i.test(url)) return { href: url, external: false };
+  if (/^https?:\/\//i.test(url)) return { href: url, external: true };
+  return { href: `mailto:${url}`, external: false };
+}
 
 function renderInline(text: string, keyPrefix: string): ReactNode[] {
   const out: ReactNode[] = [];
@@ -26,12 +37,13 @@ function renderInline(text: string, keyPrefix: string): ReactNode[] {
     } else if (italicU !== undefined || italicS !== undefined) {
       out.push(<em key={key}>{renderInline(italicU ?? italicS ?? '', key)}</em>);
     } else if (linkText !== undefined && linkUrl) {
+      const { href, external } = toLinkHref(linkUrl);
       out.push(
         <a
           key={key}
-          href={linkUrl}
-          target="_blank"
-          rel="noreferrer noopener"
+          href={href}
+          target={external ? '_blank' : undefined}
+          rel={external ? 'noreferrer noopener' : undefined}
           className="font-semibold text-cac-green underline decoration-cac-green/40 underline-offset-2 hover:decoration-cac-green"
         >
           {linkText}
@@ -167,7 +179,7 @@ export function plainText(text?: string | null): string {
   if (!text) return '';
   return text
     .replace(/\r\n?/g, '\n')
-    .replace(/\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g, '$1')
+    .replace(new RegExp(String.raw`\[([^\]]+)\]\((${LINK_TARGET})\)`, 'g'), '$1')
     .replace(/\*\*(.+?)\*\*/g, '$1')
     .replace(/(?<![\w*])_(?!\s)(.+?)(?<!\s)_(?!\w)/g, '$1')
     .replace(/(?<![\w*])\*(?!\s)(.+?)(?<!\s)\*(?!\w)/g, '$1')
