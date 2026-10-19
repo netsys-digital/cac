@@ -2,6 +2,7 @@ import { env } from '../../config/env.js';
 import { prisma } from '../prisma.js';
 import { getCachedTranslation, hashSourceText, setCachedTranslation } from './cache.js';
 import { isTranslationConfigured, translateWithLibreTranslate } from './libretranslate.js';
+import { preserveSourceUrls, shieldUrls, unshieldUrls } from './preserve-urls.js';
 
 export type TranslateTextResult = {
   value: string;
@@ -42,7 +43,9 @@ export async function translateText(
     throw new Error('translation_unconfigured');
   }
 
-  const translated = await translateWithLibreTranslate(trimmed, sourceLang, targetLang);
-  await setCachedTranslation(sourceLang, targetLang, sourceHash, translated);
-  return { value: translated, cacheHit: false };
+  const shielded = shieldUrls(trimmed);
+  const translated = await translateWithLibreTranslate(shielded.text, sourceLang, targetLang);
+  const value = preserveSourceUrls(trimmed, unshieldUrls(translated, shielded.slots));
+  await setCachedTranslation(sourceLang, targetLang, sourceHash, value);
+  return { value, cacheHit: false };
 }

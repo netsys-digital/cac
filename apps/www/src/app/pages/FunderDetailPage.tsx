@@ -21,6 +21,14 @@ import { urls } from '../../config';
 import { resolveMediaUrl } from '../lib/mediaUrl';
 import { RichText } from '../lib/richText';
 
+function countryName(code: string, lang: string) {
+  try {
+    return new Intl.DisplayNames([lang], { type: 'region' }).of(code.toUpperCase()) ?? code;
+  } catch {
+    return code;
+  }
+}
+
 const REGION_KEYS: Record<string, string> = {
   africa: 'funding.regionAfrica',
   asia: 'funding.regionAsia',
@@ -73,7 +81,7 @@ export function FunderDetailPage() {
   const connectUrl = `${urls.web}/login?returnUrl=${encodeURIComponent(`/connections/new?targetType=FUNDER&targetId=${item.id}`)}`;
   const cards = [
     item.country
-      ? { label: t('search.filters.country'), value: item.country, icon: 'fa-solid fa-flag' }
+      ? { label: t('search.filters.country'), value: countryName(item.country, i18n.language), icon: 'fa-solid fa-flag' }
       : null,
     regionLabel
       ? { label: t('search.filters.region'), value: regionLabel, icon: 'fa-solid fa-globe' }

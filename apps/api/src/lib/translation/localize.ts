@@ -4,6 +4,7 @@ import { enqueueTranslation } from '../queue/translation-queue.js';
 import { getCachedTranslations, hashSourceText, setCachedTranslation } from './cache.js';
 import { applyFieldMap, collectSourceFields, type TranslationEntityType } from './fields.js';
 import { isDefaultLang, normalizeLang } from './languages.js';
+import { preserveSourceUrls } from './preserve-urls.js';
 
 type Identified = { id: string };
 
@@ -94,7 +95,7 @@ export async function localizeEntities<T extends Identified>(
     for (const { field, value } of collectSourceFields(entityType, asRecord(item))) {
       const hit = stored.get(field);
       if (hit && hit.sourceHash === hashSourceText(value)) {
-        map.set(field, hit.value);
+        map.set(field, preserveSourceUrls(value, hit.value));
       }
     }
     if (map.size) overlays.set(item.id, map);
@@ -108,7 +109,7 @@ export async function localizeEntities<T extends Identified>(
       continue;
     }
     const map = overlays.get(entry.item.id) ?? new Map();
-    map.set(entry.field, cachedValue);
+    map.set(entry.field, preserveSourceUrls(entry.value, cachedValue));
     overlays.set(entry.item.id, map);
     void persistFromCache(entityType, entry.item.id, entry.field, target, entry.sourceHash, cachedValue);
     void setCachedTranslation(env.defaultLang, target, entry.sourceHash, cachedValue);
