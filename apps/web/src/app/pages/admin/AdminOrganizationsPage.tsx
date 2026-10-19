@@ -37,6 +37,21 @@ type ProfileDraft = {
   publishKinds: OrgPublishKind[];
 };
 
+function emptyDraft(): ProfileDraft {
+  return {
+    name: '',
+    summary: '',
+    website: '',
+    region: '',
+    country: '',
+    logoFile: null,
+    bannerFiles: {},
+    bannerLinks: {},
+    bannerPositions: {},
+    publishKinds: [],
+  };
+}
+
 function profileFromOrg(org: AdminOrganization): ProfileDraft {
   return {
     name: org.name ?? '',
@@ -249,6 +264,38 @@ export function AdminOrganizationsPage() {
     setDraft((prev) => (prev ? { ...prev, ...patch } : prev));
   }
 
+  function openCreate() {
+    setError('');
+    setMessage('');
+    setModalTab('profile');
+    setDraft(emptyDraft());
+    modal.openCreate();
+  }
+
+  function requirementError(value: ProfileDraft) {
+    if (value.name.trim().length < 2) return t('admin.orgsProfileNameRequired');
+    if (value.summary.trim().length < 10) return t('admin.orgsProfileSummaryRequired');
+    if (!value.region || !value.country) return t('admin.orgsProfileRegionRequired');
+    if (!value.logoFile) return t('admin.orgsProfileLogoRequired');
+    if (value.website.trim()) {
+      try {
+        const url = new URL(value.website.trim());
+        if (url.protocol !== 'http:' && url.protocol !== 'https:') return t('admin.orgsCreateInvalid');
+      } catch {
+        return t('admin.orgsCreateInvalid');
+      }
+    }
+    return '';
+  }
+
+  function orgWriteError(cause: unknown) {
+    const code = cause instanceof Error ? cause.message : '';
+    if (code === 'logo_required' || code.startsWith('logo_required')) return t('admin.orgsProfileLogoRequired');
+    if (code === 'slug_taken') return t('admin.orgsCreateSlugTaken');
+    if (code.startsWith('validation_error')) return t('admin.orgsCreateInvalid');
+    return code || t('admin.orgsError');
+  }
+
   async function saveAll() {
     if (!accessToken || !modal.item || !draft) return;
     if (!draft.name.trim() || draft.name.trim().length < 2) {
@@ -292,7 +339,66 @@ export function AdminOrganizationsPage() {
       modal.close();
       await load();
     } catch (e) {
-      setError(e instanceof Error ? e.message : t('admin.orgsError'));
+      setError(orgWriteError(e));
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function createOrganization() {
+    if (!accessToken || !draft || modal.mode !== 'create') return;
+    const invalid = requirementError(draft);
+    if (invalid) {
+      setError(invalid);
+      return;
+    }
+    setBusy(true);
+    setMessage('');
+    setError('');
+    try {
+      const created = await catalogApi.adminCreateOrganization(accessToken, {
+        name: draft.name.trim(),
+        summary: draft.summary.trim(),
+        country: draft.country.trim().toUpperCase(),
+        region: draft.region.trim(),
+        website: draft.website.trim() || undefined,
+        logo: draft.logoFile!,
+      });
+      if (created.organization.verificationStatus !== 'VERIFIED') {
+        throw new Error('not_verified');
+      }
+      const bannerLinks = {
+        technologyBannerLinkUrl: (draft.bannerLinks.TECHNOLOGY ?? '').trim() || null,
+        challengeBannerLinkUrl: (draft.bannerLinks.CHALLENGE ?? '').trim() || null,
+        fundingOfferBannerLinkUrl: (draft.bannerLinks.FUNDING_OFFER ?? '').trim() || null,
+        successCaseBannerLinkUrl: (draft.bannerLinks.SUCCESS_CASE ?? '').trim() || null,
+      };
+      const hasBannerLinks = Object.values(bannerLinks).some(Boolean);
+      if (draft.publishKinds.length || hasBannerLinks) {
+        await catalogApi.updateOrganization(accessToken, created.organization.id, {
+          ...(draft.publishKinds.length ? { publishKinds: draft.publishKinds } : {}),
+          ...(hasBannerLinks
+            ? {
+                ...bannerLinks,
+                technologyBannerPosition: draft.bannerPositions.TECHNOLOGY ?? BannerPosition.ABOVE_FOOTER,
+                challengeBannerPosition: draft.bannerPositions.CHALLENGE ?? BannerPosition.ABOVE_FOOTER,
+                fundingOfferBannerPosition: draft.bannerPositions.FUNDING_OFFER ?? BannerPosition.ABOVE_FOOTER,
+                successCaseBannerPosition: draft.bannerPositions.SUCCESS_CASE ?? BannerPosition.ABOVE_FOOTER,
+              }
+            : {}),
+        });
+      }
+      for (const kind of ORG_PUBLISH_KINDS) {
+        const file = draft.bannerFiles[kind];
+        if (file) {
+          await catalogApi.uploadOrganizationBanner(accessToken, created.organization.id, kind, file);
+        }
+      }
+      setMessage(t('admin.orgsCreateSaved', { name: draft.name.trim() }));
+      modal.close();
+      await load();
+    } catch (e) {
+      setError(orgWriteError(e));
     } finally {
       setBusy(false);
     }
@@ -396,15 +502,24 @@ export function AdminOrganizationsPage() {
 
   const org = modal.item;
   const isView = modal.mode === 'view';
+  const isCreate = modal.mode === 'create';
+  const formOrgId = org?.id ?? 'new';
 
   return (
     <div className="space-y-5">
       <header className="rounded-2xl border border-cac-line bg-white p-5 shadow-cac">
-        <p className="text-pequena font-extrabold tracking-[0.12em] text-cac-green uppercase">
-          {t('admin.orgsEyebrow')}
-        </p>
-        <h1 className="mt-1 text-grande font-bold text-cac-navy">{t('admin.orgsTitle')}</h1>
-        <p className="mt-2 max-w-3xl text-media text-cac-muted">{t('admin.orgsSupport')}</p>
+        <div className="flex items-start justify-between gap-4">
+          <div className="min-w-0">
+            <p className="text-pequena font-extrabold tracking-[0.12em] text-cac-green uppercase">
+              {t('admin.orgsEyebrow')}
+            </p>
+            <h1 className="mt-1 text-grande font-bold text-cac-navy">{t('admin.orgsTitle')}</h1>
+            <p className="mt-2 max-w-3xl text-media text-cac-muted">{t('admin.orgsSupport')}</p>
+          </div>
+          <Button type="button" onClick={openCreate} aria-label={t('admin.orgsCreate')} title={t('admin.orgsCreate')}>
+            <i className="fa-solid fa-plus text-[1.05rem]" aria-hidden />
+          </Button>
+        </div>
         <div className="mt-4 flex flex-wrap gap-2">
           {(
             [
@@ -601,13 +716,15 @@ export function AdminOrganizationsPage() {
         onClose={modal.close}
         mode={modal.mode}
         badge={t('admin.orgsEyebrow')}
-        title={org?.name ?? t('admin.orgsTitle')}
+        title={isCreate ? t('admin.orgsCreateTitle') : (org?.name ?? t('admin.orgsTitle'))}
         description={
-          modalTab === 'links'
-            ? t('admin.orgsLinksHint')
-            : modalTab === 'media'
-              ? t('admin.orgsMediaHint')
-              : t('admin.orgsProfileHint')
+          isCreate
+            ? t('admin.orgsCreateHint')
+            : modalTab === 'links'
+              ? t('admin.orgsLinksHint')
+              : modalTab === 'media'
+                ? t('admin.orgsMediaHint')
+                : t('admin.orgsProfileHint')
         }
         size="xl"
         dismissible={!busy && !deletingLinkId}
@@ -633,8 +750,12 @@ export function AdminOrganizationsPage() {
                   {t('common.cancel')}
                 </Button>
                 {modalTab === 'profile' || modalTab === 'media' ? (
-                  <Button type="button" disabled={busy} onClick={() => void saveAll()}>
-                    {busy ? t('common.working') : t('common.save')}
+                  <Button
+                    type="button"
+                    disabled={busy}
+                    onClick={() => void (isCreate ? createOrganization() : saveAll())}
+                  >
+                    {busy ? t('common.working') : isCreate ? t('common.create') : t('common.save')}
                   </Button>
                 ) : null}
               </>
@@ -648,7 +769,7 @@ export function AdminOrganizationsPage() {
           </p>
         ) : null}
 
-        {org && draft ? (
+        {(draft && (org || isCreate)) ? (
           <div className="space-y-4">
             <div className="flex gap-1 border-b border-cac-line pb-0">
               {(
@@ -657,7 +778,9 @@ export function AdminOrganizationsPage() {
                   ['media', t('admin.orgsTabMedia')],
                   ['links', `${t('admin.orgsTabLinks')}${links.length ? ` (${links.length})` : ''}`],
                 ] as const
-              ).map(([key, label]) => (
+              )
+                .filter(([key]) => key !== 'links' || !isCreate)
+                .map(([key, label]) => (
                 <button
                   key={key}
                   type="button"
@@ -674,7 +797,7 @@ export function AdminOrganizationsPage() {
             </div>
 
             {modalTab === 'profile' ? (
-              isView ? (
+              org && isView ? (
                 <>
                   <div className="flex items-start gap-3 rounded-xl border border-cac-line bg-white p-4">
                     {resolveMediaUrl(org.logoUrl) ? (
@@ -768,8 +891,8 @@ export function AdminOrganizationsPage() {
                     </label>
                     <div className="grid gap-3 sm:col-span-2 sm:grid-cols-2">
                       <RegionCountryFields
-                        regionName={`org-region-${org.id}`}
-                        countryName={`org-country-${org.id}`}
+                        regionName={`org-region-${formOrgId}`}
+                        countryName={`org-country-${formOrgId}`}
                         region={draft.region}
                         country={draft.country}
                         onRegionChange={(value) => patchDraft({ region: value })}
@@ -778,15 +901,22 @@ export function AdminOrganizationsPage() {
                       />
                     </div>
                   </div>
+                  {isCreate ? (
+                    <OrganizationLogoField
+                      file={draft.logoFile}
+                      onChange={(file) => patchDraft({ logoFile: file })}
+                      required
+                    />
+                  ) : null}
                   <PublishKindsPicker
-                    idPrefix={`org-modal-${org.id}`}
+                    idPrefix={`org-modal-${formOrgId}`}
                     value={draft.publishKinds}
                     onChange={(next) => patchDraft({ publishKinds: next })}
                   />
                 </>
               )
             ) : modalTab === 'media' ? (
-              isView ? (
+              org && isView ? (
                 <div className="space-y-4">
                   <div className="rounded-xl border border-cac-line bg-white p-4">
                     <p className="text-mini font-extrabold uppercase tracking-[0.4px] text-cac-muted">
@@ -839,15 +969,16 @@ export function AdminOrganizationsPage() {
                 <div className="space-y-5">
                   <OrganizationLogoField
                     file={draft.logoFile}
-                    currentUrl={org.logoUrl}
+                    currentUrl={org?.logoUrl}
                     onChange={(file) => patchDraft({ logoFile: file })}
+                    required={isCreate}
                   />
                   {(draft.publishKinds.length ? draft.publishKinds : []).map((kind) => (
                     <BannerImageField
                       key={kind}
                       label={t('admin.orgBannerLabel', { kind: t(`admin.publishKind.${kind}`) })}
                       hint={t('admin.orgBannerHint')}
-                      currentUrl={orgBannerCurrentUrl(org, kind)}
+                      currentUrl={org ? orgBannerCurrentUrl(org, kind) : null}
                       file={draft.bannerFiles[kind] ?? null}
                       onChange={(file) =>
                         patchDraft({

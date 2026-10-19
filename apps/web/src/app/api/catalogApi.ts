@@ -186,6 +186,30 @@ export const catalogApi = {
     }),
   adminOrganizations: (token: string) =>
     api<{ items: AdminOrganization[] }>('/api/admin/organizations', { accessToken: token }),
+  adminCreateOrganization: (
+    token: string,
+    body: {
+      name: string;
+      summary: string;
+      country: string;
+      region: string;
+      website?: string;
+      logo: File;
+    },
+  ) => {
+    const form = new FormData();
+    form.append('name', body.name);
+    form.append('summary', body.summary);
+    form.append('country', body.country);
+    form.append('region', body.region);
+    if (body.website) form.append('website', body.website);
+    form.append('logo', body.logo);
+    return api<{ organization: Organization }>('/api/admin/organizations', {
+      method: 'POST',
+      accessToken: token,
+      body: form,
+    });
+  },
   updateOrganization: (
     token: string,
     id: string,

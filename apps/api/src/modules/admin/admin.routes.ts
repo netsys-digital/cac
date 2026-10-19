@@ -6,11 +6,14 @@ import multer from 'multer';
 import {
   approveRepresentationBodySchema,
   createDomainBodySchema,
+  createOrganizationBodySchema,
   updateDomainBodySchema,
   updateOrganizationAdminBodySchema,
   UserRole,
 } from '@cac/shared';
+import { ZodError } from 'zod';
 import { prisma } from '../../lib/prisma.js';
+import { slugify } from '../../lib/slug.js';
 import { requireAuth, requireRole } from '../../middleware/auth.js';
 import { validateBody } from '../../middleware/validate.js';
 import { param } from '../../lib/params.js';
@@ -228,6 +231,47 @@ adminRouter.delete('/representation-requests/:id', async (req, res, next) => {
 
     res.status(204).send();
   } catch (error) {
+    next(error);
+  }
+});
+
+adminRouter.post('/organizations', withOrgLogoUpload, async (req, res, next) => {
+  try {
+    const body = createOrganizationBodySchema.parse(req.body);
+    if (!req.file) {
+      res.status(400).json({ error: 'logo_required' });
+      return;
+    }
+    const baseSlug = slugify(body.name);
+    if (baseSlug.length < 2) {
+      res.status(400).json({ error: 'validation_error', details: { formErrors: ['slug'] } });
+      return;
+    }
+    const existing = await prisma.organization.findUnique({ where: { slug: baseSlug } });
+    if (existing) {
+      res.status(409).json({ error: 'slug_taken' });
+      return;
+    }
+
+    const organization = await prisma.organization.create({
+      data: {
+        name: body.name,
+        slug: baseSlug,
+        summary: body.summary,
+        country: body.country.toUpperCase(),
+        region: body.region,
+        website: body.website || null,
+        logoUrl: `/uploads/${req.file.filename}`,
+        verificationStatus: 'VERIFIED',
+      },
+    });
+    void enqueueTranslation({ entityType: 'organization', entityId: organization.id });
+    res.status(201).json({ organization });
+  } catch (error) {
+    if (error instanceof ZodError) {
+      res.status(400).json({ error: 'validation_error', details: error.flatten() });
+      return;
+    }
     next(error);
   }
 });

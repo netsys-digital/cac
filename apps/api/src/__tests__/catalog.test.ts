@@ -185,6 +185,42 @@ describe('E1 catalog + representation', () => {
     expect(res.status).toBe(400);
   });
 
+  it('lets staff register an organization already verified', async () => {
+    const logo = Buffer.from(
+      'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==',
+      'base64',
+    );
+    const missing = await request(app)
+      .post('/api/admin/organizations')
+      .set('Authorization', `Bearer ${adminToken}`)
+      .field('name', `Staff org ${suffix}`)
+      .field('summary', 'Resumo curto');
+    expect(missing.status).toBe(400);
+
+    const created = await request(app)
+      .post('/api/admin/organizations')
+      .set('Authorization', `Bearer ${adminToken}`)
+      .field('name', `Staff org ${suffix}`)
+      .field('summary', 'Resumo institucional com tamanho suficiente para o schema.')
+      .field('country', 'KE')
+      .field('region', 'africa')
+      .attach('logo', logo, { filename: 'logo.png', contentType: 'image/png' });
+    expect(created.status).toBe(201);
+    expect(created.body.organization.verificationStatus).toBe('VERIFIED');
+
+    const outsider = await request(app)
+      .post('/api/admin/organizations')
+      .set('Authorization', `Bearer ${userToken}`)
+      .field('name', `Blocked org ${suffix}`)
+      .field('summary', 'Resumo institucional com tamanho suficiente para o schema.')
+      .field('country', 'BR')
+      .field('region', 'south_america')
+      .attach('logo', logo, { filename: 'logo.png', contentType: 'image/png' });
+    expect(outsider.status).toBe(403);
+
+    await prisma.organization.delete({ where: { id: created.body.organization.id } });
+  });
+
   it('verifies organization', async () => {
     const res = await request(app)
       .post(`/api/admin/organizations/${orgId}/verify`)
