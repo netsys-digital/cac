@@ -541,7 +541,7 @@ export const pt = {
     orgsProfileSummaryRequired: 'Informe o resumo (mín. 10 caracteres).',
     orgsProfileLogoRequired: 'Envie o logo da organização.',
     orgsProfileRegionRequired: 'Selecione região e país.',
-    orgsCreate: 'Cadastrar organização',
+    orgsCreate: '+ Cadastrar organização',
     orgsCreateTitle: 'Nova organização',
     orgsCreateHint:
       'Preencha nome, resumo, região, país e logo. O cadastro feito por curador ou administrador já nasce verificado, sem passar por curadoria.',

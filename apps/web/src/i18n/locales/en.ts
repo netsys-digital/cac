@@ -538,7 +538,7 @@ export const en = {
     orgsProfileSummaryRequired: 'Enter a summary (min. 10 characters).',
     orgsProfileLogoRequired: 'Upload the organization logo.',
     orgsProfileRegionRequired: 'Select region and country.',
-    orgsCreate: 'Register organization',
+    orgsCreate: '+ Register organization',
     orgsCreateTitle: 'New organization',
     orgsCreateHint:
       'Fill in name, summary, region, country and logo. A registration by a curator or administrator is verified immediately, without a curation step.',

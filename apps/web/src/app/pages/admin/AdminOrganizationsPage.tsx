@@ -516,8 +516,8 @@ export function AdminOrganizationsPage() {
             <h1 className="mt-1 text-grande font-bold text-cac-navy">{t('admin.orgsTitle')}</h1>
             <p className="mt-2 max-w-3xl text-media text-cac-muted">{t('admin.orgsSupport')}</p>
           </div>
-          <Button type="button" onClick={openCreate} aria-label={t('admin.orgsCreate')} title={t('admin.orgsCreate')}>
-            <i className="fa-solid fa-plus text-[1.05rem]" aria-hidden />
+          <Button type="button" onClick={openCreate} className="shrink-0 whitespace-nowrap">
+            {t('admin.orgsCreate')}
           </Button>
         </div>
         <div className="mt-4 flex flex-wrap gap-2">

@@ -539,7 +539,7 @@ export const es = {
     orgsProfileSummaryRequired: 'Indica el resumen (mín. 10 caracteres).',
     orgsProfileLogoRequired: 'Envía el logo de la organización.',
     orgsProfileRegionRequired: 'Selecciona región y país.',
-    orgsCreate: 'Registrar organización',
+    orgsCreate: '+ Registrar organización',
     orgsCreateTitle: 'Nueva organización',
     orgsCreateHint:
       'Completa nombre, resumen, región, país y logo. El registro hecho por un curador o administrador queda verificado de inmediato, sin pasar por curaduría.',
