@@ -389,7 +389,6 @@ export function GlobalClimateMap() {
                 className="mt-3 flex w-full items-center justify-center gap-2 rounded-[12px] border border-cac-line bg-white px-4 py-2.5 text-pequena font-bold text-cac-navy transition hover:bg-cac-bg"
               >
                 {t('home.globalMap.seeAll')}
-                <span aria-hidden>→</span>
               </Link>
             </aside>
           </div>

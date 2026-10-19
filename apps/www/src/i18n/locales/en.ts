@@ -115,7 +115,7 @@ export const en = {
       legendFunding: 'Funding',
       legendCase: 'Success cases',
       featuredTitle: 'Featured countries',
-      seeAll: 'See all countries',
+      seeAll: 'See all',
       countingNote:
         'Totals count each publication once. On the map, the same publication appears in every linked country.',
       emptyCountries: 'There are no publications with a country yet.',

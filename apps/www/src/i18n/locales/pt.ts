@@ -120,7 +120,7 @@ export const pt = {
       legendFunding: 'Financiamento',
       legendCase: 'Casos de Sucesso',
       featuredTitle: 'Países em destaque',
-      seeAll: 'Ver todos os países',
+      seeAll: 'Ver todos',
       countingNote:
         'Os totais contam cada publicação uma vez. No mapa, a mesma publicação aparece em cada país vinculado.',
       emptyCountries: 'Ainda não há publicações com país cadastrado.',
