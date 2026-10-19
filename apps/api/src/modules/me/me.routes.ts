@@ -475,10 +475,13 @@ meRouter.get('/contents/:kind/:id', requireAuth, async (req, res, next) => {
         item = { ...row, tags: row.tags.map((t) => t.tag), kind };
       }
     } else if (kind === 'CHALLENGE') {
-      const row = await prisma.challenge.findUnique({ where: { id }, include: { organization: true } });
+      const row = await prisma.challenge.findUnique({
+        where: { id },
+        include: { tags: true, organization: true },
+      });
       if (row) {
         organizationId = row.organizationId;
-        item = { ...row, kind };
+        item = { ...row, tags: row.tags.map((t) => t.tag), kind };
       }
     } else if (kind === 'FUNDING_OFFER') {
       const row = await prisma.fundingOffer.findUnique({ where: { id }, include: { organization: true } });
