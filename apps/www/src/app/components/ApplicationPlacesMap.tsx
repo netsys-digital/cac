@@ -31,6 +31,13 @@ const pointIcon = L.divIcon({
   iconAnchor: [7, 7],
 });
 
+const originIcon = L.divIcon({
+  className: 'cac-cluster-icon',
+  html: '<svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true"><path fill="#f0b429" stroke="#fff" stroke-width="1.6" stroke-linejoin="round" d="M12 1.7l2.95 6.35 6.95.7-5.2 4.7 1.55 6.8L12 16.7 5.75 20.25l1.55-6.8-5.2-4.7 6.95-.7z"/></svg>',
+  iconSize: [22, 22],
+  iconAnchor: [11, 11],
+});
+
 function FitPlaces({ points }: { points: Array<[number, number]> }) {
   const map = useMap();
   const { t } = useTranslation();
@@ -85,25 +92,67 @@ function countryName(code: string, language: string) {
   }
 }
 
-/** Mapa dos países de aplicação. A lista completa abre num modal, agrupada por continente. */
-export function ApplicationPlacesMap({ places }: { places: Place[] }) {
+type MapPoint = {
+  code: string;
+  lat: number;
+  lng: number;
+  region: string;
+  note: string;
+  name: string;
+  origin: boolean;
+};
+
+/** Mapa dos países de aplicação, com o país de origem em estrela dourada. */
+export function ApplicationPlacesMap({
+  places,
+  origin,
+}: {
+  places: Place[];
+  origin?: { country?: string | null; region?: string | null } | null;
+}) {
   const { t, i18n } = useTranslation();
   const [open, setOpen] = useState(false);
   const points = useMemo(() => {
+    const result: MapPoint[] = [];
     const seen = new Set<string>();
-    return places.flatMap((place) => {
+    const originCode = origin?.country?.trim().toUpperCase() ?? '';
+    if (originCode.length === 2) {
+      const [lat, lng] = centroidFor(originCode, origin?.region);
+      seen.add(originCode);
+      result.push({
+        code: originCode,
+        lat,
+        lng,
+        region: origin?.region?.trim() || 'other',
+        note: '',
+        name: countryName(originCode, i18n.language),
+        origin: true,
+      });
+    }
+    for (const place of places) {
       const code = place.country.trim().toUpperCase();
-      if (code.length !== 2 || seen.has(code)) return [];
+      if (code.length !== 2 || seen.has(code)) continue;
       seen.add(code);
       const [lat, lng] = centroidFor(code, place.region);
-      const region = place.region?.trim() || 'other';
-      return [{ code, lat, lng, region, note: place.note?.trim() || '', name: countryName(code, i18n.language) }];
-    });
-  }, [places, i18n.language]);
+      result.push({
+        code,
+        lat,
+        lng,
+        region: place.region?.trim() || 'other',
+        note: place.note?.trim() || '',
+        name: countryName(code, i18n.language),
+        origin: false,
+      });
+    }
+    return result;
+  }, [places, origin?.country, origin?.region, i18n.language]);
+
+  const originPoint = points.find((point) => point.origin) ?? null;
+  const applicationPoints = points.filter((point) => !point.origin);
 
   const groups = useMemo(() => {
-    const byRegion = new Map<string, typeof points>();
-    for (const point of points) {
+    const byRegion = new Map<string, MapPoint[]>();
+    for (const point of applicationPoints) {
       const list = byRegion.get(point.region) ?? [];
       list.push(point);
       byRegion.set(point.region, list);
@@ -118,7 +167,7 @@ export function ApplicationPlacesMap({ places }: { places: Place[] }) {
       label: t(`detail.applicationRegions.${region}`, { defaultValue: region.replace(/_/g, ' ') }),
       countries: [...(byRegion.get(region) ?? [])].sort((a, b) => a.name.localeCompare(b.name, i18n.language)),
     }));
-  }, [points, t, i18n.language]);
+  }, [applicationPoints, t, i18n.language]);
 
   useEffect(() => {
     if (!open) return;
@@ -164,9 +213,10 @@ export function ApplicationPlacesMap({ places }: { places: Place[] }) {
             <Marker
               key={point.code}
               position={[point.lat, point.lng]}
-              icon={pointIcon}
-              title={point.name}
-              alt={point.name}
+              icon={point.origin ? originIcon : pointIcon}
+              zIndexOffset={point.origin ? 800 : 0}
+              title={point.origin ? `${point.name} · ${t('detail.originOnMap')}` : point.name}
+              alt={point.origin ? `${point.name} · ${t('detail.originOnMap')}` : point.name}
             />
           ))}
           <FitPlaces points={points.map((point) => [point.lat, point.lng] as [number, number])} />
@@ -218,6 +268,21 @@ export function ApplicationPlacesMap({ places }: { places: Place[] }) {
                 </header>
                 <div className="overflow-y-auto px-5 py-5 md:px-6">
                   <div className="space-y-6">
+                    {originPoint ? (
+                      <section>
+                        <div className="mb-2.5 flex items-baseline justify-between gap-3 border-b border-cac-line/80 pb-1.5">
+                          <h3 className="text-pequena font-bold text-cac-navy">{t('detail.originOnMap')}</h3>
+                          <span className="text-[1rem] leading-none text-[#e6b31a]" aria-hidden>
+                            ★
+                          </span>
+                        </div>
+                        <ul>
+                          <li className="rounded-[10px] border border-cac-line bg-[#fbfcfb] px-3 py-2">
+                            <p className="text-pequena font-semibold text-cac-navy">{originPoint.name}</p>
+                          </li>
+                        </ul>
+                      </section>
+                    ) : null}
                     {groups.map((group) => (
                       <section key={group.region}>
                         <div className="mb-2.5 flex items-baseline justify-between gap-3 border-b border-cac-line/80 pb-1.5">

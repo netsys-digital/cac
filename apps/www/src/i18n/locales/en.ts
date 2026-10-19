@@ -223,6 +223,7 @@ export const en = {
     appliedIn: 'Application: {{country}}',
     applicationMap: 'Map of application countries',
     applicationMapTitle: 'Where is this technology present?',
+    originOnMap: 'Country of origin',
     applicationList: 'Show region list',
     applicationListEyebrow: 'Application',
     applicationListTitle: 'Application countries',

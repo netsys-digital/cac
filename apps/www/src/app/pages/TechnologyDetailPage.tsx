@@ -194,9 +194,12 @@ export function TechnologyDetailPage() {
                 </li>
               </ul>
             </DetailSection>
-            {item.applicationPlaces?.length ? (
+            {item.country || item.applicationPlaces?.length ? (
               <div className="py-7">
-                <ApplicationPlacesMap places={item.applicationPlaces} />
+                <ApplicationPlacesMap
+                  origin={{ country: item.country, region: item.region }}
+                  places={item.applicationPlaces ?? []}
+                />
               </div>
             ) : null}
           </article>

@@ -228,6 +228,7 @@ export const es = {
     appliedIn: 'Aplicación: {{country}}',
     applicationMap: 'Mapa de los países de aplicación',
     applicationMapTitle: '¿Dónde está presente esta tecnología?',
+    originOnMap: 'País de origen',
     applicationList: 'Mostrar lista de regiones',
     applicationListEyebrow: 'Aplicación',
     applicationListTitle: 'Países de aplicación',
