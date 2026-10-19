@@ -33,6 +33,15 @@ function IconAlert() {
   );
 }
 
+function IconBank() {
+  return (
+    <svg viewBox="0 0 24 24" className="size-[22px]" fill="none" stroke="currentColor" strokeWidth="1.8">
+      <path d="M4 10 12 4l8 6" strokeLinejoin="round" />
+      <path d="M5 10v8M9 10v8M15 10v8M19 10v8M3 18h18" strokeLinecap="round" />
+    </svg>
+  );
+}
+
 function IconGift() {
   return (
     <svg viewBox="0 0 24 24" className="size-[22px]" fill="none" stroke="currentColor" strokeWidth="1.8">
@@ -163,6 +172,7 @@ export const sideIcons = {
   curate: <IconStar />,
   adminRep: <IconUsers />,
   domains: <IconGrid />,
+  funders: <IconBank />,
   highlights: <IconSpotlight />,
   orgs: <IconBuilding />,
   users: <IconShield />,

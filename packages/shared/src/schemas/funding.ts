@@ -59,8 +59,11 @@ export const createFunderProfileBodySchema = z.object({
   summary: z.string().min(10).max(TEXT_LIMITS.summary),
   country: z.string().length(2),
   region: z.string().min(2).max(64),
-  organizationId: z.string().uuid().optional(),
+  organizationId: z.string().uuid().nullable().optional(),
+  status: z.enum([ContentStatus.DRAFT, ContentStatus.PUBLISHED, ContentStatus.ARCHIVED]).optional(),
 });
+
+export const updateFunderProfileBodySchema = createFunderProfileBodySchema.partial();
 
 export const createSuccessCaseBodySchema = z.object({
   title: z.string().min(3).max(TEXT_LIMITS.title),
@@ -113,5 +116,6 @@ export const updateSuccessCaseBodySchema = createSuccessCaseBodySchema.partial()
 export type CreateFundingOfferBody = z.infer<typeof createFundingOfferBodySchema>;
 export type UpdateFundingOfferBody = z.infer<typeof updateFundingOfferBodySchema>;
 export type CreateFunderProfileBody = z.infer<typeof createFunderProfileBodySchema>;
+export type UpdateFunderProfileBody = z.infer<typeof updateFunderProfileBodySchema>;
 export type CreateSuccessCaseBody = z.infer<typeof createSuccessCaseBodySchema>;
 export type UpdateSuccessCaseBody = z.infer<typeof updateSuccessCaseBodySchema>;

@@ -78,6 +78,29 @@ export type OrganizationLink = {
   user?: Pick<AuthUser, 'id' | 'email' | 'name'>;
 };
 
+export type FunderStatus = 'DRAFT' | 'PUBLISHED' | 'ARCHIVED';
+
+export type AdminFunder = {
+  id: string;
+  name: string;
+  slug: string;
+  summary: string;
+  country: string | null;
+  region: string | null;
+  status: FunderStatus;
+  organizationId: string | null;
+  organization?: { id: string; name: string; slug: string } | null;
+};
+
+export type FunderWriteBody = {
+  name: string;
+  summary: string;
+  country: string;
+  region: string;
+  organizationId: string | null;
+  status: FunderStatus;
+};
+
 export const catalogApi = {
   listOrganizations: (token: string) =>
     api<{ items: Organization[] }>('/api/organizations', { accessToken: token }),
@@ -222,6 +245,22 @@ export const catalogApi = {
       method: 'DELETE',
       accessToken: token,
     }),
+  adminFunders: (token: string) =>
+    api<{ items: AdminFunder[] }>('/api/admin/funders', { accessToken: token }),
+  createFunder: (token: string, body: FunderWriteBody) =>
+    api<{ funder: AdminFunder }>('/api/admin/funders', {
+      method: 'POST',
+      accessToken: token,
+      body: JSON.stringify(body),
+    }),
+  updateFunder: (token: string, id: string, body: FunderWriteBody) =>
+    api<{ funder: AdminFunder }>(`/api/admin/funders/${id}`, {
+      method: 'PATCH',
+      accessToken: token,
+      body: JSON.stringify(body),
+    }),
+  deleteFunder: (token: string, id: string) =>
+    api<void>(`/api/admin/funders/${id}`, { method: 'DELETE', accessToken: token }),
   listDomains: (grouping: string) => api<{ items: Array<{ id: string; key: string; labelPt: string; labelEn: string; sortOrder: number }> }>(`/api/domains/${grouping}`),
   createDomain: (token: string, body: Record<string, unknown>) =>
     api<{ domain: { id: string } }>('/api/admin/domains', {

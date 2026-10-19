@@ -16,6 +16,7 @@ import { RepresentationWizardPage } from './pages/org/RepresentationWizardPage';
 import { MyOrganizationPage } from './pages/org/MyOrganizationPage';
 import { AdminRepresentationPage } from './pages/admin/AdminRepresentationPage';
 import { AdminDomainsPage } from './pages/admin/AdminDomainsPage';
+import { AdminFundersPage } from './pages/admin/AdminFundersPage';
 import { AdminOrganizationsPage } from './pages/admin/AdminOrganizationsPage';
 import { AdminCuratePage } from './pages/admin/AdminCuratePage';
 import { AdminHighlightsPage } from './pages/admin/AdminHighlightsPage';
@@ -136,6 +137,14 @@ export default function App() {
           element={
             <RequireRole roles={[UserRole.ADMIN, UserRole.CURADOR]}>
               <AdminDomainsPage />
+            </RequireRole>
+          }
+        />
+        <Route
+          path="admin/funders"
+          element={
+            <RequireRole roles={[UserRole.ADMIN, UserRole.CURADOR]}>
+              <AdminFundersPage />
             </RequireRole>
           }
         />

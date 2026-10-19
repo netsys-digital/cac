@@ -44,6 +44,7 @@ function useBreadcrumbs() {
       { match: /^\/admin\/representation/, label: t('nav.adminRep') },
       { match: /^\/admin\/organizations/, label: t('nav.adminOrgs') },
       { match: /^\/admin\/domains/, label: t('nav.adminDomains') },
+      { match: /^\/admin\/funders/, label: t('nav.adminFunders') },
       { match: /^\/admin\/highlights/, label: t('nav.adminHighlights') },
     ];
 
@@ -160,6 +161,7 @@ export function AppShell() {
         { to: '/admin/highlights', label: t('nav.adminHighlights'), icon: sideIcons.highlights },
         { to: '/admin/organizations', label: t('nav.adminOrgs'), icon: sideIcons.orgs },
         { to: '/admin/domains', label: t('nav.adminDomains'), icon: sideIcons.domains },
+        { to: '/admin/funders', label: t('nav.adminFunders'), icon: sideIcons.funders },
       ]
     : [];
 
