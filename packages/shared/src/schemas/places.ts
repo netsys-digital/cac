@@ -7,7 +7,7 @@ export const applicationPlaceSchema = z.object({
 });
 
 export const applicationPlacesField = {
-  applicationPlaces: z.array(applicationPlaceSchema).max(30).optional(),
+  applicationPlaces: z.array(applicationPlaceSchema).max(300).optional(),
 };
 
 export type ApplicationPlace = z.infer<typeof applicationPlaceSchema>;

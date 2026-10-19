@@ -876,6 +876,7 @@ export const pt = {
       'Onde a mesma publicação já é aplicada ou tem potencial, sem criar outro cadastro. Cada país entra uma vez no mapa e a publicação continua contando uma vez nos totais.',
     applicationEmpty: 'Nenhum país de aplicação além da origem.',
     applicationRegion: 'Região de aplicação',
+    applicationRegionHint: 'Escolha o continente e marque os países. Selecionar todos inclui o continente inteiro.',
     applicationCountry: 'País de aplicação',
     applicationNote: 'Justificativa',
     applicationNoteHint: 'Opcional. Vale para todos os países marcados nesta inclusão.',

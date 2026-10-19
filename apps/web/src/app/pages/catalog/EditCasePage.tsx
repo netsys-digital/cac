@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { Input, TextArea } from '@cac/ui';
 import { INLINE_TOOLS, RichTextArea } from '../../components/forms/RichTextArea';
 import { useAuth } from '../../auth/AuthContext';
-import { myContentsApi } from '../../api/myContentsApi';
+import { ensureDraft, myContentsApi } from '../../api/myContentsApi';
 import { catalogApi } from '../../api/catalogApi';
 import { FieldFull, FormPage } from '../../components/forms/FormPage';
 import { pickBannerFile } from '../../components/forms/BannerImageField';
@@ -57,8 +57,10 @@ export function EditCasePage() {
     setMessage('');
     const form = new FormData(e.currentTarget);
     try {
-      if (String(item?.status) === 'PUBLISHED') {
-        await myContentsApi.withdraw(accessToken, 'SUCCESS_CASE', id);
+      const status = String(item?.status ?? '');
+      if (status === 'PUBLISHED') {
+        await ensureDraft(accessToken, 'SUCCESS_CASE', id, status);
+        setItem((current) => (current ? { ...current, status: 'DRAFT' } : current));
       }
       const evidenceNotes = String(form.get('evidence') || '')
         .split('|')

@@ -161,3 +161,14 @@ export const myContentsApi = {
   submitCase: (token: string, id: string) =>
     api(`/api/success-cases/${id}/submit`, { method: 'POST', accessToken: token }),
 };
+
+/** Reabre uma publicação publicada para edição. Se ela já é rascunho, segue em frente. */
+export async function ensureDraft(token: string, kind: ContentKind, id: string, status: string) {
+  if (status !== 'PUBLISHED') return;
+  try {
+    await myContentsApi.withdraw(token, kind, id);
+  } catch (error) {
+    if (error instanceof Error && error.message === 'already_draft') return;
+    throw error;
+  }
+}

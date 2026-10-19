@@ -28,6 +28,7 @@ type Props = {
   onCountryChange?: (value: string) => void;
   required?: boolean;
   regionLabel?: string;
+  regionHint?: string;
   countryLabel?: string;
   hideCountry?: boolean;
 };
@@ -44,6 +45,7 @@ export function RegionCountryFields({
   onCountryChange,
   required = true,
   regionLabel,
+  regionHint,
   countryLabel,
   hideCountry = false,
 }: Props) {
@@ -95,7 +97,7 @@ export function RegionCountryFields({
     <>
       <SelectField
         label={regionLabel ?? t('catalog.region')}
-        hint={t('catalog.regionHint')}
+        hint={regionHint ?? t('catalog.regionHint')}
         name={regionName}
         required={required}
         value={regionKey}

@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { Input } from '@cac/ui';
 import { INLINE_TOOLS, RichTextArea } from '../../components/forms/RichTextArea';
 import { useAuth } from '../../auth/AuthContext';
-import { myContentsApi } from '../../api/myContentsApi';
+import { ensureDraft, myContentsApi } from '../../api/myContentsApi';
 import { catalogApi } from '../../api/catalogApi';
 import { FieldFull, FormPage } from '../../components/forms/FormPage';
 import { pickBannerFile } from '../../components/forms/BannerImageField';
@@ -57,8 +57,10 @@ export function EditFundingOfferPage() {
     setMessage('');
     const form = new FormData(e.currentTarget);
     try {
-      if (String(item?.status) === 'PUBLISHED') {
-        await myContentsApi.withdraw(accessToken, 'FUNDING_OFFER', id);
+      const status = String(item?.status ?? '');
+      if (status === 'PUBLISHED') {
+        await ensureDraft(accessToken, 'FUNDING_OFFER', id, status);
+        setItem((current) => (current ? { ...current, status: 'DRAFT' } : current));
       }
       await myContentsApi.patchOffer(accessToken, id, {
         title: String(form.get('title')),

@@ -873,6 +873,7 @@ export const en = {
       'Where the same publication is applied or has potential, without registering it again. Each country appears once on the map, and the publication still counts once in the totals.',
     applicationEmpty: 'No application country beyond the origin.',
     applicationRegion: 'Application region',
+    applicationRegionHint: 'Choose the continent and check the countries. Select all includes the whole continent.',
     applicationCountry: 'Application country',
     applicationNote: 'Justification',
     applicationNoteHint: 'Optional. Applies to every country checked in this inclusion.',

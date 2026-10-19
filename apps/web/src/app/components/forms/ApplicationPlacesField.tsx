@@ -69,9 +69,15 @@ export function ApplicationPlacesField({ originCountry = '', defaultPlaces = [] 
   const [picked, setPicked] = useState<DraftPlace[]>([]);
   const [note, setNote] = useState('');
   const [countries, setCountries] = useState<DomainOption[]>([]);
+  const [regions, setRegions] = useState<DomainOption[]>([]);
 
   useEffect(() => {
-    void catalogApi.listDomains('country').then((response) => setCountries(response.items));
+    void Promise.all([catalogApi.listDomains('country'), catalogApi.listDomains('region')]).then(
+      ([countryRes, regionRes]) => {
+        setCountries(countryRes.items);
+        setRegions(regionRes.items);
+      },
+    );
   }, []);
 
   useEffect(() => {
@@ -104,6 +110,11 @@ export function ApplicationPlacesField({ originCountry = '', defaultPlaces = [] 
         .filter((code) => code !== liveOrigin && !included.has(code)),
     [listed, liveOrigin, included],
   );
+  const listedCodes = useMemo(
+    () => listed.map((item) => item.key.toUpperCase()).filter((code) => code !== liveOrigin),
+    [listed, liveOrigin],
+  );
+  const coveredCount = listedCodes.filter((code) => included.has(code) || pickedCodes.has(code)).length;
   const allChecked = addable.length > 0 && addable.every((code) => pickedCodes.has(code));
   const someChecked = addable.some((code) => pickedCodes.has(code)) && !allChecked;
 
@@ -152,6 +163,16 @@ export function ApplicationPlacesField({ originCountry = '', defaultPlaces = [] 
     setNote('');
   }
 
+  function placeName(code: string) {
+    const item = countries.find((country) => country.key.toUpperCase() === code);
+    return item ? labelFor(item, i18n.language) : code;
+  }
+
+  function regionName(key: string) {
+    const item = regions.find((regionItem) => regionItem.key === key);
+    return item ? labelFor(item, i18n.language) : key.replace(/_/g, ' ');
+  }
+
   return (
     <FieldFull>
       <section ref={sectionRef} className="space-y-3 rounded-[14px] border border-dashed border-cac-line bg-white p-3">
@@ -163,15 +184,15 @@ export function ApplicationPlacesField({ originCountry = '', defaultPlaces = [] 
         </div>
         <input type="hidden" name="applicationPlaces" value={JSON.stringify(places)} />
         {places.length ? (
-          <ul className="space-y-1.5">
+          <ul className="max-h-48 space-y-1.5 overflow-y-auto">
             {places.map((place) => (
               <li
                 key={place.country}
                 className="flex items-start justify-between gap-3 rounded-lg bg-cac-bg px-3 py-2"
               >
                 <span className="min-w-0 text-pequena text-cac-navy">
-                  <span className="font-bold">{place.country}</span>
-                  <span className="text-cac-muted"> · {place.region.replace(/_/g, ' ')}</span>
+                  <span className="font-bold">{placeName(place.country)}</span>
+                  <span className="text-cac-muted"> · {regionName(place.region)}</span>
                   {place.note ? <span className="mt-0.5 block text-mini text-cac-muted">{place.note}</span> : null}
                 </span>
                 <button
@@ -197,6 +218,7 @@ export function ApplicationPlacesField({ originCountry = '', defaultPlaces = [] 
               required={false}
               hideCountry
               regionLabel={t('catalog.applicationRegion')}
+              regionHint={t('catalog.applicationRegionHint')}
             />
           </FieldFull>
           <FieldFull>
@@ -213,8 +235,7 @@ export function ApplicationPlacesField({ originCountry = '', defaultPlaces = [] 
                   />
                   {t('catalog.applicationSelectAll')}
                   <span className="ml-auto text-mini font-semibold text-cac-muted">
-                    {picked.filter((place) => listed.some((item) => item.key.toUpperCase() === place.country)).length}/
-                    {addable.length}
+                    {coveredCount}/{listedCodes.length}
                   </span>
                 </label>
                 <ul className="max-h-60 overflow-y-auto py-1" aria-label={t('catalog.applicationCountry')}>

@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { Input } from '@cac/ui';
 import { INLINE_TOOLS, RichTextArea } from '../../components/forms/RichTextArea';
 import { useAuth } from '../../auth/AuthContext';
-import { myContentsApi } from '../../api/myContentsApi';
+import { ensureDraft, myContentsApi } from '../../api/myContentsApi';
 import { FieldFull, FormPage, SelectField } from '../../components/forms/FormPage';
 import { catalogApi } from '../../api/catalogApi';
 import { pickBannerFile } from '../../components/forms/BannerImageField';
@@ -77,7 +77,8 @@ export function EditTechnologyPage() {
     const status = String(item?.status ?? '');
     try {
       if (status === 'PUBLISHED') {
-        await myContentsApi.withdraw(accessToken, 'TECHNOLOGY', id);
+        await ensureDraft(accessToken, 'TECHNOLOGY', id, status);
+        setItem((current) => (current ? { ...current, status: 'DRAFT' } : current));
       }
       await myContentsApi.patchTechnology(accessToken, id, {
         title: String(form.get('title')),

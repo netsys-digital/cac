@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { Input } from '@cac/ui';
 import { INLINE_TOOLS, RichTextArea } from '../../components/forms/RichTextArea';
 import { useAuth } from '../../auth/AuthContext';
-import { myContentsApi } from '../../api/myContentsApi';
+import { ensureDraft, myContentsApi } from '../../api/myContentsApi';
 import { catalogApi } from '../../api/catalogApi';
 import { FieldFull, FormPage, SelectField } from '../../components/forms/FormPage';
 import { pickBannerFile } from '../../components/forms/BannerImageField';
@@ -69,8 +69,10 @@ export function EditChallengePage() {
       return;
     }
     try {
-      if (String(item?.status) === 'PUBLISHED') {
-        await myContentsApi.withdraw(accessToken, 'CHALLENGE', id);
+      const status = String(item?.status ?? '');
+      if (status === 'PUBLISHED') {
+        await ensureDraft(accessToken, 'CHALLENGE', id, status);
+        setItem((current) => (current ? { ...current, status: 'DRAFT' } : current));
       }
       await myContentsApi.patchChallenge(accessToken, id, {
         title: String(form.get('title')),
