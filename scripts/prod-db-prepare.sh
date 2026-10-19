@@ -56,7 +56,36 @@ ALTER TABLE "Organization"
 UPDATE "Organization"
 SET "publishKinds" = ARRAY['TECHNOLOGY', 'CHALLENGE', 'FUNDING_OFFER', 'SUCCESS_CASE']::"OrgPublishKind"[]
 WHERE "publishKinds" IS NULL OR cardinality("publishKinds") = 0;
+
+-- financiador: curadoria (20261019120000) e ficha (20261019150000)
+ALTER TABLE "FunderProfile" ADD COLUMN IF NOT EXISTS "website" TEXT;
+ALTER TABLE "FunderProfile" ADD COLUMN IF NOT EXISTS "submittedByUserId" UUID;
+ALTER TABLE "FunderProfile" ADD COLUMN IF NOT EXISTS "curationNote" TEXT;
+ALTER TABLE "FunderProfile" ADD COLUMN IF NOT EXISTS "reviewedAt" TIMESTAMP(3);
+ALTER TABLE "FunderProfile" ADD COLUMN IF NOT EXISTS "logoUrl" TEXT;
+ALTER TABLE "FunderProfile" ADD COLUMN IF NOT EXISTS "interestAreas" TEXT;
+ALTER TABLE "FunderProfile" ADD COLUMN IF NOT EXISTS "contactName" TEXT;
+ALTER TABLE "FunderProfile" ADD COLUMN IF NOT EXISTS "contactEmail" TEXT;
+CREATE INDEX IF NOT EXISTS "FunderProfile_submittedByUserId_idx" ON "FunderProfile"("submittedByUserId");
+DO $$ BEGIN
+  ALTER TABLE "FunderProfile"
+    ADD CONSTRAINT "FunderProfile_submittedByUserId_fkey"
+    FOREIGN KEY ("submittedByUserId") REFERENCES "User"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+EXCEPTION
+  WHEN duplicate_object THEN NULL;
+END $$;
 SQL
+
+echo "==> Enum FUNDER (fora de transação; user ${PG_USER})"
+has_funder="$(docker exec -i "$PG_CONTAINER" psql -U "$PG_USER" -d "$PG_DB" -tAc \
+  "SELECT 1 FROM pg_enum e JOIN pg_type t ON t.oid = e.enumtypid WHERE t.typname = 'ConnectionTargetType' AND e.enumlabel = 'FUNDER'" \
+  | tr -d '[:space:]')"
+if [[ "$has_funder" != "1" ]]; then
+  docker exec -i "$PG_CONTAINER" psql -U "$PG_USER" -d "$PG_DB" -c \
+    "ALTER TYPE \"ConnectionTargetType\" ADD VALUE 'FUNDER';"
+else
+  echo "  valor FUNDER já existe"
+fi
 
 echo "==> Ownership → ${APP_DB_USER} (para prisma migrate deploy não falhar de novo)"
 docker exec -i "$PG_CONTAINER" psql -U "$PG_USER" -d "$PG_DB" <<SQL
@@ -83,6 +112,16 @@ BEGIN
     SELECT viewname FROM pg_views WHERE schemaname = 'public'
   LOOP
     EXECUTE format('ALTER VIEW public.%I OWNER TO %I', r.viewname, '${APP_DB_USER}');
+  END LOOP;
+
+  -- enums (ALTER TYPE pelo user cac falha com 42501 se o dono continuar netsys)
+  FOR r IN
+    SELECT t.typname
+    FROM pg_type t
+    JOIN pg_namespace n ON n.oid = t.typnamespace
+    WHERE n.nspname = 'public' AND t.typtype = 'e'
+  LOOP
+    EXECUTE format('ALTER TYPE public.%I OWNER TO %I', r.typname, '${APP_DB_USER}');
   END LOOP;
 END
 \$\$;
@@ -114,6 +153,9 @@ if "${COMPOSE[@]}" images api 2>/dev/null | grep -q api \
   resolve_applied "20260908200000_curation_notes"
   resolve_applied "20260909010000_technology_video_url"
   resolve_applied "20260909230000_org_publish_kinds"
+  resolve_applied "20261019120000_funder_curation"
+  resolve_applied "20261019140000_funder_connection_target"
+  resolve_applied "20261019150000_funder_profile_details"
 else
   echo "  (skip resolve — imagem api ainda não existe; migrate deploy cuidará após o build)"
 fi
@@ -125,5 +167,9 @@ docker exec -i "$PG_CONTAINER" psql -U "$PG_USER" -d "$PG_DB" -c \
   "SELECT column_name FROM information_schema.columns WHERE table_name='Organization' AND column_name='publishKinds';"
 docker exec -i "$PG_CONTAINER" psql -U "$PG_USER" -d "$PG_DB" -c \
   "SELECT COUNT(*) AS organizations FROM \"Organization\";"
+docker exec -i "$PG_CONTAINER" psql -U "$PG_USER" -d "$PG_DB" -c \
+  "SELECT e.enumlabel FROM pg_enum e JOIN pg_type t ON t.oid = e.enumtypid WHERE t.typname = 'ConnectionTargetType' AND e.enumlabel = 'FUNDER';"
+docker exec -i "$PG_CONTAINER" psql -U "$PG_USER" -d "$PG_DB" -c \
+  "SELECT column_name FROM information_schema.columns WHERE table_name = 'FunderProfile' AND column_name IN ('website','logoUrl','interestAreas','contactName','contactEmail','submittedByUserId') ORDER BY 1;"
 
 echo "OK — schema preparado para user ${APP_DB_USER}"
