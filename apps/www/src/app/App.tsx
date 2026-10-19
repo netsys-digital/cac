@@ -9,6 +9,7 @@ import { ChallengeDetailPage } from './pages/ChallengeDetailPage';
 import { ProjectDetailPage } from './pages/ProjectDetailPage';
 import { FundingPage } from './pages/FundingPage';
 import { FundingOfferDetailPage } from './pages/FundingOfferDetailPage';
+import { FunderDetailPage } from './pages/FunderDetailPage';
 import { CaseDetailPage, CasesPage } from './pages/CasesPages';
 import { PublishChallengeLandingPage, PublishOfferLandingPage } from './pages/SectionPages';
 
@@ -21,6 +22,7 @@ export default function App() {
         <Route path="search" element={<SearchPage />} />
         <Route path="funding" element={<FundingPage />} />
         <Route path="funding/:slug" element={<FundingOfferDetailPage />} />
+        <Route path="funders/:slug" element={<FunderDetailPage />} />
         <Route path="challenge" element={<PublishChallengeLandingPage />} />
         <Route path="offer" element={<PublishOfferLandingPage />} />
         <Route path="cases" element={<CasesPage />} />

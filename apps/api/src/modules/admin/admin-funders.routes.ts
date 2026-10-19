@@ -36,6 +36,10 @@ adminFundersRouter.post('/', validateBody(createFunderProfileBodySchema), async 
         name: req.body.name,
         slug: req.body.slug || slugify(req.body.name),
         summary: req.body.summary,
+        website: String(req.body.website).trim(),
+        interestAreas: req.body.interestAreas,
+        contactName: String(req.body.contactName).trim(),
+        contactEmail: String(req.body.contactEmail).trim().toLowerCase(),
         country: req.body.country,
         region: req.body.region,
         organizationId,
@@ -68,6 +72,12 @@ adminFundersRouter.patch('/:id', validateBody(updateFunderProfileBodySchema), as
         ...(req.body.name != null ? { name: req.body.name } : {}),
         ...(req.body.slug ? { slug: req.body.slug } : {}),
         ...(req.body.summary != null ? { summary: req.body.summary } : {}),
+        ...(req.body.website !== undefined
+          ? { website: req.body.website ? String(req.body.website).trim() || null : null }
+          : {}),
+        ...(req.body.interestAreas != null ? { interestAreas: req.body.interestAreas } : {}),
+        ...(req.body.contactName != null ? { contactName: String(req.body.contactName).trim() } : {}),
+        ...(req.body.contactEmail != null ? { contactEmail: String(req.body.contactEmail).trim().toLowerCase() } : {}),
         ...(req.body.country != null ? { country: req.body.country } : {}),
         ...(req.body.region != null ? { region: req.body.region } : {}),
         ...(req.body.status != null ? { status: req.body.status } : {}),
@@ -96,6 +106,8 @@ adminFundersRouter.delete('/:id', async (req, res, next) => {
     }
     await prisma.$transaction([
       prisma.contentTranslation.deleteMany({ where: { entityType: 'funder', entityId: id } }),
+      prisma.savedItem.deleteMany({ where: { targetType: 'FUNDER', targetId: id } }),
+      prisma.contentView.deleteMany({ where: { targetType: 'FUNDER', targetId: id } }),
       prisma.funderProfile.delete({ where: { id } }),
     ]);
     res.status(204).end();

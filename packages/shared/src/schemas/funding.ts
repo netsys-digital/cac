@@ -57,10 +57,19 @@ export const createFunderProfileBodySchema = z.object({
     .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/)
     .optional(),
   summary: z.string().min(10).max(TEXT_LIMITS.summary),
+  website: z
+    .string()
+    .trim()
+    .min(8)
+    .max(500)
+    .refine((v) => /^https?:\/\/.+/i.test(v), { message: 'invalid_website' }),
+  interestAreas: z.string().trim().min(10).max(TEXT_LIMITS.summary),
+  contactName: z.string().trim().min(2).max(200),
+  contactEmail: z.string().trim().email().max(320),
   country: z.string().length(2),
   region: z.string().min(2).max(64),
   organizationId: z.string().uuid().nullable().optional(),
-  status: z.enum([ContentStatus.DRAFT, ContentStatus.PUBLISHED, ContentStatus.ARCHIVED]).optional(),
+  status: z.enum([ContentStatus.DRAFT, ContentStatus.IN_REVIEW, ContentStatus.PUBLISHED, ContentStatus.ARCHIVED]).optional(),
 });
 
 export const updateFunderProfileBodySchema = createFunderProfileBodySchema.partial();

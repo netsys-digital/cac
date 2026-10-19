@@ -142,6 +142,27 @@ async function resolveSavedTarget(targetType: string, targetId: string): Promise
         portalPath: `/organizations/${item.slug}`,
       };
     }
+    case ConnectionTargetType.FUNDER: {
+      const item = await prisma.funderProfile.findUnique({
+        where: { id: targetId },
+        select: {
+          name: true,
+          slug: true,
+          summary: true,
+          logoUrl: true,
+          organization: { select: { name: true } },
+        },
+      });
+      if (!item) return null;
+      return {
+        title: item.name,
+        slug: item.slug,
+        summary: item.summary,
+        coverImageUrl: item.logoUrl,
+        organizationName: item.organization?.name ?? null,
+        portalPath: `/funders/${item.slug}`,
+      };
+    }
     default:
       return null;
   }

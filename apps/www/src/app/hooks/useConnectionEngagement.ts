@@ -87,6 +87,7 @@ export function useConnectionEngagement() {
 
   const getKindForSearch = useCallback(
     (contentType: string, id: string): EngagementKind | null => {
+      if (contentType === 'FUNDER') return getKind('FUNDER', id) ?? getKind('FUNDING_OFFER', id);
       const savedType = searchTypeToSavedType(contentType);
       if (!savedType) return null;
       return getKind(savedType, id);

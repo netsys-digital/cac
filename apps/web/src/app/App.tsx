@@ -24,6 +24,9 @@ import { AdminUsersPage } from './pages/admin/AdminUsersPage';
 import { NewTechnologyPage } from './pages/catalog/NewTechnologyPage';
 import { NewChallengePage } from './pages/catalog/NewChallengePage';
 import { NewFundingOfferPage } from './pages/catalog/NewFundingOfferPage';
+import { NewFunderPage } from './pages/catalog/NewFunderPage';
+import { EditFunderPage } from './pages/catalog/EditFunderPage';
+import { MyFundersPage } from './pages/catalog/MyFundersPage';
 import { NewCasePage } from './pages/catalog/NewCasePage';
 import { MyContentsPage } from './pages/catalog/MyContentsPage';
 import { EditTechnologyPage } from './pages/catalog/EditTechnologyPage';
@@ -110,6 +113,9 @@ export default function App() {
           }
         />
         <Route path="funding-offers/:id/edit" element={<EditFundingOfferPage />} />
+        <Route path="funders/new" element={<NewFunderPage />} />
+        <Route path="funders/:id/edit" element={<EditFunderPage />} />
+        <Route path="my/funders" element={<MyFundersPage />} />
         <Route
           path="cases/new"
           element={

@@ -1,0 +1,4 @@
+ALTER TABLE "FunderProfile" ADD COLUMN IF NOT EXISTS "logoUrl" TEXT;
+ALTER TABLE "FunderProfile" ADD COLUMN IF NOT EXISTS "interestAreas" TEXT;
+ALTER TABLE "FunderProfile" ADD COLUMN IF NOT EXISTS "contactName" TEXT;
+ALTER TABLE "FunderProfile" ADD COLUMN IF NOT EXISTS "contactEmail" TEXT;

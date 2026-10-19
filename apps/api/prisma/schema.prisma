@@ -102,6 +102,7 @@ enum ConnectionTargetType {
   SUCCESS_CASE
   CHALLENGE
   ORGANIZATION
+  FUNDER
 }
 
 enum ConnectionStatus {
@@ -131,6 +132,7 @@ model User {
   follows               Follow[]
   deletionRequests      ContentDeletionRequest[]   @relation("DeletionRequester")
   deletionReviews       ContentDeletionRequest[]   @relation("DeletionReviewer")
+  submittedFunders      FunderProfile[]            @relation("FunderSubmitter")
 }
 
 model RefreshToken {
@@ -447,18 +449,28 @@ model FunderProfile {
   id             String        @id @default(uuid()) @db.Uuid
   name           String
   slug           String        @unique
-  summary        String
-  country        String?
-  region         String?
-  organizationId String?       @db.Uuid
-  status         ContentStatus @default(DRAFT)
-  createdAt      DateTime      @default(now())
-  updatedAt      DateTime      @updatedAt
-  organization   Organization? @relation(fields: [organizationId], references: [id], onDelete: SetNull)
+  summary            String
+  website            String?
+  logoUrl            String?
+  interestAreas      String?
+  contactName        String?
+  contactEmail       String?
+  country            String?
+  region             String?
+  organizationId     String?       @db.Uuid
+  submittedByUserId  String?       @db.Uuid
+  status             ContentStatus @default(DRAFT)
+  curationNote       String?
+  reviewedAt         DateTime?
+  createdAt          DateTime      @default(now())
+  updatedAt          DateTime      @updatedAt
+  organization       Organization? @relation(fields: [organizationId], references: [id], onDelete: SetNull)
+  submittedBy        User?         @relation("FunderSubmitter", fields: [submittedByUserId], references: [id], onDelete: SetNull)
 
   @@index([status])
   @@index([country])
   @@index([region])
+  @@index([submittedByUserId])
 }
 
 /// Oferta ativa de financiamento (participa do match whoCanFund).

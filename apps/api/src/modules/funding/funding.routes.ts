@@ -1,8 +1,13 @@
+import { randomUUID } from 'node:crypto';
+import fs from 'node:fs';
+import path from 'node:path';
 import { Router } from 'express';
+import multer from 'multer';
 import {
   ContentStatus,
   createFundingOfferBodySchema,
   createFunderProfileBodySchema,
+  updateFunderProfileBodySchema,
   updateFundingOfferBodySchema,
   UserRole,
 } from '@cac/shared';
@@ -192,17 +197,80 @@ fundingOffersRouter.post(
   },
 );
 
+const funderInclude = { organization: true } as const;
+
+function canManageFunder(userId: string, role: string, submittedByUserId: string | null) {
+  if (role === UserRole.ADMIN || role === UserRole.CURADOR) return true;
+  return Boolean(submittedByUserId && submittedByUserId === userId);
+}
+
+const uploadDir = process.env.UPLOAD_DIR || 'uploads';
+fs.mkdirSync(uploadDir, { recursive: true });
+const uploadLogo = multer({
+  storage: multer.diskStorage({
+    destination: (_req, _file, cb) => cb(null, uploadDir),
+    filename: (_req, file, cb) => {
+      cb(null, `${randomUUID()}${path.extname(file.originalname).toLowerCase()}`);
+    },
+  }),
+  limits: { fileSize: 8 * 1024 * 1024 },
+  fileFilter: (_req, file, cb) => {
+    if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.mimetype)) {
+      cb(new Error('invalid_mime'));
+      return;
+    }
+    cb(null, true);
+  },
+});
+
+function funderProfileData(body: {
+  name?: string;
+  summary?: string;
+  website?: string | null;
+  interestAreas?: string;
+  contactName?: string;
+  contactEmail?: string;
+  country?: string;
+  region?: string;
+  organizationId?: string | null;
+}) {
+  return {
+    ...(body.name != null ? { name: body.name } : {}),
+    ...(body.summary != null ? { summary: body.summary } : {}),
+    ...(body.website !== undefined ? { website: body.website ? String(body.website).trim() || null : null } : {}),
+    ...(body.interestAreas != null ? { interestAreas: body.interestAreas } : {}),
+    ...(body.contactName != null ? { contactName: body.contactName.trim() } : {}),
+    ...(body.contactEmail != null ? { contactEmail: body.contactEmail.trim().toLowerCase() } : {}),
+    ...(body.country != null ? { country: body.country } : {}),
+    ...(body.region != null ? { region: body.region } : {}),
+    ...(body.organizationId !== undefined ? { organizationId: body.organizationId || null } : {}),
+  };
+}
+
 fundersRouter.get('/', async (req, res, next) => {
   try {
     const items = await prisma.funderProfile.findMany({
       where: { status: ContentStatus.PUBLISHED },
-      include: { organization: true },
+      include: funderInclude,
       orderBy: { name: 'asc' },
-      take: 100,
+      take: 200,
     });
     res.json({
       items: await localizeEntities('funder', items, requestLang(req.query), { nestedOrganization: true }),
     });
+  } catch (error) {
+    next(error);
+  }
+});
+
+fundersRouter.get('/mine', requireAuth, async (req, res, next) => {
+  try {
+    const items = await prisma.funderProfile.findMany({
+      where: { submittedByUserId: req.auth!.sub },
+      include: funderInclude,
+      orderBy: { updatedAt: 'desc' },
+    });
+    res.json({ items });
   } catch (error) {
     next(error);
   }
@@ -216,7 +284,7 @@ fundersRouter.get('/:slugOrId', async (req, res, next) => {
         ...(isUuid(key) ? { OR: [{ slug: key }, { id: key }] } : { slug: key }),
         status: ContentStatus.PUBLISHED,
       },
-      include: { organization: true },
+      include: funderInclude,
     });
     if (!item) {
       res.status(404).json({ error: 'not_found' });
@@ -236,19 +304,119 @@ fundersRouter.post('/', requireAuth, validateBody(createFunderProfileBodySchema)
       await assertCanActForOrganization(req.auth!.sub, req.body.organizationId, req.auth!.role);
     }
     const slug = req.body.slug || slugify(req.body.name);
+    const existing = await prisma.funderProfile.findUnique({ where: { slug } });
+    if (existing) {
+      res.status(409).json({ error: 'slug_taken' });
+      return;
+    }
     const funder = await prisma.funderProfile.create({
       data: {
         name: req.body.name,
         slug,
         summary: req.body.summary,
+        website: String(req.body.website).trim(),
+        interestAreas: req.body.interestAreas,
+        contactName: String(req.body.contactName).trim(),
+        contactEmail: String(req.body.contactEmail).trim().toLowerCase(),
         country: req.body.country,
         region: req.body.region,
-        organizationId: req.body.organizationId,
-        status: ContentStatus.PUBLISHED,
+        organizationId: req.body.organizationId || null,
+        submittedByUserId: req.auth!.sub,
+        status: ContentStatus.IN_REVIEW,
       },
+      include: funderInclude,
     });
-    void enqueueTranslation({ entityType: 'funder', entityId: funder.id });
     res.status(201).json({ funder });
+  } catch (error) {
+    next(error);
+  }
+});
+
+fundersRouter.patch('/:id', requireAuth, validateBody(updateFunderProfileBodySchema), async (req, res, next) => {
+  try {
+    const current = await prisma.funderProfile.findUnique({ where: { id: param(req.params.id) } });
+    if (!current) {
+      res.status(404).json({ error: 'not_found' });
+      return;
+    }
+    if (!canManageFunder(req.auth!.sub, req.auth!.role, current.submittedByUserId)) {
+      res.status(403).json({ error: 'forbidden' });
+      return;
+    }
+    if (current.status !== ContentStatus.DRAFT && req.auth!.role !== UserRole.ADMIN && req.auth!.role !== UserRole.CURADOR) {
+      res.status(400).json({ error: 'invalid_status' });
+      return;
+    }
+    if (req.body.organizationId) {
+      await assertCanActForOrganization(req.auth!.sub, req.body.organizationId, req.auth!.role);
+    }
+    const funder = await prisma.funderProfile.update({
+      where: { id: current.id },
+      data: funderProfileData(req.body),
+      include: funderInclude,
+    });
+    res.json({ funder });
+  } catch (error) {
+    next(error);
+  }
+});
+
+fundersRouter.post('/:id/logo', requireAuth, (req, res, next) => {
+  uploadLogo.single('file')(req, res, (err: unknown) => {
+    if (err) {
+      res.status(400).json({ error: 'invalid_upload' });
+      return;
+    }
+    next();
+  });
+}, async (req, res, next) => {
+  try {
+    const current = await prisma.funderProfile.findUnique({ where: { id: param(req.params.id) } });
+    if (!current) {
+      res.status(404).json({ error: 'not_found' });
+      return;
+    }
+    if (!canManageFunder(req.auth!.sub, req.auth!.role, current.submittedByUserId)) {
+      res.status(403).json({ error: 'forbidden' });
+      return;
+    }
+    if (!req.file) {
+      res.status(400).json({ error: 'file_required' });
+      return;
+    }
+    const logoUrl = `/uploads/${req.file.filename}`;
+    const funder = await prisma.funderProfile.update({
+      where: { id: current.id },
+      data: { logoUrl },
+      include: funderInclude,
+    });
+    res.status(201).json({ logoUrl, funder });
+  } catch (error) {
+    next(error);
+  }
+});
+
+fundersRouter.post('/:id/submit', requireAuth, async (req, res, next) => {
+  try {
+    const current = await prisma.funderProfile.findUnique({ where: { id: param(req.params.id) } });
+    if (!current) {
+      res.status(404).json({ error: 'not_found' });
+      return;
+    }
+    if (!canManageFunder(req.auth!.sub, req.auth!.role, current.submittedByUserId)) {
+      res.status(403).json({ error: 'forbidden' });
+      return;
+    }
+    if (current.status !== ContentStatus.DRAFT && current.status !== ContentStatus.IN_REVIEW) {
+      res.status(400).json({ error: 'invalid_status' });
+      return;
+    }
+    const funder = await prisma.funderProfile.update({
+      where: { id: current.id },
+      data: { status: ContentStatus.IN_REVIEW },
+      include: funderInclude,
+    });
+    res.json({ funder });
   } catch (error) {
     next(error);
   }

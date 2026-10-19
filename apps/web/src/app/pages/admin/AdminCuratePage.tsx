@@ -31,6 +31,7 @@ function kindLabel(kind: string, t: (key: string) => string) {
     PROJECT: t('curator.kindProject'),
     FUNDING_OFFER: t('curator.kindOffer'),
     SUCCESS_CASE: t('curator.kindCase'),
+    FUNDER: t('curator.kindFunder'),
   };
   return map[kind] ?? kind;
 }

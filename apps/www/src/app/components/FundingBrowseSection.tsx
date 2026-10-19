@@ -14,6 +14,7 @@ import {
   useUrlPageState,
 } from '../search/urlState';
 import { BackLink } from './BackLink';
+import { urls } from '../../config';
 
 const PAGE_SIZE = 9;
 
@@ -28,6 +29,7 @@ const COUNTRY_LABELS: Record<string, string> = {
 type SortKey = 'recent' | 'deadline' | 'title_asc' | 'title_desc';
 type ViewMode = 'grid' | 'list';
 type DeadlineFilter = '' | 'with' | 'open';
+type OrgFilter = '' | 'yes' | 'no';
 
 function matchesText(haystack: string, needle: string) {
   return haystack.toLowerCase().includes(needle.toLowerCase());
@@ -85,7 +87,8 @@ export function FundingBrowseSection() {
     'with',
     'open',
   ]);
-  const [moreOpen, setMoreOpen] = useState(Boolean(deadlineFilter));
+  const [orgLink, setOrgLink] = useUrlInitialState<OrgFilter>('org', '', ['', 'yes', 'no']);
+  const [moreOpen, setMoreOpen] = useState(Boolean(deadlineFilter || orgLink));
   const [sort, setSort] = useUrlInitialState<SortKey>('sort', 'recent', [
     'recent',
     'deadline',
@@ -100,6 +103,7 @@ export function FundingBrowseSection() {
     country,
     region,
     deadline: deadlineFilter,
+    org: orgLink,
     sort: sort === 'recent' ? null : sort,
     view: view === 'grid' ? null : view,
     page: page > 1 ? page : null,
@@ -181,17 +185,22 @@ export function FundingBrowseSection() {
     }
     if (country) next = next.filter((item) => item.country === country);
     if (region) next = next.filter((item) => item.region === region);
+    if (orgLink === 'yes') next = next.filter((item) => Boolean(item.organization));
+    if (orgLink === 'no') next = next.filter((item) => !item.organization);
 
     next.sort((a, b) => {
       if (sort === 'title_desc') return b.name.localeCompare(a.name, undefined, { sensitivity: 'base' });
-      return a.name.localeCompare(b.name, undefined, { sensitivity: 'base' });
+      if (sort === 'title_asc') return a.name.localeCompare(b.name, undefined, { sensitivity: 'base' });
+      const aTime = a.updatedAt ? Date.parse(a.updatedAt) : 0;
+      const bTime = b.updatedAt ? Date.parse(b.updatedAt) : 0;
+      return bTime - aTime;
     });
     return next;
-  }, [funders, query, country, region, sort]);
+  }, [funders, query, country, region, orgLink, sort]);
 
   const filtered = tab === 'active' ? filteredOffers : filteredFunders;
 
-  useResetOnChange(JSON.stringify([query, country, region, deadlineFilter, sort, tab]), () => setPage(1));
+  useResetOnChange(JSON.stringify([query, country, region, deadlineFilter, orgLink, sort, tab]), () => setPage(1));
 
   const total = filtered.length;
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
@@ -295,9 +304,17 @@ export function FundingBrowseSection() {
         </div>
 
         {moreOpen ? (
-          <p className="mt-3 border-t border-cac-line pt-3 text-pequena text-cac-muted">
-            {tab === 'active' ? t('funding.activeBody') : t('funding.directoryBody')}
-          </p>
+          <div className="mt-3 space-y-3 border-t border-cac-line pt-3">
+            <p className="text-pequena text-cac-muted">
+              {tab === 'active' ? t('funding.activeBody') : t('funding.directoryBody')}
+            </p>
+            {tab === 'directory' ? (
+              <FilterSelect label={t('funding.filterOrg')} value={orgLink} onChange={(v) => setOrgLink(v as OrgFilter)}>
+                <option value="yes">{t('funding.filterOrgYes')}</option>
+                <option value="no">{t('funding.filterOrgNo')}</option>
+              </FilterSelect>
+            ) : null}
+          </div>
         ) : null}
       </div>
 
@@ -331,7 +348,9 @@ export function FundingBrowseSection() {
                   <option value="recent">{t('funding.sortRecent')}</option>
                   <option value="deadline">{t('funding.sortDeadline')}</option>
                 </>
-              ) : null}
+              ) : (
+                <option value="recent">{t('funding.sortRecent')}</option>
+              )}
               <option value="title_asc">{t('funding.sortTitleAsc')}</option>
               <option value="title_desc">{t('funding.sortTitleDesc')}</option>
             </select>
@@ -441,15 +460,23 @@ export function FundingBrowseSection() {
               );
             })
           : (pageItems as FunderProfile[]).map((funder) => (
-              <article
+              <Link
                 key={funder.id}
-                className={`flex h-full flex-col rounded-[16px] border border-cac-line bg-white p-4 shadow-[0_14px_38px_rgba(10,36,64,.08)] ${
+                to={`/funders/${funder.slug}`}
+                className={`group flex h-full flex-col rounded-[16px] border border-cac-line bg-white p-4 shadow-[0_14px_38px_rgba(10,36,64,.08)] transition hover:-translate-y-0.5 hover:border-cac-green/35 ${
                   view === 'list' ? 'sm:flex-row sm:items-start sm:gap-4' : ''
                 }`}
               >
                 <div className="min-w-0 flex-1">
-                  <h3 className="text-media font-bold text-cac-navy">{funder.name}</h3>
-                  <p className="mt-2 text-pequena leading-relaxed text-cac-muted">{funder.summary}</p>
+                  {resolveMediaUrl(funder.logoUrl) ? (
+                    <img
+                      src={resolveMediaUrl(funder.logoUrl)!}
+                      alt=""
+                      className="mb-3 h-14 w-14 rounded-xl border border-cac-line bg-white object-contain p-1"
+                    />
+                  ) : null}
+                  <h3 className="text-media font-bold text-cac-navy group-hover:text-cac-green">{funder.name}</h3>
+                  <p className="mt-2 line-clamp-3 text-pequena leading-relaxed text-cac-muted">{plainText(funder.summary)}</p>
                   <div className="mt-3 flex flex-wrap gap-x-4 gap-y-1.5 text-mini text-cac-muted">
                     {funder.country ? (
                       <span className="inline-flex items-center gap-1.5">
@@ -464,8 +491,11 @@ export function FundingBrowseSection() {
                       </span>
                     ) : null}
                   </div>
+                  {funder.organization ? (
+                    <p className="mt-2 text-mini font-bold text-cac-green">{funder.organization.name}</p>
+                  ) : null}
                 </div>
-              </article>
+              </Link>
             ))}
       </div>
 
@@ -501,7 +531,113 @@ export function FundingBrowseSection() {
         </div>
       ) : null}
 
+      {tab === 'directory' ? <FunderDirectoryPitch /> : null}
+
       <BackLink className="mt-6 inline-flex items-center gap-2 text-pequena font-bold text-cac-green" />
     </section>
+  );
+}
+
+const FUNDER_WHY = [
+  { icon: 'fa-solid fa-bullseye', title: 'funding.dirWhy1Title', body: 'funding.dirWhy1Body', bg: 'bg-[#e8f5ec]' },
+  { icon: 'fa-solid fa-users', title: 'funding.dirWhy2Title', body: 'funding.dirWhy2Body', bg: 'bg-[#e8f1fb]' },
+  { icon: 'fa-solid fa-lightbulb', title: 'funding.dirWhy3Title', body: 'funding.dirWhy3Body', bg: 'bg-[#fbf3e0]' },
+  { icon: 'fa-solid fa-leaf', title: 'funding.dirWhy4Title', body: 'funding.dirWhy4Body', bg: 'bg-[#eef7f2]' },
+] as const;
+
+const FUNDER_HOW = [
+  { icon: 'fa-solid fa-pen-to-square', title: 'funding.dirHow1Title', body: 'funding.dirHow1Body' },
+  { icon: 'fa-solid fa-file-lines', title: 'funding.dirHow2Title', body: 'funding.dirHow2Body' },
+  { icon: 'fa-solid fa-users', title: 'funding.dirHow3Title', body: 'funding.dirHow3Body' },
+  { icon: 'fa-solid fa-rocket', title: 'funding.dirHow4Title', body: 'funding.dirHow4Body' },
+] as const;
+
+function FunderDirectoryPitch() {
+  const { t } = useTranslation();
+  const [open, setOpen] = useState(false);
+  const publishUrl = `${urls.web}/funders/new`;
+  if (!open) {
+    return (
+      <div className="mt-12 flex justify-center">
+        <button
+          type="button"
+          onClick={() => setOpen(true)}
+          className="inline-flex items-center justify-center gap-2 rounded-full bg-cac-green2 px-6 py-3 text-pequena font-extrabold text-white shadow-[0_10px_24px_rgba(10,36,64,.18)] transition hover:brightness-105"
+        >
+          {t('funding.dirWantCta')}
+          <i className="fa-solid fa-arrow-right text-[0.85rem]" aria-hidden />
+        </button>
+      </div>
+    );
+  }
+  return (
+    <div className="mt-12 space-y-12">
+      <div>
+        <div className="max-w-[40rem]">
+          <h2 className="text-grande font-bold tracking-[-0.4px] text-cac-navy">{t('funding.dirWhyTitle')}</h2>
+          <p className="mt-2 text-media leading-relaxed text-cac-muted">{t('funding.dirWhySupport')}</p>
+        </div>
+        <div className="mt-7 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+          {FUNDER_WHY.map((card) => (
+            <article key={card.title} className={`flex items-center gap-4 rounded-[16px] p-5 ${card.bg}`}>
+              <i className={`${card.icon} shrink-0 text-[2.25rem] text-cac-green`} aria-hidden />
+              <div className="min-w-0">
+                <h3 className="text-media font-bold text-cac-navy">{t(card.title)}</h3>
+                <p className="mt-1.5 text-pequena leading-relaxed text-cac-muted">{t(card.body)}</p>
+              </div>
+            </article>
+          ))}
+        </div>
+      </div>
+
+      <div>
+        <h2 className="text-grande font-bold tracking-[-0.4px] text-cac-navy">{t('funding.dirHowTitle')}</h2>
+        <p className="mt-2 text-media leading-relaxed text-cac-muted">{t('funding.dirHowSupport')}</p>
+        <ol className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          {FUNDER_HOW.map((step, index) => (
+            <li
+              key={step.title}
+              className="relative flex items-center gap-3.5 rounded-[16px] border border-cac-line bg-white px-4 py-4"
+            >
+              {index < FUNDER_HOW.length - 1 ? (
+                <span
+                  className="pointer-events-none absolute top-1/2 right-[-0.7rem] hidden -translate-y-1/2 text-cac-line lg:block"
+                  aria-hidden
+                >
+                  <i className="fa-solid fa-chevron-right text-[0.85rem]" />
+                </span>
+              ) : null}
+              <span className="grid size-9 shrink-0 place-items-center rounded-full bg-cac-green2 text-pequena font-extrabold text-white">
+                {index + 1}
+              </span>
+              <i className={`${step.icon} shrink-0 text-[1.75rem] text-cac-green`} aria-hidden />
+              <div className="min-w-0">
+                <h3 className="text-media font-bold text-cac-navy">{t(step.title)}</h3>
+                <p className="mt-1 text-pequena leading-relaxed text-cac-muted">{t(step.body)}</p>
+              </div>
+            </li>
+          ))}
+        </ol>
+      </div>
+
+      <div className="flex flex-col gap-5 rounded-[18px] bg-[#e7f4ec] px-5 py-6 sm:flex-row sm:items-center sm:justify-between sm:px-7 sm:py-7">
+        <div className="flex min-w-0 items-start gap-4">
+          <i className="fa-solid fa-handshake mt-0.5 text-[1.75rem] text-cac-green" aria-hidden />
+          <div className="min-w-0">
+            <h2 className="text-media font-bold text-cac-navy sm:text-grande">{t('funding.dirCtaTitle')}</h2>
+            <p className="mt-1.5 max-w-[36rem] text-pequena leading-relaxed text-cac-muted sm:text-media">
+              {t('funding.dirCtaBody')}
+            </p>
+          </div>
+        </div>
+        <a
+          href={publishUrl}
+          className="inline-flex shrink-0 items-center justify-center gap-2 rounded-full bg-cac-green2 px-6 py-3 text-pequena font-extrabold text-white shadow-[0_10px_24px_rgba(10,36,64,.18)] transition hover:brightness-105"
+        >
+          {t('funding.dirPublishCta')}
+          <i className="fa-solid fa-arrow-right text-[0.85rem]" aria-hidden />
+        </a>
+      </div>
+    </div>
   );
 }

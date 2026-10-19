@@ -25,7 +25,7 @@ export const SCALAR_FIELDS: Record<TranslationEntityType, string[]> = {
   project: ['title', 'summary'],
   organization: ['summary'],
   funding_offer: ['title', 'summary', 'whatFunds', 'criteria', 'amountRange', 'cardTitle', 'cardSummary'],
-  funder: ['summary'],
+  funder: ['summary', 'interestAreas'],
   success_case: ['title', 'summary', 'context', 'outcomes', 'cardTitle', 'cardSummary'],
 };
 

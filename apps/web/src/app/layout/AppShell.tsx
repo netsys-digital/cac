@@ -36,6 +36,9 @@ function useBreadcrumbs() {
       { match: /^\/catalog\/challenges/, label: t('nav.newChallenge') },
       { match: /^\/funding-offers\/[^/]+\/edit/, label: t('mine.edit') },
       { match: /^\/funding-offers/, label: t('nav.newOffer') },
+      { match: /^\/funders\/[^/]+\/edit/, label: t('mine.edit') },
+      { match: /^\/funders/, label: t('nav.newFunder') },
+      { match: /^\/my\/funders/, label: t('nav.myFunders') },
       { match: /^\/cases\/[^/]+\/edit/, label: t('mine.edit') },
       { match: /^\/cases/, label: t('nav.newCase') },
       { match: /^\/connections/, label: t('nav.connections') },
@@ -139,6 +142,11 @@ export function AppShell() {
       icon: sideIcons.case,
       badge: !canPublish ? t('nav.lockedShort') : undefined,
       lockTitle: lockedHint,
+    },
+    {
+      to: '/my/funders',
+      label: t('nav.myFunders'),
+      icon: sideIcons.funders,
     },
   ];
 

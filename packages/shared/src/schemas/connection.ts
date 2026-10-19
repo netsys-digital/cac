@@ -11,6 +11,7 @@ export const createConnectionBodySchema = z.object({
     ConnectionTargetType.SUCCESS_CASE,
     ConnectionTargetType.CHALLENGE,
     ConnectionTargetType.ORGANIZATION,
+    ConnectionTargetType.FUNDER,
   ]),
   targetId: z.string().uuid(),
   objective: z.enum([
@@ -34,6 +35,7 @@ export const savedItemBodySchema = z.object({
     ConnectionTargetType.SUCCESS_CASE,
     ConnectionTargetType.CHALLENGE,
     ConnectionTargetType.ORGANIZATION,
+    ConnectionTargetType.FUNDER,
   ]),
   targetId: z.string().uuid(),
 });

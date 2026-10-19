@@ -50,8 +50,22 @@ export type FunderProfile = {
   name: string;
   slug: string;
   summary: string;
+  website?: string | null;
+  logoUrl?: string | null;
+  interestAreas?: string | null;
+  contactName?: string | null;
+  contactEmail?: string | null;
   country?: string | null;
   region?: string | null;
+  updatedAt?: string;
+  organization?: {
+    id: string;
+    name: string;
+    slug: string;
+    summary?: string | null;
+    logoUrl?: string | null;
+    verificationStatus?: string;
+  } | null;
 };
 
 export const fundingApi = {
@@ -59,4 +73,5 @@ export const fundingApi = {
     api<{ items: FundingOffer[] }>(`/api/funding-offers${active ? '?active=true' : ''}`),
   getOffer: (slug: string) => api<{ offer: FundingOffer }>(`/api/funding-offers/${slug}`),
   listFunders: () => api<{ items: FunderProfile[] }>('/api/funders'),
+  getFunder: (slug: string) => api<{ funder: FunderProfile }>(`/api/funders/${slug}`),
 };

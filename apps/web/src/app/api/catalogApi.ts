@@ -85,6 +85,11 @@ export type AdminFunder = {
   name: string;
   slug: string;
   summary: string;
+  website?: string | null;
+  logoUrl?: string | null;
+  interestAreas?: string | null;
+  contactName?: string | null;
+  contactEmail?: string | null;
   country: string | null;
   region: string | null;
   status: FunderStatus;
@@ -95,6 +100,10 @@ export type AdminFunder = {
 export type FunderWriteBody = {
   name: string;
   summary: string;
+  website: string;
+  interestAreas: string;
+  contactName: string;
+  contactEmail: string;
   country: string;
   region: string;
   organizationId: string | null;
@@ -261,6 +270,15 @@ export const catalogApi = {
     }),
   deleteFunder: (token: string, id: string) =>
     api<void>(`/api/admin/funders/${id}`, { method: 'DELETE', accessToken: token }),
+  uploadFunderLogo: (token: string, id: string, file: File) => {
+    const body = new FormData();
+    body.append('file', file);
+    return api<{ logoUrl: string }>(`/api/funders/${id}/logo`, {
+      method: 'POST',
+      accessToken: token,
+      body,
+    });
+  },
   listDomains: (grouping: string) => api<{ items: Array<{ id: string; key: string; labelPt: string; labelEn: string; sortOrder: number }> }>(`/api/domains/${grouping}`),
   createDomain: (token: string, body: Record<string, unknown>) =>
     api<{ domain: { id: string } }>('/api/admin/domains', {

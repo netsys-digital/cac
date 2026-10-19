@@ -93,6 +93,7 @@ export function useSavedFavoriteKeys() {
     (contentType: string, id: string) => {
       const savedType = searchTypeToSavedType(contentType);
       if (savedType && keys.has(savedFavoriteKey(savedType, id))) return true;
+      if (contentType === 'FUNDER' && keys.has(savedFavoriteKey('FUNDER', id))) return true;
       // fallback: UUID do item (caso o tipo da busca e do save divergirem)
       return ids.has(id);
     },

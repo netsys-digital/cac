@@ -21,6 +21,8 @@ function typeLabelKey(targetType: string) {
       return 'fav.typeProject';
     case 'ORGANIZATION':
       return 'fav.typeOrg';
+    case 'FUNDER':
+      return 'fav.typeFunder';
     default:
       return 'fav.typeOther';
   }

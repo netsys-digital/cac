@@ -391,8 +391,9 @@ export async function runSearch(body: SearchBody): Promise<SearchResponse> {
       tags: ['financiador', 'directory'],
       country: funder.country,
       region: funder.region,
-      textBlob: `${funder.name} ${funder.summary}`,
-      href: `/funding?tab=directory`,
+      textBlob: `${funder.name} ${funder.summary} ${funder.interestAreas ?? ''}`,
+      href: `/funders/${funder.slug}`,
+      coverImageUrl: funder.logoUrl,
       updatedAt: funder.updatedAt,
     });
   }

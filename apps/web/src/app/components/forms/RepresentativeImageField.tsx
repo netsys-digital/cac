@@ -9,9 +9,9 @@ export type CoverKind =
   | 'success-cases'
   | 'projects';
 
-/** Lê o arquivo de capa do FormData (campo `coverImage`). */
-export function pickCoverFile(form: FormData): File | null {
-  const value = form.get('coverImage');
+/** Lê um arquivo de imagem do FormData. O padrão é o campo `coverImage`. */
+export function pickCoverFile(form: FormData, field = 'coverImage'): File | null {
+  const value = form.get(field);
   return value instanceof File && value.size > 0 ? value : null;
 }
 
@@ -30,9 +30,13 @@ export function resolveMediaUrl(path?: string | null): string | null {
 type Props = {
   /** URL já salva (edição) — relativa `/uploads/...` ou absoluta. */
   currentUrl?: string | null;
+  name?: string;
+  label?: string;
+  hint?: string;
+  emptyLabel?: string;
 };
 
-export function RepresentativeImageField({ currentUrl }: Props) {
+export function RepresentativeImageField({ currentUrl, name = 'coverImage', label, hint, emptyLabel }: Props) {
   const { t } = useTranslation();
   const inputId = useId();
   const [preview, setPreview] = useState<string | null>(resolveMediaUrl(currentUrl));
@@ -50,22 +54,22 @@ export function RepresentativeImageField({ currentUrl }: Props) {
   return (
     <div className="space-y-2">
       <label htmlFor={inputId} className="block text-mini font-extrabold uppercase tracking-[0.4px] text-cac-muted">
-        {t('catalog.coverImage')}
+        {label ?? t('catalog.coverImage')}
       </label>
-      <p className="text-mini leading-snug text-cac-muted">{t('catalog.coverImageHint')}</p>
+      <p className="text-mini leading-snug text-cac-muted">{hint ?? t('catalog.coverImageHint')}</p>
       <div className="flex flex-wrap items-start gap-3">
         <div className="h-28 w-40 overflow-hidden rounded-[12px] border border-cac-line bg-[#edf1f3]">
           {preview ? (
             <img src={preview} alt="" className="h-full w-full object-cover" />
           ) : (
             <div className="grid h-full place-items-center px-2 text-center text-mini text-cac-muted">
-              {t('catalog.coverImageEmpty')}
+              {emptyLabel ?? t('catalog.coverImageEmpty')}
             </div>
           )}
         </div>
         <input
           id={inputId}
-          name="coverImage"
+          name={name}
           type="file"
           accept="image/jpeg,image/png,image/webp"
           className="max-w-full text-pequena text-cac-navy file:mr-3 file:rounded-[10px] file:border-0 file:bg-cac-green3 file:px-3 file:py-2 file:text-pequena file:font-extrabold file:text-cac-navy hover:file:brightness-95"

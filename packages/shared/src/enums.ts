@@ -179,6 +179,7 @@ export const ConnectionTargetType = {
   SUCCESS_CASE: 'SUCCESS_CASE',
   CHALLENGE: 'CHALLENGE',
   ORGANIZATION: 'ORGANIZATION',
+  FUNDER: 'FUNDER',
 } as const;
 export type ConnectionTargetType = (typeof ConnectionTargetType)[keyof typeof ConnectionTargetType];
 

@@ -12,11 +12,16 @@ import {
 import { Modal } from '../../components/Modal';
 import { useModalState } from '../../components/useModalState';
 import { RegionCountryFields } from '../../components/forms/RegionCountryFields';
+import { resolveMediaUrl } from '../../components/forms/RepresentativeImageField';
 import { SelectField } from '../../components/forms/FormPage';
 
 type FunderDraft = {
   name: string;
   summary: string;
+  website: string;
+  interestAreas: string;
+  contactName: string;
+  contactEmail: string;
   country: string;
   region: string;
   organizationId: string;
@@ -26,6 +31,10 @@ type FunderDraft = {
 const emptyDraft = (): FunderDraft => ({
   name: '',
   summary: '',
+  website: '',
+  interestAreas: '',
+  contactName: '',
+  contactEmail: '',
   country: '',
   region: '',
   organizationId: '',
@@ -36,6 +45,10 @@ function toDraft(item: AdminFunder): FunderDraft {
   return {
     name: item.name,
     summary: item.summary,
+    website: item.website ?? '',
+    interestAreas: item.interestAreas ?? '',
+    contactName: item.contactName ?? '',
+    contactEmail: item.contactEmail ?? '',
     country: item.country ?? '',
     region: item.region ?? '',
     organizationId: item.organizationId ?? '',
@@ -51,6 +64,7 @@ export function AdminFundersPage() {
   const [items, setItems] = useState<AdminFunder[]>([]);
   const [orgs, setOrgs] = useState<AdminOrganization[]>([]);
   const [draft, setDraft] = useState<FunderDraft>(emptyDraft);
+  const [logoFile, setLogoFile] = useState<File | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
   const [message, setMessage] = useState('');
@@ -72,9 +86,11 @@ export function AdminFundersPage() {
   useEffect(() => {
     if (!modal.open) {
       setDraft(emptyDraft());
+      setLogoFile(null);
       setError('');
       return;
     }
+    setLogoFile(null);
     setDraft(modal.mode === 'create' || !modal.item ? emptyDraft() : toDraft(modal.item));
   }, [modal.open, modal.mode, modal.item]);
 
@@ -86,13 +102,27 @@ export function AdminFundersPage() {
 
   async function onSave() {
     if (!accessToken) return;
-    if (draft.name.trim().length < 2 || draft.summary.trim().length < 10 || draft.country.length !== 2 || draft.region.trim().length < 2) {
+    if (
+      draft.name.trim().length < 2 ||
+      draft.summary.trim().length < 10 ||
+      draft.interestAreas.trim().length < 10 ||
+      draft.contactName.trim().length < 2 ||
+      !draft.contactEmail.includes('@') ||
+      !/^https?:\/\/.+/i.test(draft.website.trim()) ||
+      draft.country.length !== 2 ||
+      draft.region.trim().length < 2 ||
+      ((modal.mode === 'create' || !modal.item?.logoUrl) && !logoFile)
+    ) {
       setError(t('admin.fundersFormRequired'));
       return;
     }
     const body: FunderWriteBody = {
       name: draft.name.trim(),
       summary: draft.summary.trim(),
+      website: draft.website.trim(),
+      interestAreas: draft.interestAreas.trim(),
+      contactName: draft.contactName.trim(),
+      contactEmail: draft.contactEmail.trim(),
       country: draft.country,
       region: draft.region,
       organizationId: draft.organizationId || null,
@@ -101,13 +131,14 @@ export function AdminFundersPage() {
     setBusy(true);
     setError('');
     try {
-      if (modal.mode === 'create') {
-        await catalogApi.createFunder(accessToken, body);
-        setMessage(t('admin.fundersCreated'));
-      } else if (modal.item) {
-        await catalogApi.updateFunder(accessToken, modal.item.id, body);
-        setMessage(t('admin.fundersUpdated'));
-      }
+      const saved =
+        modal.mode === 'create'
+          ? await catalogApi.createFunder(accessToken, body)
+          : modal.item
+            ? await catalogApi.updateFunder(accessToken, modal.item.id, body)
+            : null;
+      if (saved && logoFile) await catalogApi.uploadFunderLogo(accessToken, saved.funder.id, logoFile);
+      setMessage(modal.mode === 'create' ? t('admin.fundersCreated') : t('admin.fundersUpdated'));
       modal.close();
       await load();
     } catch (err) {
@@ -252,9 +283,33 @@ export function AdminFundersPage() {
               <dt className="text-mini font-extrabold uppercase tracking-wide text-cac-muted">{t('admin.fundersName')}</dt>
               <dd className="font-bold text-cac-navy">{modal.item.name}</dd>
             </div>
+            {resolveMediaUrl(modal.item.logoUrl) ? (
+              <div>
+                <dt className="text-mini font-extrabold uppercase tracking-wide text-cac-muted">{t('admin.fundersLogo')}</dt>
+                <dd className="mt-2">
+                  <img src={resolveMediaUrl(modal.item.logoUrl)!} alt="" className="h-16 w-16 rounded-xl object-contain" />
+                </dd>
+              </div>
+            ) : null}
             <div>
               <dt className="text-mini font-extrabold uppercase tracking-wide text-cac-muted">{t('admin.fundersSummary')}</dt>
               <dd className="text-cac-navy">{modal.item.summary}</dd>
+            </div>
+            <div>
+              <dt className="text-mini font-extrabold uppercase tracking-wide text-cac-muted">{t('admin.fundersInterest')}</dt>
+              <dd className="text-cac-navy">{modal.item.interestAreas || '—'}</dd>
+            </div>
+            <div>
+              <dt className="text-mini font-extrabold uppercase tracking-wide text-cac-muted">{t('admin.fundersWebsite')}</dt>
+              <dd className="text-cac-navy">{modal.item.website || '—'}</dd>
+            </div>
+            <div>
+              <dt className="text-mini font-extrabold uppercase tracking-wide text-cac-muted">{t('admin.fundersContactName')}</dt>
+              <dd className="text-cac-navy">{modal.item.contactName || '—'}</dd>
+            </div>
+            <div>
+              <dt className="text-mini font-extrabold uppercase tracking-wide text-cac-muted">{t('admin.fundersContactEmail')}</dt>
+              <dd className="text-cac-navy">{modal.item.contactEmail || '—'}</dd>
             </div>
             <div>
               <dt className="text-mini font-extrabold uppercase tracking-wide text-cac-muted">{t('admin.fundersStatus')}</dt>
@@ -276,6 +331,31 @@ export function AdminFundersPage() {
             />
             <label className="flex w-full flex-col gap-1">
               <span className="block text-mini font-extrabold uppercase tracking-[0.4px] text-cac-muted">
+                {t('admin.fundersLogo')}
+              </span>
+              <span className="text-mini leading-snug text-cac-muted">{t('admin.fundersLogoHint')}</span>
+              {resolveMediaUrl(modal.item?.logoUrl) && !logoFile ? (
+                <img src={resolveMediaUrl(modal.item?.logoUrl)!} alt="" className="h-16 w-16 rounded-xl object-contain" />
+              ) : null}
+              <input
+                type="file"
+                accept="image/jpeg,image/png,image/webp"
+                disabled={busy}
+                onChange={(e) => setLogoFile(e.target.files?.[0] ?? null)}
+                className="text-pequena text-cac-navy"
+              />
+            </label>
+            <Input
+              label={t('admin.fundersWebsite')}
+              hint={t('admin.fundersWebsiteHint')}
+              value={draft.website}
+              onChange={(e) => setDraft((d) => ({ ...d, website: e.target.value }))}
+              required
+              disabled={busy}
+              placeholder="https://"
+            />
+            <label className="flex w-full flex-col gap-1">
+              <span className="block text-mini font-extrabold uppercase tracking-[0.4px] text-cac-muted">
                 {t('admin.fundersSummary')}
               </span>
               <span className="text-mini leading-snug text-cac-muted">{t('admin.fundersSummaryHint')}</span>
@@ -288,13 +368,42 @@ export function AdminFundersPage() {
                 className="rounded-xl border border-cac-line bg-white px-3.5 py-2.5 text-media text-cac-navy"
               />
             </label>
+            <label className="flex w-full flex-col gap-1">
+              <span className="block text-mini font-extrabold uppercase tracking-[0.4px] text-cac-muted">
+                {t('admin.fundersInterest')}
+              </span>
+              <span className="text-mini leading-snug text-cac-muted">{t('admin.fundersInterestHint')}</span>
+              <textarea
+                value={draft.interestAreas}
+                onChange={(e) => setDraft((d) => ({ ...d, interestAreas: e.target.value }))}
+                required
+                disabled={busy}
+                rows={4}
+                className="rounded-xl border border-cac-line bg-white px-3.5 py-2.5 text-media text-cac-navy"
+              />
+            </label>
+            <Input
+              label={t('admin.fundersContactName')}
+              value={draft.contactName}
+              onChange={(e) => setDraft((d) => ({ ...d, contactName: e.target.value }))}
+              required
+              disabled={busy}
+            />
+            <Input
+              label={t('admin.fundersContactEmail')}
+              type="email"
+              value={draft.contactEmail}
+              onChange={(e) => setDraft((d) => ({ ...d, contactEmail: e.target.value }))}
+              required
+              disabled={busy}
+            />
             <RegionCountryFields
               region={draft.region}
               country={draft.country}
               onRegionChange={(region) => setDraft((d) => ({ ...d, region }))}
               onCountryChange={(country) => setDraft((d) => ({ ...d, country }))}
-              regionLabel={t('catalog.originRegion')}
-              countryLabel={t('catalog.originCountry')}
+              regionLabel={t('admin.fundersRegion')}
+              countryLabel={t('admin.fundersCountry')}
             />
             <SelectField
               label={t('admin.fundersOrg')}

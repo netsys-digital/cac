@@ -102,6 +102,23 @@ async function resolveTargetOrg(targetType: string, targetId: string): Promise<{
         contactEmails: item.organization.members.map((m) => m.user.email),
       };
     }
+    case ConnectionTargetType.FUNDER: {
+      const item = await prisma.funderProfile.findUnique({
+        where: { id: targetId },
+        include: {
+          organization: { include: { members: { include: { user: true }, take: 5 } } },
+        },
+      });
+      if (!item || item.status !== 'PUBLISHED') throw notFound();
+      if (!item.organizationId || !item.organization) {
+        throw Object.assign(new Error('target_without_org'), { status: 400 });
+      }
+      return {
+        targetOrgId: item.organizationId,
+        targetLabel: item.name,
+        contactEmails: item.organization.members.map((m) => m.user.email),
+      };
+    }
     default:
       throw Object.assign(new Error('unsupported_target_type'), { status: 400 });
   }

@@ -14,6 +14,7 @@ function mapConnError(code: string, t: (key: string) => string) {
   if (code === 'forbidden_org') return t('conn.forbiddenOrg');
   if (code === 'same_org') return t('conn.sameOrg');
   if (code === 'not_found') return t('conn.targetNotFound');
+  if (code === 'target_without_org') return t('conn.targetWithoutOrg');
   return code || t('conn.error');
 }
 

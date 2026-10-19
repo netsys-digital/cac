@@ -541,12 +541,13 @@ adminRouter.get('/pending', async (req, res, next) => {
     const where = rawStatus === 'ALL' ? {} : { status: rawStatus as CurationStatus };
     const orderBy = rawStatus === 'IN_REVIEW' ? ({ updatedAt: 'asc' } as const) : ({ updatedAt: 'desc' } as const);
     const take = rawStatus === 'IN_REVIEW' ? undefined : 200;
-    const [technologies, challenges, projects, fundingOffers, successCases] = await Promise.all([
+    const [technologies, challenges, projects, fundingOffers, successCases, funders] = await Promise.all([
       prisma.technology.findMany({ where, include: { organization: true }, orderBy, take }),
       prisma.challenge.findMany({ where, include: { organization: true }, orderBy, take }),
       prisma.project.findMany({ where, include: { organization: true }, orderBy, take }),
       prisma.fundingOffer.findMany({ where, include: { organization: true }, orderBy, take }),
       prisma.successCase.findMany({ where, include: { organization: true }, orderBy, take }),
+      prisma.funderProfile.findMany({ where, include: { organization: true }, orderBy, take }),
     ]);
     const items = [
       ...technologies.map((t) => ({
@@ -614,6 +615,19 @@ adminRouter.get('/pending', async (req, res, next) => {
         organization: s.organization,
         updatedAt: s.updatedAt,
       })),
+      ...funders.map((f) => ({
+        kind: 'FUNDER' as const,
+        id: f.id,
+        title: f.name,
+        slug: f.slug,
+        summary: f.summary,
+        country: f.country,
+        region: f.region,
+        status: f.status,
+        curationNote: f.curationNote,
+        organization: f.organization,
+        updatedAt: f.updatedAt,
+      })),
     ].sort((a, b) =>
       rawStatus === 'IN_REVIEW'
         ? a.updatedAt.getTime() - b.updatedAt.getTime()
@@ -639,6 +653,8 @@ function curationKindToEntity(kind: string): TranslationEntityType | null {
       return 'funding_offer';
     case 'SUCCESS_CASE':
       return 'success_case';
+    case 'FUNDER':
+      return 'funder';
     default:
       return null;
   }
@@ -689,6 +705,12 @@ async function applyCurationDecision(
     const current = await prisma.successCase.findUnique({ where: { id } });
     if (!current || current.status !== 'IN_REVIEW') return { error: 'invalid_status' as const };
     const item = await prisma.successCase.update({ where: { id }, data });
+    return { item, kind };
+  }
+  if (kind === 'FUNDER') {
+    const current = await prisma.funderProfile.findUnique({ where: { id } });
+    if (!current || current.status !== 'IN_REVIEW') return { error: 'invalid_status' as const };
+    const item = await prisma.funderProfile.update({ where: { id }, data });
     return { item, kind };
   }
   return { error: 'unsupported_kind' as const };
