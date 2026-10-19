@@ -29,6 +29,7 @@ import { urls } from '../../config';
 import { resolveMediaUrl } from '../lib/mediaUrl';
 import { resolveDetailBanner } from '../lib/detailBanner';
 import { RichText } from '../lib/richText';
+import { ApplicationPlacesMap } from '../components/ApplicationPlacesMap';
 
 function labelOrRaw(value: string | null | undefined, map: Record<string, string>) {
   if (!value) return null;
@@ -120,13 +121,6 @@ export function TechnologyDetailPage() {
           <>
             {item.region ? <DetailHeroChip>{item.region}</DetailHeroChip> : null}
             {item.country ? <DetailHeroChip>{item.country}</DetailHeroChip> : null}
-            {item.applicationPlaces?.map((place) => (
-              <DetailHeroChip key={place.country}>
-                {t('detail.appliedIn', {
-                  country: new Intl.DisplayNames([i18n.language], { type: 'region' }).of(place.country) ?? place.country,
-                })}
-              </DetailHeroChip>
-            ))}
             {climate ? <DetailHeroChip>{climate}</DetailHeroChip> : null}
             {maturity ? <DetailHeroChip>{maturity}</DetailHeroChip> : null}
           </>
@@ -200,6 +194,11 @@ export function TechnologyDetailPage() {
                 </li>
               </ul>
             </DetailSection>
+            {item.applicationPlaces?.length ? (
+              <div className="py-7">
+                <ApplicationPlacesMap places={item.applicationPlaces} />
+              </div>
+            ) : null}
           </article>
 
           <aside className="cac-fade-up-delay-2 space-y-4">
