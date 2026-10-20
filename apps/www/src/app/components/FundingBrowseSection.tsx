@@ -14,6 +14,7 @@ import {
   useUrlPageState,
 } from '../search/urlState';
 import { BackLink } from './BackLink';
+import { FunderLogo } from './FunderLogo';
 import { urls } from '../../config';
 
 const PAGE_SIZE = 9;
@@ -318,12 +319,6 @@ export function FundingBrowseSection() {
         ) : null}
       </div>
 
-      {tab === 'directory' ? (
-        <div className="mt-4 rounded-[12px] border border-amber-200 bg-amber-50 px-3 py-2 text-pequena text-amber-900">
-          {t('funding.directoryWarning')}
-        </div>
-      ) : null}
-
       <div className="mt-7 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <h2 className="text-grande font-bold tracking-[-0.4px] text-cac-navy">
@@ -459,44 +454,43 @@ export function FundingBrowseSection() {
                 </Link>
               );
             })
-          : (pageItems as FunderProfile[]).map((funder) => (
-              <Link
-                key={funder.id}
-                to={`/funders/${funder.slug}`}
-                className={`group flex h-full flex-col rounded-[16px] border border-cac-line bg-white p-4 shadow-[0_14px_38px_rgba(10,36,64,.08)] transition hover:-translate-y-0.5 hover:border-cac-green/35 ${
-                  view === 'list' ? 'sm:flex-row sm:items-start sm:gap-4' : ''
-                }`}
-              >
-                <div className="min-w-0 flex-1">
-                  {resolveMediaUrl(funder.logoUrl) ? (
-                    <img
-                      src={resolveMediaUrl(funder.logoUrl)!}
-                      alt=""
-                      className="mb-3 h-14 w-14 rounded-xl border border-cac-line bg-white object-contain p-1"
-                    />
+          : (pageItems as FunderProfile[]).map((funder) => {
+              const logo = resolveMediaUrl(funder.logoUrl);
+              return (
+                <Link
+                  key={funder.id}
+                  to={`/funders/${funder.slug}`}
+                  className={`group flex h-full flex-col rounded-[16px] border border-cac-line bg-white p-4 shadow-[0_14px_38px_rgba(10,36,64,.08)] transition hover:-translate-y-0.5 hover:border-cac-green/35 ${
+                    view === 'list' ? 'sm:flex-row sm:items-start sm:gap-4' : ''
+                  }`}
+                >
+                  {logo ? (
+                    <FunderLogo src={logo} className={view === 'list' ? 'mb-3 sm:mb-0' : 'mb-3'} />
                   ) : null}
-                  <h3 className="text-media font-bold text-cac-navy group-hover:text-cac-green">{funder.name}</h3>
-                  <p className="mt-2 line-clamp-3 text-pequena leading-relaxed text-cac-muted">{plainText(funder.summary)}</p>
-                  <div className="mt-3 flex flex-wrap gap-x-4 gap-y-1.5 text-mini text-cac-muted">
-                    {funder.country ? (
-                      <span className="inline-flex items-center gap-1.5">
-                        <i className="fa-solid fa-location-dot text-cac-green" aria-hidden />
-                        {countryLabel(funder.country)}
-                      </span>
-                    ) : null}
-                    {funder.region ? (
-                      <span className="inline-flex items-center gap-1.5">
-                        <i className="fa-solid fa-globe text-cac-green" aria-hidden />
-                        {regionLabel(funder.region)}
-                      </span>
+                  <div className="min-w-0 flex-1">
+                    <h3 className="text-media font-bold text-cac-navy group-hover:text-cac-green">{funder.name}</h3>
+                    <p className="mt-2 line-clamp-3 text-pequena leading-relaxed text-cac-muted">{plainText(funder.summary)}</p>
+                    <div className="mt-3 flex flex-wrap gap-x-4 gap-y-1.5 text-mini text-cac-muted">
+                      {funder.country ? (
+                        <span className="inline-flex items-center gap-1.5">
+                          <i className="fa-solid fa-location-dot text-cac-green" aria-hidden />
+                          {countryLabel(funder.country)}
+                        </span>
+                      ) : null}
+                      {funder.region ? (
+                        <span className="inline-flex items-center gap-1.5">
+                          <i className="fa-solid fa-globe text-cac-green" aria-hidden />
+                          {regionLabel(funder.region)}
+                        </span>
+                      ) : null}
+                    </div>
+                    {funder.organization ? (
+                      <p className="mt-2 text-mini font-bold text-cac-green">{funder.organization.name}</p>
                     ) : null}
                   </div>
-                  {funder.organization ? (
-                    <p className="mt-2 text-mini font-bold text-cac-green">{funder.organization.name}</p>
-                  ) : null}
-                </div>
-              </Link>
-            ))}
+                </Link>
+              );
+            })}
       </div>
 
       {!loading && !pageItems.length ? (

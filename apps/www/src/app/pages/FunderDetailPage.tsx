@@ -18,6 +18,7 @@ import { DetailGuestAuthHint } from '../components/DetailGuestAuthHint';
 import { BackLink } from '../components/BackLink';
 import { shell } from '../components/PageChrome';
 import { urls } from '../../config';
+import { FunderLogo } from '../components/FunderLogo';
 import { resolveMediaUrl } from '../lib/mediaUrl';
 import { RichText } from '../lib/richText';
 
@@ -109,13 +110,6 @@ export function FunderDetailPage() {
         <div className="grid gap-6 lg:grid-cols-[minmax(0,1.45fr)_minmax(260px,0.7fr)] lg:gap-8">
           <article className="cac-fade-up rounded-[18px] border border-cac-line bg-white px-5 py-2 shadow-[0_16px_40px_rgba(10,36,64,.07)] md:px-8">
             <DetailSection title={t('funding.detailAbout')} index="01">
-              {resolveMediaUrl(item.logoUrl) ? (
-                <img
-                  src={resolveMediaUrl(item.logoUrl)!}
-                  alt=""
-                  className="mb-4 h-20 w-20 rounded-2xl border border-cac-line bg-white object-contain p-2"
-                />
-              ) : null}
               <RichText text={item.summary} />
             </DetailSection>
             {item.interestAreas ? (
@@ -153,6 +147,9 @@ export function FunderDetailPage() {
           </article>
 
           <aside className="cac-fade-up-delay-2 space-y-4">
+            {resolveMediaUrl(item.logoUrl) ? (
+              <FunderLogo src={resolveMediaUrl(item.logoUrl)!} size="banner" />
+            ) : null}
             {item.organization ? (
               <DetailOrgCard
                 to={`/organizations/${item.organization.slug}`}

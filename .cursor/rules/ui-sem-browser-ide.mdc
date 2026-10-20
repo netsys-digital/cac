@@ -1,0 +1,11 @@
+---
+description: UI segue o protótipo consolidado; não abrir o navegador da IDE
+alwaysApply: true
+---
+
+# UI e navegador
+
+- Ao criar componentes e elementos gráficos, usar como referência o protótipo consolidado já existente no projeto (layout, componentes, tokens e padrões visuais atuais).
+- Não abrir o navegador interno da IDE para subir ou exercitar o ambiente. Isso só aumenta o uso da IA.
+- O usuário abre o ambiente no navegador manualmente quando precisar.
+- Não iniciar servidor local só para verificação visual, salvo pedido explícito do usuário.
